@@ -5,6 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "flask>=3.1.2",
-    "requests>=2.32.5",
+    "flask==2.3.3",
+    "flask-cors==4.0.0",
+    "flask-jwt-extended==4.5.2",
+    "flask-sqlalchemy==3.0.5",
+    "psycopg2-binary==2.9.9",
+    "python-dotenv==1.0.0",
+    "requests==2.31.0",
 ]

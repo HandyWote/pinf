@@ -1,6 +1,6 @@
 # 早护通后端API服务
 
-早护通是一个专为婴幼儿护理设计的综合服务平台，提供用户认证、儿童管理、内容管理、预约管理和聊天功能。
+早护通是一个专为婴幼儿护理设计的综合服务平台，提供用户认证、宝宝管理、内容管理、预约管理和聊天（转发 n8n）功能。
 
 ## 📋 目录
 
@@ -23,7 +23,7 @@
 ## 🛠 技术栈
 
 - **框架**: Flask 2.3.3
-- **数据库**: SQLite (开发) / PostgreSQL (生产推荐)
+- **数据库**: PostgreSQL（开发也推荐），`db.create_all()` 初始化
 - **认证**: Flask-JWT-Extended
 - **跨域**: Flask-CORS
 - **ORM**: Flask-SQLAlchemy
@@ -32,30 +32,27 @@
 
 ## 📦 功能模块
 
-### 1. 用户认证模块 (`/api/auth`)
-- 微信小程序登录
-- JWT Token管理
-- 用户信息管理
+> 状态：下列模块已按新路由实现，测试覆盖尚未补充自动化用例。
 
-### 2. 儿童管理模块 (`/api/child`)
-- 儿童信息CRUD
-- 成长记录管理
-- 健康数据追踪
+### 1. 用户认证模块 (`/api/auth`)
+- 手机验证码登录（mock 短信），可选微信登录
+- JWT Token 管理
+
+### 2. 宝宝管理模块 (`/api/babies`)
+- 宝宝档案 CRUD
+- 成长记录管理 `/api/babies/<id>/growth`
 
 ### 3. 内容管理模块 (`/api/content`)
-- 育儿视频管理
-- 育儿文章管理
-- 内容搜索功能
+- 视频/文章列表与详情
+- 搜索、分类筛选
 
-### 4. 预约管理模块 (`/api/appointment`)
-- 医疗预约创建
-- 预约状态管理
-- 预约历史查询
+### 4. 预约管理模块 (`/api/appointments`)
+- 医疗预约创建/更新/删除
+- 状态更新、提醒时间
 
 ### 5. 聊天管理模块 (`/api/chat`)
-- 在线咨询功能
-- 消息历史记录
-- 实时通信支持
+- `/chat/send` 转发 n8n webhook
+- 历史分页、按宝宝过滤、清空
 
 ## ⚡ 快速开始
 
@@ -70,7 +67,7 @@
 
 ```bash
 git clone <repository-url>
-cd babysittingCareBackEnd
+cd babysittingCareBackEnd/backend
 ```
 
 ## 💻 本地开发
@@ -95,22 +92,22 @@ pip install -r requirements.txt
 
 ### 3. 环境配置
 
-创建 `.env` 文件（可选）：
+创建 `.env` 文件（必填敏感变量）：
 
 ```env
 # 基础配置
-SECRET_KEY=your-secret-key-here
-JWT_SECRET_KEY=your-jwt-secret-key
+SECRET_KEY=your-secret-key
+JWT_SECRET_KEY=your-jwt-secret
 
-# 数据库配置
-DATABASE_URL=sqlite:///database.db
+# 数据库配置（PostgreSQL 推荐）
+DATABASE_URL=postgresql://user:password@localhost:5432/waend
 
-# 微信小程序配置
+# n8n 配置
+N8N_WEBHOOK_URL=https://your-n8n.example.com/webhook/waend
+
+# 微信小程序配置（可选）
 WECHAT_APP_ID=your-wechat-app-id
 WECHAT_APP_SECRET=your-wechat-app-secret
-
-# 环境设置
-FLASK_ENV=development
 ```
 
 ### 4. 启动开发服务器
@@ -146,6 +143,8 @@ docker run -p 5010:5000 babysitting-backend
 docker run -p 5010:5000 \
   -e SECRET_KEY=your-secret-key \
   -e JWT_SECRET_KEY=your-jwt-secret \
+  -e DATABASE_URL=postgresql://user:password@postgres:5432/waend \
+  -e N8N_WEBHOOK_URL=https://your-n8n.example.com/webhook/waend \
   -e WECHAT_APP_ID=your-app-id \
   -e WECHAT_APP_SECRET=your-app-secret \
   babysitting-backend
@@ -166,6 +165,8 @@ services:
     environment:
       - SECRET_KEY=your-secret-key-here
       - JWT_SECRET_KEY=your-jwt-secret-key
+      - DATABASE_URL=postgresql://user:password@postgres:5432/waend
+      - N8N_WEBHOOK_URL=https://your-n8n.example.com/webhook/waend
       - WECHAT_APP_ID=your-wechat-app-id
       - WECHAT_APP_SECRET=your-wechat-app-secret
       - FLASK_ENV=production
@@ -314,16 +315,19 @@ sudo certbot --nginx -d your-domain.com
 
 | 模块 | 接口 | 方法 | 描述 |
 |------|------|------|------|
-| 认证 | `/api/login` | POST | 微信登录 |
-| 认证 | `/api/register` | POST | 用户注册 |
-| 儿童 | `/api/addChild` | POST | 添加儿童 |
-| 儿童 | `/api/getChildren` | GET | 获取儿童列表 |
-| 内容 | `/api/getVideos` | GET | 获取视频列表 |
-| 内容 | `/api/searchContent` | GET | 搜索内容 |
-| 预约 | `/api/addAppointment` | POST | 创建预约 |
-| 预约 | `/api/getAppointments` | GET | 获取预约列表 |
-| 聊天 | `/api/sendMessage` | POST | 发送消息 |
-| 聊天 | `/api/getChatHistory` | GET | 获取聊天历史 |
+| 认证 | `/api/auth/phone/login` | POST | 手机验证码登录（mock） |
+| 认证 | `/api/auth/wechat` | POST | 微信登录（可选） |
+| 宝宝 | `/api/babies` | GET/POST | 列表、创建宝宝 |
+| 宝宝 | `/api/babies/<id>` | GET/PUT/DELETE | 详情、更新、删除 |
+| 成长 | `/api/babies/<id>/growth` | GET/POST | 成长记录查询、创建 |
+| 成长 | `/api/growth/<id>` | PUT/DELETE | 更新、删除成长记录 |
+| 内容 | `/api/content/videos` | GET | 视频列表（支持搜索/分类） |
+| 内容 | `/api/content/articles` | GET | 文章列表（支持搜索/分类） |
+| 预约 | `/api/appointments` | GET/POST | 预约列表、创建 |
+| 预约 | `/api/appointments/<id>` | PUT/DELETE | 更新、删除预约 |
+| 预约 | `/api/appointments/<id>/status` | PATCH | 更新预约状态 |
+| 聊天 | `/api/chat/send` | POST | 发送消息并转发 n8n |
+| 聊天 | `/api/chat/history` | GET/DELETE | 历史分页、清空 |
 
 ## ⚙️ 环境配置
 
@@ -333,7 +337,7 @@ sudo certbot --nginx -d your-domain.com
 FLASK_ENV=development
 SECRET_KEY=dev-secret-key
 JWT_SECRET_KEY=dev-jwt-secret
-DATABASE_URL=sqlite:///database.db
+DATABASE_URL=postgresql://user:password@localhost:5432/waend
 ```
 
 ### 生产环境
@@ -342,7 +346,8 @@ DATABASE_URL=sqlite:///database.db
 FLASK_ENV=production
 SECRET_KEY=strong-random-secret-key
 JWT_SECRET_KEY=strong-random-jwt-secret
-DATABASE_URL=postgresql://user:password@localhost/babysitting
+DATABASE_URL=postgresql://user:password@localhost/waend
+N8N_WEBHOOK_URL=https://your-n8n.example.com/webhook/waend
 WECHAT_APP_ID=your-production-app-id
 WECHAT_APP_SECRET=your-production-app-secret
 ```
@@ -382,13 +387,13 @@ docker build -f backend.dockerfile -t babysitting-backend .
 
 ### Q2: 数据库连接失败
 
-**问题**: SQLite数据库文件权限问题
+**问题**: PostgreSQL 连接失败
 
-**解决**: 确保instance目录有写权限
+**解决**: 确认连接串正确且数据库服务已启动
 
 ```bash
-mkdir -p instance
-chmod 755 instance
+# 测试连接
+psql "postgresql://user:password@localhost:5432/waend" -c "select 1;"
 ```
 
 ### Q3: 微信登录失败

@@ -1,0 +1,33 @@
+import time
+import requests
+from flask import current_app
+
+
+class N8nClientError(Exception):
+    """n8n 调用错误。"""
+
+
+def send_to_n8n(payload, timeout=15, retry=1):
+    """调用 n8n webhook，返回 (data, error_message)。"""
+
+    webhook_url = current_app.config.get("N8N_WEBHOOK_URL")
+    if not webhook_url:
+        return None, "N8N_WEBHOOK_URL 未配置"
+
+    last_exc = None
+    for attempt in range(retry + 1):
+        try:
+            response = requests.post(webhook_url, json=payload, timeout=timeout)
+            if response.status_code >= 400:
+                return None, f"n8n 返回错误状态码: {response.status_code}"
+            try:
+                return response.json(), None
+            except ValueError:
+                return None, "n8n 响应格式错误"
+        except requests.RequestException as exc:
+            last_exc = exc
+            if attempt < retry:
+                time.sleep(0.5)
+            else:
+                return None, f"调用 n8n 失败: {exc}"
+    return None, f"调用 n8n 失败: {last_exc}"  # 理论上不会到达

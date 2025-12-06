@@ -4,7 +4,8 @@ db = SQLAlchemy()
 
 # 导入所有模型
 from .user import User
-from .child import Child, GrowthRecord
+from .baby import Baby
+from .growth import GrowthRecord
 from .content import Video, Article
 from .appointment import Appointment
 from .chat import ChatMessage

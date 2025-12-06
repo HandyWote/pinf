@@ -1,0 +1,49 @@
+<!-- pages/appointment-setting/appointment-setting.wxml -->
+<view class="container">
+  <view class="form-title">{{isEdit ? '编辑复诊提醒' : '添加复诊提醒'}}</view>
+  
+  <view class="form-group" style="width: 633rpx; display: block; box-sizing: border-box; height: 944rpx">
+    <view class="input-group">
+      <text class="label">医院名称</text>
+      <input class="input" type="text" placeholder="请输入医院名称" value="{{appointmentInfo.hospitalName}}" bindinput="onHospitalNameInput"/>
+    </view>
+
+    <view class="input-group">
+      <text class="label">科室</text>
+      <input class="input" type="text" placeholder="请输入科室名称" value="{{appointmentInfo.department}}" bindinput="onDepartmentInput"/>
+    </view>
+
+    <view class="input-group">
+      <text class="label">复诊日期</text>
+      <picker mode="date" value="{{appointmentInfo.appointmentDate}}" bindchange="onDateChange" start="{{minDate}}">
+        <view class="picker {{appointmentInfo.appointmentDate ? '' : 'placeholder'}}">
+          {{appointmentInfo.appointmentDate || '请选择复诊日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="input-group">
+      <text class="label">提前提醒天数</text>
+      <picker mode="selector" range="{{reminderDaysOptions}}" value="{{reminderDaysIndex}}" bindchange="onReminderDaysChange">
+        <view class="picker">
+          {{reminderDaysOptions[reminderDaysIndex]}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="input-group">
+      <text class="label">备注</text>
+      <textarea class="textarea" placeholder="请输入备注信息（选填）" value="{{appointmentInfo.notes}}" bindinput="onNotesInput" style="height: 202rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx"></textarea>
+    </view>
+  </view>
+
+  <view class="subscription-tip">
+    <view class="tip-icon"></view>
+    <view class="tip-text">保存后可开启订阅消息提醒，不错过复诊时间</view>
+  </view>
+
+  <view class="button-group">
+    <button class="cancel-btn" bindtap="navigateBack">取消</button>
+    <button class="save-btn" bindtap="saveAppointment">保存</button>
+  </view>
+</view>

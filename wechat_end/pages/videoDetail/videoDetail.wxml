@@ -1,0 +1,50 @@
+<view class="container">
+  <!-- 加载中状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading">加载中...</view>
+  </view>
+  
+  <!-- 错误状态 -->
+  <view class="error-container" wx:elif="{{error}}">
+    <view class="error-message">加载失败，请重试</view>
+    <button class="retry-btn" bindtap="fetchVideoDetail" data-id="{{id}}">重新加载</button>
+  </view>
+  
+  <!-- 视频内容 -->
+  <view class="video-container" wx:elif="{{videoInfo}}">
+    <view class="video-title">{{videoInfo.title}}</view>
+    
+    <video 
+      class="video-player"
+      src="{{videoInfo.videoUrl}}"
+      poster="{{videoInfo.coverUrl}}"
+      controls
+      autoplay="{{false}}"
+      binderror="videoErrorCallback"
+    ></video>
+    
+    <view class="video-info">
+      <view class="video-author">讲师: {{videoInfo.author || '未知'}}</view>
+      <view class="video-date">发布时间: {{videoInfo.publishDate || '未知'}}</view>
+    </view>
+    
+    <view class="video-description">
+      <text>{{videoInfo.description || '暂无简介'}}</text>
+    </view>
+    
+    <!-- 相关推荐 -->
+    <view class="related-videos" wx:if="{{videoInfo.relatedVideos && videoInfo.relatedVideos.length > 0}}">
+      <view class="section-title">相关推荐</view>
+      <view class="related-list">
+        <view class="related-item" 
+              wx:for="{{videoInfo.relatedVideos}}" 
+              wx:key="id" 
+              bindtap="fetchVideoDetail" 
+              data-id="{{item.id}}">
+          <image class="related-cover" src="{{item.cover}}" mode="aspectFill"></image>
+          <view class="related-title">{{item.title}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,95 @@
+.container {
+  padding: 20rpx;
+}
+
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.loading {
+  color: #999;
+  font-size: 28rpx;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.retry-btn {
+  background-color: #1890ff;
+  color: white;
+  font-size: 28rpx;
+  padding: 10rpx 30rpx;
+  border-radius: 8rpx;
+}
+
+.video-container {
+  width: 100%;
+}
+
+.video-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.video-player {
+  width: 100%;
+  height: 422rpx;
+}
+
+.video-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 20rpx 0;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.video-description {
+  background-color: #f5f5f5;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin: 30rpx 0 20rpx;
+}
+
+.related-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.related-item {
+  width: 48%;
+  margin-bottom: 20rpx;
+}
+
+.related-cover {
+  width: 100%;
+  height: 200rpx;
+  border-radius: 8rpx;
+}
+
+.related-title {
+  font-size: 26rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

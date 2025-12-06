@@ -1,0 +1,56 @@
+# Python相关
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+.env
+.venv
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# 版本控制
+.git
+.gitignore
+
+# IDE和编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 测试和代码质量
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 文档文件
+*.md
+API测试指南.md
+后端api(1).md
+README.md
+
+# 部署相关
+deploy.bat
+deploy.sh
+docker-compose.yml
+Dockerfile
+
+# 临时文件
+*.tmp
+*.temp

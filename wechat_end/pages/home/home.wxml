@@ -1,0 +1,262 @@
+<!-- pages/home/home.wxml -->
+  <view class="container">
+  <!-- 顶部欢迎区域 -->
+  <view class="welcome-section">
+    <view class="welcome-text">
+      <text class="greeting">您好，</text>
+      <text class="user-name">{{userName}}</text>
+    </view>
+    <view class="date-info">{{currentDate}}</view>
+  </view>
+
+  <!-- 宝宝信息卡片 -->
+  
+
+  <!-- 功能区域 - 生长监测 -->
+  <view class="feature-section">
+    <view class="section-title">育儿助手</view>
+    <view class="growth-monitor-container" style="width: 654rpx; display: block; box-sizing: border-box">
+      <!-- 儿童信息选择器 -->
+      <view class="child-selector">
+        <view class="selector-header">
+          <view class="selector-title">选择宝宝</view>
+          <view class="child-management">
+            <view class="add-child-icon" bindtap="navigateToInfoCollection">+</view>
+            <view wx:if="{{childInfo.length > 0}}" class="delete-child-icon" bindtap="showDeleteChildModal">-</view>
+          </view>
+        </view>
+        <scroll-view scroll-x class="child-list" enable-flex="true" style="height: 200rpx; display: flex; box-sizing: border-box; left: 0rpx; top: 0rpx">
+          <view 
+            wx:for="{{childInfo}}" 
+            wx:key="index" 
+            class="child-item {{currentChildIndex === index ? 'active' : ''}}"
+            bindtap="switchChild"
+            data-index="{{index}}">
+            <view class="child-avatar {{item.gender === '男' ? 'boy' : 'girl'}}">
+              {{item.name[0]}}
+            </view>
+            <view class="child-name">{{item.name}}</view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 年龄信息 -->
+      <view class="age-info" style="width: 615rpx; display: flex; box-sizing: border-box; left: 0rpx; top: 0rpx">
+        <view class="age-item">
+          <view class="age-label">实际年龄</view>
+          <view class="age-value">{{actualAgeString}}个月</view>
+        </view>
+        <view class="age-divider"></view>
+        <view class="age-item">
+          <view class="age-label">矫正年龄</view>
+          <view class="age-value">{{correctedAgeString}}个月</view>
+          <view class="age-tip">基于预产期计算</view>
+        </view>
+      </view>
+
+      <!-- 删除宝宝确认对话框 -->
+      <view class="modal-mask" wx:if="{{showDeleteModal}}" bindtap="hideDeleteChildModal"></view>
+      <view class="delete-modal" wx:if="{{showDeleteModal}}">
+        <view class="modal-title">删除宝宝信息</view>
+        <view class="modal-content">确定要删除 {{childInfo[currentChildIndex].name}} 的信息吗？此操作不可恢复。</view>
+        <view class="modal-buttons">
+          <button class="cancel-btn" bindtap="hideDeleteChildModal">取消</button>
+          <button class="confirm-btn" bindtap="deleteChild">确定删除</button>
+        </view>
+      </view>
+
+      <!-- 图表导航按钮 -->
+      <view class="chart-nav-buttons">
+        <view 
+          class="nav-button"
+          bindtap="switchTab"
+          data-tab="height"
+        >
+          <view class="nav-icon height-icon"></view>
+          <view class="nav-text">身高曲线</view>
+        </view>
+
+        <view 
+          class="nav-button"
+          bindtap="switchTab"
+          data-tab="weight"
+        >
+          <view class="nav-icon weight-icon"></view>
+          <view class="nav-text">体重曲线</view>
+        </view>
+        
+        <view 
+          class="nav-button"
+          bindtap="switchTab"
+          data-tab="headCircumference"
+        >
+          <view class="nav-icon head-icon"></view>
+          <view class="nav-text">头围曲线</view>
+        </view>
+      </view>
+
+      <!-- 生长记录提示 -->
+      <view class="growth-record-tip">
+        <view class="tip-icon" style="position: relative; left: -6rpx; top: 15rpx"></view>
+        <view class="tip-text" style="position: relative; left: -22rpx; top: 20rpx">
+            <view>点击上方按钮查看详细生长曲线</view>
+            <view>点击下方按钮添加生长记录</view>
+        </view>
+      </view>
+
+<!-- 在图表导航按钮下方添加 -->
+<view class="add-btn" bindtap="toggleAddForm">
+  <text class="btn-icon">+</text>
+  <text>添加生长记录</text>
+</view>
+
+
+      <!-- 添加记录表单 -->
+      <!-- 添加生长记录表单 -->
+      <view class="add-form-container" wx:if="{{showAddForm}}">
+        <view class="add-form {{showAddForm ? 'show' : ''}}">
+          <view class="form-header">
+            <text class="form-title">添加生长记录</text>
+            <text class="close-btn" bindtap="toggleAddForm">×</text>
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">日期</text>
+            <picker mode="date" value="{{newRecord.date}}" bindchange="onDateChange">
+              <view class="picker">{{newRecord.date || '请选择日期'}}</view>
+            </picker>
+          </view>
+
+          <!-- 年龄类型选择 -->
+          <view class="form-item">
+            <text class="form-label">年龄类型</text>
+            <picker bindchange="onAgeTypeChange" value="{{ageTypeIndex}}" range="{{['月龄', '周龄']}}">
+              <view class="picker">{{['月龄', '周龄'][ageTypeIndex]}}</view>
+            </picker>
+          </view>
+
+          <!-- 月龄输入 -->
+          <view class="form-item" wx:if="{{ageTypeIndex === 0}}">
+            <text class="form-label">月龄 (月)</text>
+            <input type="digit" placeholder="请输入月龄" value="{{newRecord.ageInMonths}}" bindinput="onAgeInMonthsInput" />
+          </view>
+
+          <!-- 周龄输入 -->
+          <view class="form-item" wx:if="{{ageTypeIndex === 1}}">
+            <text class="form-label">周龄 (周)</text>
+            <input type="digit" placeholder="请输入周龄" value="{{newRecord.ageInWeeks}}" bindinput="onAgeInWeeksInput" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">身高 (cm)</text>
+            <input type="digit" value="{{newRecord.height}}" bindinput="onHeightInput" placeholder="请输入身高" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">体重 (kg)</text>
+            <input type="digit" value="{{newRecord.weight}}" bindinput="onWeightInput" placeholder="请输入体重" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">头围 (cm)</text>
+            <input type="digit" value="{{newRecord.headCircumference}}" bindinput="onHeadCircumferenceInput" placeholder="请输入头围" />
+          </view>
+
+          <view class="form-tip">请输入准确的生长数据，不需要全部填写</view>
+
+          <button class="submit-btn" bindtap="addGrowthRecord">保存记录</button>
+        </view>
+      </view>
+      
+      <!-- 历史记录列表 -->
+      <view class="records-list">
+        <view class="list-header">
+          <text class="header-title">历史记录</text>
+          <text class="record-count">共{{mergedRecords.length}}条</text>
+        </view>
+        
+        <view class="empty-tip" wx:if="{{mergedRecords.length === 0}}">
+          暂无记录，请点击上方按钮添加
+        </view>
+        
+        <view class="record-item" wx:for="{{mergedRecords}}" wx:key="date">
+          <view class="record-date">{{item.date}}</view>
+          <view class="record-data">
+            <text wx:if="{{item.ageInMonths !== undefined && item.ageInMonths !== null}}">月龄: {{item.ageInMonths}}月</text>
+            <text wx:if="{{item.height !== undefined && item.height !== null}}">身高: {{item.height}}cm</text>
+            <text wx:if="{{item.weight !== undefined && item.weight !== null}}">体重: {{item.weight}}kg</text>
+            <text wx:if="{{item.headCircumference !== undefined && item.headCircumference !== null}}">头围: {{item.headCircumference}}cm</text>
+          </view>
+          <view class="delete-btn" bindtap="deleteRecordByDate" data-date="{{item.date}}">删除</view>
+        </view>
+      </view>
+    </view>
+
+  <!-- 无宝宝信息提示 -->
+  <view class="no-child-tip" wx:if="{{!hasChild}}">
+    <view class="tip-icon"></view>
+    <view class="tip-text">您还没有添加宝宝信息</view>
+    <button class="add-child-btn" bindtap="navigateToInfoCollection">添加宝宝</button>
+  </view>
+</view>
+  <!-- 育儿知识区域 -->
+  <!-- 复诊提醒区域 -->
+  <view class="appointment-section" style="width: 654rpx; display: block; box-sizing: border-box; margin-bottom: 20rpx;">
+    <view class="section-title">复诊提醒</view>
+    <button class="add-appointment-btn" bindtap="navigateToAppointmentSetting" style="height: 75rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx; width: 615rpx; position: relative">添加预约</button>
+    <view wx:if="{{appointmentList.length === 0}}">
+      <view class="no-appointment-tip">
+        <view class="tip-icon appointment-icon"></view>
+        <view class="tip-text">暂无复诊提醒</view>
+      </view>
+    </view>
+    <scroll-view scroll-x="true" class="appointment-scroll" style="white-space: nowrap; height: 413rpx; display: block; box-sizing: border-box; left: 0rpx; top: 25rpx; position: relative" wx:if="{{appointmentList.length > 0}}">
+      <view class="appointment-card" wx:for="{{appointmentList}}" wx:key="id" style="display: inline-block; width: 300rpx; margin-right: 20rpx;">
+        <view class="appointment-info">
+          <view class="info-item">
+            <view class="info-label">医院</view>
+            <view class="info-value">{{item.hospitalName}}</view>
+          </view>
+          <view class="info-item">
+            <view class="info-label">科室</view>
+            <view class="info-value">{{item.department}}</view>
+          </view>
+          <view class="info-item">
+            <view class="info-label">日期</view>
+            <view class="info-value">{{item.appointmentDate}}</view>
+          </view>
+        </view>
+        <button class="subscribe-btn" data-index="{{index}}" bindtap="onSubscribeAppointment" style="width: 300rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">订阅提醒</button>
+        <button class="delete-appointment-btn" data-index="{{index}}" bindtap="onDeleteAppointment" style="width: 300rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">删除</button>
+      </view>
+    </scroll-view>
+  </view>
+  
+  <!-- 育儿知识区域 -->
+  <view class="knowledge-section" style="width: 654rpx; display: block; box-sizing: border-box">
+    <view class="section-title">育儿知识</view>
+    
+    <view class="knowledge-card" style="position: relative; left: 0rpx; top: -13rpx">
+      <view class="knowledge-title">宝宝成长里程碑</view>
+      <view class="knowledge-desc">了解宝宝在不同月龄应该达到的发育指标</view>
+      <view class="knowledge-tag">发育指南</view>
+    </view>
+    
+    <view class="knowledge-card">
+      <view class="knowledge-title">科学添加辅食指南</view>
+      <view class="knowledge-desc">4-6个月宝宝如何正确添加辅食</view>
+      <view class="knowledge-tag">喂养指南</view>
+    </view>
+  </view>
+</view>
+
+<!-- 删除预约确认弹窗 -->
+<view class="modal-mask" wx:if="{{showDeleteAppointmentModal}}" bindtap="hideDeleteAppointmentModal"></view>
+<view class="delete-modal" wx:if="{{showDeleteAppointmentModal}}">
+  <view class="modal-title">删除复诊提醒</view>
+  <view class="modal-content">确定要删除此复诊提醒吗？此操作不可恢复。</view>
+  <view class="modal-buttons">
+    <button class="cancel-btn" bindtap="hideDeleteAppointmentModal">取消</button>
+    <button class="confirm-btn" bindtap="confirmDeleteAppointment">确定删除</button>
+  </view>
+</view>

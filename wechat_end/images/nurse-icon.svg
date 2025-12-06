@@ -1,0 +1,9 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 护士帽主体 -->
+  <path d="M20 55 Q50 20 80 55 L75 70 Q50 60 25 70 Z" fill="white" stroke="#ADD8E6" stroke-width="2"/>
+  <!-- 护士帽顶部装饰带 -->
+  <path d="M25 55 Q50 25 75 55" fill="none" stroke="#ADD8E6" stroke-width="2"/>
+  <!-- 红十字标志 -->
+  <rect x="45" y="45" width="10" height="20" fill="#FF0000"/>
+  <rect x="40" y="50" width="20" height="10" fill="#FF0000"/>
+</svg>

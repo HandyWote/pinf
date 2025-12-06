@@ -1,0 +1,1019 @@
+.container {
+  padding: 30rpx;
+  background-color: #FFFCF9;
+  min-height: 100vh;
+}
+
+/* 顶部欢迎区域 */
+.welcome-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40rpx;
+  padding: 20rpx 0;
+}
+
+.welcome-text {
+  display: flex;
+  align-items: baseline;
+}
+
+.greeting {
+  font-size: 32rpx;
+  color: #666;
+}
+
+.user-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-left: 10rpx;
+}
+
+.date-info {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 宝宝信息卡片 */
+.child-card {
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.child-info {
+  display: flex;
+  align-items: center;
+}
+
+.child-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: white;
+  margin: 0 auto 10rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.child-avatar.boy {
+  background-color: #74B9FF;
+}
+
+.child-avatar.girl {
+  background-color: #FF9FF3;
+}
+
+.child-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.child-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 6rpx;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.child-age {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.child-status {
+  font-size: 28rpx;
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+}
+
+/* 功能区域 */
+
+/* 生长监测样式 */
+.growth-monitor-container {
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  flex-direction: column;
+}
+
+/* 儿童选择器样式 */
+.child-selector {
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+  padding: 0 20rpx;
+}
+
+.selector-title {
+  font-size: 28rpx;
+  color: #888;
+}
+
+.child-management {
+  display: flex;
+  align-items: center;
+}
+
+.add-child-icon, .delete-child-icon {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 15rpx;
+  font-size: 28rpx;
+  color: white;
+}
+
+.add-child-icon {
+  background-color: #4CAF50;
+}
+
+.delete-child-icon {
+  background-color: #FF6B6B;
+}
+
+.child-list {
+    white-space: nowrap;
+  padding: 10rpx 0;
+  width: 100%;
+  display: flex;
+  overflow-x: auto;
+}
+
+.child-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 100rpx;
+  width: 120rpx;
+  height: 160rpx;
+  padding: 10rpx;
+  position: relative;
+}
+
+.child-item.active {
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 12rpx;
+  height: 160rpx;
+}
+
+.child-item.active .child-avatar {
+  transform: scale(1.1);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 年龄信息样式 */
+.age-info {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+  padding: 20rpx;
+  background-color: #FFF;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  margin-bottom: 30rpx;
+  width: 100%;
+  position: relative;
+}
+
+.age-item {
+  text-align: center;
+  flex: 1;
+  padding: 0 20rpx;
+  max-width: 45%;
+}
+
+.age-divider {
+  width: 2rpx;
+  height: 80%;
+  background-color: #EEEEEE;
+  align-self: center;
+}
+
+.age-label {
+  font-size: 26rpx;
+  color: #888;
+  margin-bottom: 10rpx;
+}
+
+.age-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.age-tip {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 6rpx;
+}
+
+/* 图表标签页样式 */
+.chart-nav-buttons {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 30rpx 0;
+  padding: 20rpx 0;
+}
+
+.nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background-color: #FFF;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  width: 180rpx;
+  transition: all 0.3s;
+}
+
+.nav-button:active {
+  transform: scale(0.95);
+  background-color: #FFF9F0;
+}
+
+.nav-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.height-icon {
+  background-color: #74B9FF;
+}
+
+.weight-icon {
+  background-color: #FF9500;
+}
+
+.head-icon {
+  background-color: #FF9FF3;
+}
+
+.nav-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.growth-record-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  background-color: #F8F8F8;
+  border-radius: 8rpx;
+  margin-bottom: 30rpx;
+}
+
+.tip-icon {
+  width: 32rpx;
+  height: 32rpx;
+  background-color: #FF9500;
+  border-radius: 50%;
+  margin-right: 10rpx;
+}
+
+
+.tip-text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 图表区域样式 */
+.chart-container {
+  margin-top: 20rpx;
+  padding: 10rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin: 0 20rpx;
+}
+
+.legend-color {
+  width: 30rpx;
+  height: 10rpx;
+  margin-right: 8rpx;
+  border-radius: 4rpx;
+}
+
+.user-data {
+  background-color: #1890FF;
+}
+
+.who-standard {
+  background-color: #FF6B3B;
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 500rpx;
+  margin-bottom: 20rpx;
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+}
+
+.no-data-tip {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 图表解读区域样式 */
+.chart-analysis {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background-color: #F8F8F8;
+  border-radius: 10rpx;
+  border-left: 4rpx solid #1890FF;
+}
+
+.analysis-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15rpx;
+}
+
+.analysis-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.analysis-content text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 40rpx;
+}
+
+/* 添加记录按钮样式 */
+.add-record-btn {
+  background-color: #FF6B6B;
+  color: white;
+  border-radius: 40rpx;
+  padding: 20rpx 30rpx;
+  font-size: 30rpx;
+  margin: 30rpx auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3);
+}
+
+.btn-icon {
+  font-size: 36rpx;
+  margin-right: 10rpx;
+}
+
+/* 添加记录表单样式 */
+.add-form-mask, .modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+/* 删除宝宝对话框样式 */
+.delete-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 40rpx 30rpx;
+  z-index: 101;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.modal-content {
+  font-size: 30rpx;
+  color: #666;
+  text-align: center;
+  margin-bottom: 40rpx;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  margin: 0 15rpx;
+  height: 80rpx;
+  line-height: 60rpx;
+  text-align: center;
+  border-radius: 40rpx;
+  font-size: 30rpx;
+}
+
+.cancel-btn {
+  background-color: #F0F0F0;
+  color: #666;
+}
+
+.confirm-btn {
+  background-color: #FF6B6B;
+  color: white;
+}
+
+.add-form {
+  position: fixed;
+  bottom: -100% ;
+  left: 0;
+  right: 0;
+  background-color: #FFF;
+  border-radius: 30rpx 30rpx 0 0;
+  z-index: 101;
+  padding: 40rpx 30rpx;
+  transition: bottom 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.add-form.show {
+  bottom: 90rpx;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.form-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.close-btn {
+  font-size: 40rpx;
+  color: #999;
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+  display: block;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.picker, input {
+  background-color: #F5F5F5;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-tip {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+}
+
+.submit-btn {
+  background-color: #FF6B6B;
+  color: white;
+  border-radius: 40rpx;
+  font-size: 30rpx;
+  margin-top: 1rpx;
+  flex-direction: row;
+  display: flex;
+}
+
+/* 历史记录列表样式 */
+.records-list {
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-top: 30rpx;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.record-count {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.record-date {
+  font-size: 28rpx;
+  color: #666;
+  width: 180rpx;
+}
+
+.record-data {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.record-data text {
+  font-size: 26rpx;
+  color: #333;
+  margin-bottom: 6rpx;
+}
+
+.delete-btn {
+  font-size: 26rpx;
+  color: #FF6B6B;
+  padding: 10rpx 20rpx;
+  border: 1rpx solid #FF6B6B;
+  border-radius: 30rpx;
+}
+.feature-section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+    font-weight: bold;
+    margin: 20rpx 20rpx 20rpx;
+    color: #333;
+    position: relative;
+    padding-left: 20rpx;
+    padding-left: 10rpx;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6rpx;
+  height: 30rpx;
+  width: 8rpx;
+  background-color: #FF9FF3;
+  border-radius: 4rpx;
+}
+
+
+.feature-item {
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: block;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s;
+}
+
+.feature-item:active {
+  transform: scale(0.98);
+}
+
+.feature-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.growth-icon {
+  background-color: #FFD3E0;
+  position: relative;
+}
+
+.growth-icon::before {
+  content: '📏';
+  font-size: 40rpx;
+}
+
+.feeding-icon {
+  background-color: #D4F5FF;
+  position: relative;
+}
+
+.feeding-icon::before {
+  content: '🍼';
+  font-size: 40rpx;
+}
+
+.sleep-icon {
+  background-color: #E0E0FF;
+  position: relative;
+}
+
+.sleep-icon::before {
+  content: '💤';
+  font-size: 40rpx;
+}
+
+.vaccine-icon {
+  background-color: #FFECDB;
+  position: relative;
+}
+
+.vaccine-icon::before {
+  content: '💉';
+  font-size: 40rpx;
+}
+
+.feature-name {
+  font-size: 28rpx;
+  color: #333;
+  margin-top: 10rpx;
+}
+
+/* 育儿知识区域 */
+.knowledge-section, .feature-section {
+  margin-bottom: 40rpx;
+  display: block;
+  text-align: left;
+}
+
+.knowledge-card {
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.knowledge-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.knowledge-desc {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.knowledge-tag {
+  display: inline-block;
+  font-size: 22rpx;
+  color: #FF9FF3;
+  background-color: rgba(255, 159, 243, 0.1);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+/* 无宝宝信息提示 */
+.no-child-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.tip-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background-color: #F5F5F5;
+  border-radius: 50%;
+  margin-bottom: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.tip-icon::before {
+  content: '👶';
+  font-size: 60rpx;
+}
+
+.tip-text {
+  font-size: 30rpx;
+  color: #999;
+  margin-bottom: 40rpx;
+}
+
+.add-child-btn {
+  background-color: #FF9FF3;
+  color: #FFF;
+  font-size: 30rpx;
+  padding: 20rpx 60rpx;
+  border-radius: 40rpx;
+  border: none;
+}
+
+.add-child-btn:active {
+  opacity: 0.8;
+}
+
+/* 添加刷新按钮样式 */
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx 20rpx;
+  background-color: #f8f8f8;
+  color: #1989fa;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  margin-left: auto;
+  margin-right: 10rpx;
+  cursor: pointer;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+}
+
+.refresh-icon {
+  font-size: 28rpx;
+  margin-right: 6rpx;
+  font-weight: bold;
+}
+
+.refresh-btn:active {
+  background-color: #e6e6e6;
+}
+
+/* 复诊提醒区域样式 */
+.appointment-section {
+  margin-bottom: 40rpx;
+}
+
+.no-appointment-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0;
+  background-color: #FFF;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.appointment-icon::before {
+  content: '📅';
+  font-size: 60rpx;
+}
+
+.add-appointment-btn {
+  background-color: #FF6B6B;
+  color: #FFF;
+  font-size: 30rpx;
+  padding: 20rpx 60rpx;
+  border-radius: 40rpx;
+  border: none;
+  margin-top: 20rpx;
+}
+
+.appointment-card {
+  background-color: #FFF;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30rpx;
+}
+
+/* 日历式倒计时样式 */
+.calendar-countdown {
+  position: relative;
+  width: 160rpx;
+  height: 180rpx;
+  background-color: #FFF;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.2);
+  overflow: hidden;
+  border: 1px solid #FF6B6B;
+}
+
+.calendar-header {
+  background-color: #FF6B6B;
+  color: white;
+  text-align: center;
+  padding: 10rpx 0;
+  font-size: 24rpx;
+}
+
+.calendar-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100rpx;
+  padding: 10rpx 0;
+}
+
+.calendar-date {
+  font-size: 60rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.countdown-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 107, 107, 0.9);
+  color: white;
+  text-align: center;
+  padding: 6rpx 0;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.appointment-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-btn, .delete-btn {
+  font-size: 26rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+  text-align: center;
+  margin-bottom: 10rpx;
+}
+
+.edit-btn {
+  background-color: #F0F0F0;
+  color: #666;
+}
+
+.delete-btn {
+  color: #FF6B6B;
+  border: 1rpx solid #FF6B6B;
+}
+
+.appointment-info {
+  background-color: #F8F8F8;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 15rpx;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #888;
+  width: 120rpx;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+}
+
+.subscription-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background-color: #FFF9F0;
+  border-radius: 12rpx;
+}
+
+.subscribe-btn {
+  display: block;
+  margin: 20rpx auto 0 auto;
+  padding: 12rpx 40rpx;
+  background: #ffc107;
+  color: #fff;
+  border: none;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(255,193,7,0.08);
+  transition: background 0.2s;
+}
+.subscribe-btn:active {
+  background: #e0a800;
+}
+
+.add-btn {
+    background-color: #FF6B6B;
+    color: #FFF;
+    font-size: 30rpx;
+    padding: 20rpx 60rpx;
+    border-radius: 40rpx;
+    border: none;
+    margin-top: 20rpx;
+}
+
+.delete-appointment-btn {
+  display: block;
+  margin: 20rpx auto 0 auto;
+  padding: 12rpx 40rpx;
+  background: #e64340;
+  color: #fff;
+  border: none;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(230,67,64,0.08);
+  transition: background 0.2s;
+}
+.delete-appointment-btn:active {
+  background: #c9302c;
+}

@@ -1,0 +1,9 @@
+<view class="container">
+  <ec-canvas id="mychart-dom-weight" canvas-id="mychart-mychart-dom-weight" ec="{{ ec }}"></ec-canvas>
+  <view class="button-group">
+    <view class="button {{currentGender === 'boy' ? 'active' : ''}}" bindtap="switchToBoyWHO">男孩</view>
+    <view class="button {{currentGender === 'girl' ? 'active' : ''}}" bindtap="switchToGirlWHO">女孩</view>
+    <view class="button {{currentStandard === 'WHO' ? 'active' : ''}}" bindtap="switchToWHO">WHO曲线</view>
+    <view class="button {{currentStandard === 'Fenton' ? 'active' : ''}}" bindtap="switchToFenton">Fenton曲线</view>
+  </view>
+</view>

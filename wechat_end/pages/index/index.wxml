@@ -1,0 +1,29 @@
+<!--index.wxml-->
+<image class="background-image" src="/images/background1.png" mode="aspectFill"></image>
+<view class="container">
+  <view class="welcome">
+    <image class="logo" src="/images/logo.svg" mode="aspectFit"></image>
+    <text class="title">欢迎使用早护通</text>
+    <text class="subtitle">请选择您的身份</text>
+  </view>
+  
+  <view class="role-buttons">
+    <button 
+      class="parent-btn" 
+      data-role="parents" 
+      bindtap="chooseRole"
+    >
+      <image class="btn-icon" src="/images/parent-icon.svg"></image>
+      <text>家长端</text>
+    </button>
+    
+    <button 
+      class="nurse-btn" 
+      data-role="doctor" 
+      bindtap="chooseRole"
+    >
+      <image class="btn-icon" src="/images/nurse-icon.svg"></image>
+      <text>护士端</text>
+    </button>
+  </view>
+</view>

@@ -1,0 +1,29 @@
+<!--pages/growth/growth.wxml-->
+<text>pages/growth/growth.wxml</text><view class="header">
+  <view class="header-left">我们的</view>
+  <view class="header-center">3.1个月</view>
+  <view class="header-right"></view>
+</view>
+<view class="btn-group">
+  <button class="btn">历史记录</button>
+  <button class="btn btn-add">+ 添加记录</button>
+  <button class="btn">生长报告</button>
+</view>
+<view class="chart-title-bar">
+  <text class="chart-title">生长曲线图-身高</text>
+</view>
+<view class="chart-container">
+  <ec-canvas id="mychart-dom-area" canvas-id="mychart-area" ec="{{ ec }}"></ec-canvas>
+</view>
+<view class="desc-link">了解生长曲线和百分位</view>
+<view class="form-bar">
+  <view class="form-item">
+    <text>月龄：</text>
+    <input class="input" placeholder="例如: 3.1 (月)" value="{{ inputMonth }}" bindinput="onInputMonth" />
+  </view>
+  <view class="form-item">
+    <text>身高：</text>
+    <input class="input" placeholder="例如: 60 (cm)" value="{{ inputHeight }}" bindinput="onInputHeight" />
+  </view>
+</view>
+<button class="btn-submit" bindtap="onAddRecord">添加记录到图表</button>

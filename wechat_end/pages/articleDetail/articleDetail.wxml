@@ -1,0 +1,48 @@
+<view class="container">
+  <!-- 加载中状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading">加载中...</view>
+  </view>
+  
+  <!-- 错误状态 -->
+  <view class="error-container" wx:elif="{{error}}">
+    <view class="error-message">加载失败，请重试</view>
+    <button class="retry-btn" bindtap="fetchArticleDetail" data-id="{{id}}">重新加载</button>
+  </view>
+  
+  <!-- 文章内容 -->
+  <view class="article-container" wx:elif="{{articleInfo}}">
+    <view class="article-title">{{articleInfo.title}}</view>
+    
+    <view class="article-info">
+      <view class="article-author">作者: {{articleInfo.author || '未知'}}</view>
+      <view class="article-date">发布时间: {{articleInfo.publishDate || '未知'}}</view>
+    </view>
+    
+    <image 
+      wx:if="{{articleInfo.coverUrl}}" 
+      class="article-cover" 
+      src="{{articleInfo.coverUrl}}" 
+      mode="widthFix"
+    ></image>
+    
+    <view class="article-content">
+      <rich-text nodes="{{articleInfo.content}}"></rich-text>
+    </view>
+    
+    <!-- 相关推荐 -->
+    <view class="related-articles" wx:if="{{articleInfo.relatedArticles && articleInfo.relatedArticles.length > 0}}">
+      <view class="section-title">相关推荐</view>
+      <view class="related-list">
+        <view class="related-item" 
+              wx:for="{{articleInfo.relatedArticles}}" 
+              wx:key="id" 
+              bindtap="fetchArticleDetail" 
+              data-id="{{item.id}}">
+          <image class="related-cover" src="{{item.cover}}" mode="aspectFill"></image>
+          <view class="related-title">{{item.title}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

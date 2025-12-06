@@ -1,0 +1,64 @@
+/* custom-tab-bar/index.wxss */
+.tab-bar {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tab-bar-item {
+  transition: all 0.3s ease-in-out;
+}
+
+.tab-bar-item-active {
+  transform: translateY(-3px);
+}
+
+.tab-bar-item-image,
+.tab-icon {
+  transition: all 0.3s ease;
+}
+
+.tab-bar-item-active .tab-bar-item-image,
+.active-icon {
+  transform: scale(1.2);
+}
+
+.tab-bar-item-text,
+.tab-text {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-bar-item-active .tab-bar-item-text,
+.active-text {
+  font-weight: bold;
+  color: #1989fa;
+}
+
+.tab-bar-item-active .tab-bar-item-text::after,
+.active-text::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  background-color: #1989fa;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  transition: all 0.3s ease;
+}
+
+/* 添加滑动指示器 */
+.tab-text {
+  display: inline-block;
+  padding: 0 2px;
+}
+
+/* 添加点击波纹效果 */
+.tab-bar-item:active {
+  opacity: 0.8;
+}
+
+.tab-bar-item:active .tab-bar-item-image {
+  transform: scale(0.9);
+  transition: transform 0.1s ease;
+}

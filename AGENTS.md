@@ -1,5 +1,11 @@
 # Repository Guidelines
-
+## TOP RULES
+- 沟通机制：回复必须使用中文。对于非纯文本修改的任务，必须优先提供设计方案，待我确认后方可编写代码。
+- 复用原则：严格优先使用项目现有的组件、工具类和架构模式。
+    - 注意：由于你可能无法读取全量代码，如果你推测可能存在相关组件但不确定位置，请先询问我，而不是直接制造重复轮子。
+- 代码质量与兼容性：在重构或修改功能时，若发现兼容性冲突：
+    - 首选策略：暴露问题，提出彻底的改进方案（不妥协）。
+    - 备选策略：如果彻底改进影响范围过大（超过5个文件或涉及核心底层），请同时提供一个“最小侵入性”的兼容方案（如适配器模式），并说明两者的利弊，由我决策。
 
 ## Project Structure & Modules
 - `backend/`: Flask API service. Business logic split across `routes/` (blueprints by domain), `models/` (SQLAlchemy models), `utils/`, and `instance/` for local data/config. `app.py` bootstraps the service.

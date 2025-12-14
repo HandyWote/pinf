@@ -1,181 +1,171 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { Button, Card, Input, Tag, ListItem, Modal } from '@/components/ui';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+
+import {
+  AgeCard,
+  AppointmentCard,
+  ActionGrid,
+  BabySwitcher,
+  ContentStrip,
+  FloatingActionButton,
+  GrowthCard,
+} from '@/components/home';
 import { theme } from '@/constants/theme';
-import { useAuthStore } from '@/store';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+
+const mockContent = [
+  { id: '1', title: '早产儿喂养指南', tag: '喂养' },
+  { id: '2', title: '0-12月发育里程碑', tag: '发育' },
+  { id: '3', title: '复诊准备清单', tag: '复诊' },
+];
 
 export default function HomeScreen() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [inputValue, setInputValue] = useState('');
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        {/* 头部 */}
-        <View style={styles.header}>
-          <Text style={styles.title}>早护通</Text>
-          <Text style={styles.subtitle}>基础组件展示</Text>
+    <View style={styles.screen}>
+      <View style={styles.bgDecor}>
+        <View style={styles.bgBubbleLarge} />
+        <View style={styles.bgBubbleSmall} />
+      </View>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.statusSpacer} />
+        <View style={styles.headerRow}>
+          <BabySwitcher name="果果" ageText="2个月零5天" note="矫正1个月" />
+          <View style={styles.headerIcon}>
+            <IconSymbol size={18} name="bell.fill" color={theme.colors.textMain} />
+          </View>
+          <View style={styles.headerIcon}>
+            <IconSymbol size={18} name="person.crop.circle" color={theme.colors.textMain} />
+          </View>
         </View>
 
-        {/* 标签展示 */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>标签组件</Text>
-          <View style={styles.tagRow}>
-            <Tag label="默认标签" variant="default" />
-            <Tag label="主色标签" variant="primary" />
-            <Tag label="强调标签" variant="accent" />
-            <Tag label="弱化标签" variant="muted" />
-          </View>
-        </Card>
-
-        {/* 按钮展示 */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>按钮组件</Text>
-          <Button
-            title="主要按钮"
-            onPress={() => setModalVisible(true)}
-            variant="primary"
-            style={styles.button}
-          />
-          <Button
-            title="次要按钮"
-            onPress={() => console.log('Secondary pressed')}
-            variant="secondary"
-            style={styles.button}
-          />
-          <Button
-            title="轮廓按钮"
-            onPress={() => console.log('Outline pressed')}
-            variant="outline"
-            style={styles.button}
-          />
-        </Card>
-
-        {/* 输入框展示 */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>输入框组件</Text>
-          <Input
-            label="宝宝姓名"
-            placeholder="请输入宝宝姓名"
-            value={inputValue}
-            onChangeText={setInputValue}
-            required
-          />
-          <Input
-            label="手机号"
-            placeholder="请输入手机号"
-            keyboardType="phone-pad"
-            helperText="用于接收通知提醒"
-          />
-        </Card>
-
-        {/* 列表项展示 */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>列表项组件</Text>
-          <ListItem
-            title="生长曲线"
-            subtitle="查看宝宝生长发育趋势"
-            leftContent={<View style={styles.iconBox}><Text style={styles.iconText}>📈</Text></View>}
-            onPress={() => console.log('Growth pressed')}
-            style={styles.listItem}
-          />
-          <ListItem
-            title="复诊提醒"
-            subtitle="管理预约和提醒"
-            leftContent={<View style={styles.iconBox}><Text style={styles.iconText}>📅</Text></View>}
-            onPress={() => console.log('Appointment pressed')}
-            style={styles.listItem}
-          />
-        </Card>
-
-        {/* 状态展示 */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>认证状态</Text>
-          <Text style={styles.text}>
-            当前状态: {isAuthenticated ? '已登录' : '未登录'}
-          </Text>
-        </Card>
-      </View>
-
-      {/* 模态框 */}
-      <Modal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title="模态框示例"
-      >
-        <Text style={styles.modalText}>这是一个模态框组件的示例</Text>
-        <Button
-          title="关闭"
-          onPress={() => setModalVisible(false)}
-          variant="primary"
+        <AgeCard
+          babyName="果果"
+          ageText="3月 12天"
+          detailText="矫正月龄：2月 05天"
+          badges={[{ label: '出生34周' }, { label: '矫正38周' }]}
         />
-      </Modal>
-    </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>快捷入口</Text>
+        </View>
+        <ActionGrid
+          items={[
+            { id: 'growth', title: '成长曲线', icon: 'chart.bar.fill', tint: '#FADCD9' },
+            { id: 'appointment', title: '复诊提醒', icon: 'calendar', tint: '#E0E8F6' },
+            { id: 'record', title: '病历夹', icon: 'folder.fill', tint: '#DDF1EB' },
+            { id: 'assess', title: '发育评估', icon: 'rectangle.stack.fill', tint: '#F0E6FF' },
+          ]}
+        />
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>近期复诊</Text>
+          <Text style={styles.sectionAction}>添加+</Text>
+        </View>
+        <AppointmentCard
+          clinic="儿童医院 - 眼科复查"
+          department="请携带社保卡及过往病历"
+          dateText="2025-12-15 10:00"
+          dateDay="15"
+          dateMonth="12月"
+          remindText="提前2天提醒"
+          statusLabel="待就诊"
+          statusVariant="accent"
+        />
+        <AppointmentCard
+          clinic="社区医院 - 疫苗接种"
+          department="已完成"
+          dateText="2025-11-28 14:00"
+          dateDay="28"
+          dateMonth="11月"
+          statusLabel="已完成"
+          statusVariant="muted"
+        />
+
+        <GrowthCard />
+
+        <ContentStrip
+          title="内容课堂"
+          items={mockContent}
+          onPressItem={() => router.push('/(tabs)/class')}
+        />
+      </ScrollView>
+
+      <FloatingActionButton label="记录" icon="+" />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.bgBody,
+  },
   container: {
     flex: 1,
-    backgroundColor: theme.colors.bgContent,
   },
   content: {
-    padding: theme.spacing.lg,
-    paddingTop: 60,
+    paddingHorizontal: theme.layout.pagePadding,
+    paddingBottom: theme.layout.safeBottom,
   },
-  header: {
+  bgDecor: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.colors.bgBody,
+  },
+  bgBubbleLarge: {
+    position: 'absolute',
+    top: -80,
+    right: -60,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: '#DEEAF7',
+  },
+  bgBubbleSmall: {
+    position: 'absolute',
+    top: 120,
+    left: -40,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#EAF1FB',
+  },
+  statusSpacer: {
+    height: theme.layout.safeTop,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
     marginBottom: theme.spacing.xl,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: theme.colors.textMain,
-    marginBottom: theme.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.textSub,
-  },
-  section: {
-    marginBottom: theme.spacing.md,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSizes.md,
-    fontWeight: '700',
-    color: theme.colors.textMain,
-    marginBottom: theme.spacing.md,
-  },
-  tagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-  },
-  button: {
-    marginBottom: theme.spacing.sm,
-  },
-  listItem: {
-    marginBottom: theme.spacing.sm,
-  },
-  iconBox: {
+  headerIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: theme.colors.primaryLight,
+    borderRadius: 20,
+    backgroundColor: theme.colors.surface,
+    alignItems: 'center',
     justifyContent: 'center',
+    ...theme.shadows.small,
+  },
+  sectionHeader: {
+    marginTop: theme.layout.sectionGap,
+    marginBottom: theme.spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  iconText: {
-    fontSize: 20,
+  sectionTitle: {
+    fontSize: theme.fontSizes.lg,
+    fontWeight: '700',
+    color: theme.colors.textMain,
   },
-  text: {
+  sectionAction: {
     fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMain,
-  },
-  modalText: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.textMain,
-    marginBottom: theme.spacing.xl,
-    textAlign: 'center',
+    color: theme.colors.primary,
   },
 });

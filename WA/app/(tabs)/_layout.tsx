@@ -10,37 +10,50 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.iconMute,
+        tabBarInactiveTintColor: '#B2BEC3',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: theme.colors.surface,
+          position: 'absolute',
+          height: theme.layout.tab.height,
+          marginHorizontal: theme.layout.tab.marginHorizontal,
+          marginBottom: theme.layout.tab.marginBottom,
+          borderRadius: theme.layout.tab.radius,
+          backgroundColor: 'rgba(255,255,255,0.95)',
           borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0.1,
-          shadowOffset: { width: 0, height: -4 },
-          shadowRadius: 8,
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 8,
+          paddingVertical: 10,
+          ...theme.shadows.nav,
         },
         tabBarLabelStyle: {
           fontSize: 10,
-          fontWeight: '500',
+          fontWeight: '600',
         },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: '首页',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => (
+            <IconSymbol size={22} name="house.fill" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="qa"
         options={{
           title: '问答',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="message.fill" color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => (
+            <IconSymbol size={22} name="message.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="class"
+        options={{
+          title: '课堂',
+          tabBarIcon: ({ color }: { color: string }) => (
+            <IconSymbol size={22} name="play.circle.fill" color={color} />
+          ),
         }}
       />
     </Tabs>

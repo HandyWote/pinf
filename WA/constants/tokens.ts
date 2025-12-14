@@ -4,14 +4,28 @@
  */
 
 export const Colors = {
+  light: {
+    background: '#F0F4F8',
+    text: '#2D3436',
+    icon: '#2D3436',
+    card: '#FFFFFF',
+    tint: '#6B9AC4',
+  },
+  dark: {
+    background: '#1E1E1E',
+    text: '#F5F5F5',
+    icon: '#F5F5F5',
+    card: '#2C2C2C',
+    tint: '#86B3D1',
+  },
   // 主色系
   primary: '#6B9AC4',
   primaryLight: '#EBF4FA',
-  accent: '#FF9F89',
+  accent: '#FF9B73',
   
   // 背景色
-  bgBody: '#dfe6e9', // 机身背景
-  bgContent: '#F0F4F8', // 内容背景
+  bgBody: '#F2F6FB', // 页面背景
+  bgContent: '#F5F8FD', // 内容背景
   surface: '#FFFFFF',
   
   // 文本色
@@ -81,10 +95,46 @@ export const Shadows = {
     shadowRadius: 10,
     elevation: 3,
   },
+  nav: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  fab: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 16,
+  },
 } as const;
 
 export const Fonts = {
   regular: 'System',
   medium: 'System',
   bold: 'System',
+} as const;
+
+export const Layout = {
+  pagePadding: 20,
+  sectionGap: 24,
+  blockGap: 16,
+  safeTop: 44,
+  safeBottom: 85,
+  tab: {
+    height: 65,
+    radius: 35,
+    marginBottom: 25,
+    marginHorizontal: 20,
+  },
+  fab: {
+    size: 62,
+    icon: 26,
+    bottom: 95,
+  },
+  appShell: {
+    bodyRadius: 40,
+  },
 } as const;

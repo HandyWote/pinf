@@ -93,6 +93,7 @@ deploy.sh
 
 # 文档草稿
 *.draft.md
+ARCHITECTURE.md
 
 # 其他
 .mypy_cache/

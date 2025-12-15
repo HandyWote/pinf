@@ -13,7 +13,9 @@ export const STORAGE_KEYS = {
 } as const;
 
 // 配置
-const API_BASE_URL = __DEV__ ? 'http://localhost:8000/api' : 'https://api.example.com/api';
+// Android 模拟器使用 10.0.2.2 访问宿主机的 localhost
+// 真机或其他模拟器使用局域网 IP 192.168.8.101
+const API_BASE_URL = __DEV__ ? 'http://10.0.2.2:5010/api' : 'https://api.example.com/api';
 const REQUEST_TIMEOUT = 15000;
 const MAX_RETRIES = 2;
 

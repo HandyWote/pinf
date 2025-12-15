@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/components/home';
 import { theme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAuthStore } from '@/store';
 
 const mockContent = [
   { id: '1', title: '早产儿喂养指南', tag: '喂养' },
@@ -21,6 +22,26 @@ const mockContent = [
 ];
 
 export default function HomeScreen() {
+  const { logout, user } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      '退出登录',
+      '确定要退出登录吗？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '确定',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/login');
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.screen}>
       <View style={styles.bgDecor}>
@@ -38,9 +59,9 @@ export default function HomeScreen() {
           <View style={styles.headerIcon}>
             <IconSymbol size={18} name="bell.fill" color={theme.colors.textMain} />
           </View>
-          <View style={styles.headerIcon}>
+          <TouchableOpacity style={styles.headerIcon} onPress={handleLogout}>
             <IconSymbol size={18} name="person.crop.circle" color={theme.colors.textMain} />
-          </View>
+          </TouchableOpacity>
         </View>
 
         <AgeCard

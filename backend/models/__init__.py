@@ -9,3 +9,4 @@ from .growth import GrowthRecord
 from .content import Video, Article
 from .appointment import Appointment
 from .chat import ChatMessage
+from .verification_code import VerificationCode

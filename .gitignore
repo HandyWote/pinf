@@ -99,6 +99,9 @@ ARCHITECTURE.md
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# 测试文件
+test_auth.py
 # Windows
 [Dd]esktop.ini
 Thumbs.db

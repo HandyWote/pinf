@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -11,18 +11,45 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+/**
+ * 路由守卫：未登录重定向到登录页
+ */
+function useProtectedRoute() {
+  const segments = useSegments();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === 'login';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // 未登录且不在登录页，跳转到登录页
+      router.replace('/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // 已登录但在登录页，跳转到首页
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isLoading, segments]);
+}
+
 export default function RootLayout() {
-  const initialize = useAuthStore((state) => state.initialize);
+  const { initialize } = useAuthStore();
 
   useEffect(() => {
     // 初始化认证状态
     initialize();
   }, []);
 
+  // 应用路由守卫
+  useProtectedRoute();
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <Stack>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>

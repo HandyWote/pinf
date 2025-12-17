@@ -102,6 +102,7 @@ dmypy.json
 
 # 测试文件
 test_auth.py
+quick_test.ps1
 # Windows
 [Dd]esktop.ini
 Thumbs.db

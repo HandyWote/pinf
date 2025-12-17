@@ -9,3 +9,4 @@ export { Modal } from './Modal';
 export { Tag } from './Tag';
 export { ListItem } from './ListItem';
 export { ChartContainer } from './ChartContainer';
+export { BabyForm } from './BabyForm';

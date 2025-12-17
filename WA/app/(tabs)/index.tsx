@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 
@@ -11,9 +11,13 @@ import {
   FloatingActionButton,
   GrowthCard,
 } from '@/components/home';
+import { BabyForm } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuthStore } from '@/store';
+import { useBabyStore } from '@/store/babyStore';
+import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
+import type { CreateBabyInput } from '@/types/baby';
 
 const mockContent = [
   { id: '1', title: '早产儿喂养指南', tag: '喂养' },
@@ -23,6 +27,13 @@ const mockContent = [
 
 export default function HomeScreen() {
   const { logout, user } = useAuthStore();
+  const { babies, currentBaby, fetchBabies, createBaby, selectBaby, isLoading, error } = useBabyStore();
+  const [showBabyForm, setShowBabyForm] = useState(false);
+
+  // 初始化：加载宝宝列表
+  useEffect(() => {
+    fetchBabies();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -42,6 +53,40 @@ export default function HomeScreen() {
     );
   };
 
+  const handleCreateBaby = async (data: CreateBabyInput) => {
+    try {
+      await createBaby(data);
+      Alert.alert('成功', '宝宝信息已保存');
+    } catch (error) {
+      Alert.alert('失败', '保存失败，请重试');
+    }
+  };
+
+  const handleBabySwitcherPress = () => {
+    if (babies.length > 1) {
+      // 如果有多个宝宝，显示选择列表
+      Alert.alert(
+        '选择宝宝',
+        '',
+        [
+          ...babies.map((baby) => ({
+            text: baby.name,
+            onPress: () => selectBaby(baby.id),
+          })),
+          { text: '添加新宝宝', onPress: () => setShowBabyForm(true), style: 'default' },
+          { text: '取消', style: 'cancel' },
+        ]
+      );
+    } else {
+      // 如果只有一个或没有宝宝，直接打开添加表单
+      setShowBabyForm(true);
+    }
+  };
+
+  // 计算当前宝宝的年龄信息
+  const ageInfo = currentBaby ? calculateBabyAge(currentBaby) : null;
+  const ageDisplay = ageInfo ? formatDetailedAge(ageInfo) : null;
+
   return (
     <View style={styles.screen}>
       <View style={styles.bgDecor}>
@@ -55,7 +100,18 @@ export default function HomeScreen() {
       >
         <View style={styles.statusSpacer} />
         <View style={styles.headerRow}>
-          <BabySwitcher name="果果" ageText="2个月零5天" note="矫正1个月" />
+          {currentBaby && ageDisplay ? (
+            <BabySwitcher
+              name={currentBaby.name}
+              ageText={ageDisplay.mainText}
+              note={ageDisplay.detailText}
+              onPress={handleBabySwitcherPress}
+            />
+          ) : (
+            <TouchableOpacity onPress={() => setShowBabyForm(true)} style={styles.addBabyButton}>
+              <Text style={styles.addBabyText}>+ 添加宝宝</Text>
+            </TouchableOpacity>
+          )}
           <View style={styles.headerIcon}>
             <IconSymbol size={18} name="bell.fill" color={theme.colors.textMain} />
           </View>
@@ -64,12 +120,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <AgeCard
-          babyName="果果"
-          ageText="3月 12天"
-          detailText="矫正月龄：2月 05天"
-          badges={[{ label: '出生34周' }, { label: '矫正38周' }]}
-        />
+        {currentBaby && ageDisplay && (
+          <AgeCard
+            babyName={currentBaby.name}
+            ageText={ageDisplay.mainText}
+            detailText={ageDisplay.detailText || ''}
+            badges={ageDisplay.badges}
+          />
+        )}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>快捷入口</Text>
@@ -117,6 +175,13 @@ export default function HomeScreen() {
       </ScrollView>
 
       <FloatingActionButton label="记录" icon="+" />
+
+      <BabyForm
+        visible={showBabyForm}
+        onClose={() => setShowBabyForm(false)}
+        onSubmit={handleCreateBaby}
+        mode="create"
+      />
     </View>
   );
 }
@@ -187,6 +252,21 @@ const styles = StyleSheet.create({
   },
   sectionAction: {
     fontSize: theme.fontSizes.sm,
+    color: theme.colors.primary,
+  },
+  addBabyButton: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.small,
+  },
+  addBabyText: {
+    fontSize: theme.fontSizes.md,
+    fontWeight: '600',
     color: theme.colors.primary,
   },
 });

@@ -74,8 +74,8 @@ def phone_login(data):
         db.session.add(user)
         db.session.commit()
 
-    # 生成 JWT token
-    token = create_access_token(identity=user.id)
+    # 生成 JWT token (identity 必须是字符串)
+    token = create_access_token(identity=str(user.id))
     
     return jsonify({
         "status": "success", 

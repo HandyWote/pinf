@@ -13,17 +13,22 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuthStore } from '@/store';
-import { sendPhoneCode, phoneLogin } from '@/services/api';
+import { sendPhoneCode, phoneLogin, passwordLogin } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '@/constants/tokens';
 
+type LoginMode = 'code' | 'password';
+
 export default function LoginScreen() {
+  const [loginMode, setLoginMode] = useState<LoginMode>('code');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -36,6 +41,11 @@ export default function LoginScreen() {
   const validatePhone = (phone: string): boolean => {
     const pattern = /^1[3-9]\d{9}$/;
     return pattern.test(phone);
+  };
+
+  const validatePassword = (value: string): boolean => {
+    const pattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/;
+    return pattern.test(value);
   };
 
   // 开始倒计时
@@ -104,24 +114,42 @@ export default function LoginScreen() {
       return;
     }
 
-    if (!code || code.length !== 6) {
-      Alert.alert('提示', '请输入6位验证码');
-      return;
+    if (loginMode === 'code') {
+      if (!code || code.length !== 6) {
+        Alert.alert('提示', '请输入6位验证码');
+        return;
+      }
+    } else {
+      if (!validatePassword(password)) {
+        Alert.alert('提示', '密码需为8-16位字母+数字组合');
+        return;
+      }
     }
 
     setIsLoading(true);
 
     try {
-      const response = await phoneLogin(phone, code);
+      const response =
+        loginMode === 'code'
+          ? await phoneLogin(phone, code)
+          : await passwordLogin(phone, password);
       
       // 保存 token 和用户信息
-      await login(response.data.user, response.data.token);
+      await login(response.data.user, response.data.token, response.data.need_set_password);
       
-      // 跳转到首页
-      router.replace('/(tabs)');
+      if (response.data.need_set_password) {
+        router.replace('/set-password');
+      } else {
+        // 跳转到首页
+        router.replace('/(tabs)');
+      }
     } catch (error: any) {
       console.error('登录失败:', error);
-      Alert.alert('登录失败', error.response?.data?.message || '登录失败，请检查验证码是否正确');
+      const fallbackMessage =
+        loginMode === 'code'
+          ? '登录失败，请检查验证码是否正确'
+          : '登录失败，请检查密码是否正确';
+      Alert.alert('登录失败', error.response?.data?.message || fallbackMessage);
     } finally {
       setIsLoading(false);
     }
@@ -157,6 +185,25 @@ export default function LoginScreen() {
         {/* 表单区域 */}
         <View style={styles.formContainer}>
           <Text style={styles.title}>手机号登录</Text>
+
+          <View style={styles.modeSwitch}>
+            <TouchableOpacity
+              style={[styles.modeButton, loginMode === 'code' && styles.modeButtonActive]}
+              onPress={() => setLoginMode('code')}
+            >
+              <Text style={[styles.modeText, loginMode === 'code' && styles.modeTextActive]}>
+                验证码登录
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modeButton, loginMode === 'password' && styles.modeButtonActive]}
+              onPress={() => setLoginMode('password')}
+            >
+              <Text style={[styles.modeText, loginMode === 'password' && styles.modeTextActive]}>
+                密码登录
+              </Text>
+            </TouchableOpacity>
+          </View>
           
           {/* 手机号输入 */}
           <Input
@@ -170,34 +217,48 @@ export default function LoginScreen() {
             required
           />
 
-          {/* 验证码输入 */}
-          <View style={styles.codeInputContainer}>
-            <View style={styles.codeInputWrapper}>
-              <Input
-                label="验证码"
-                value={code}
-                onChangeText={setCode}
-                placeholder="请输入6位验证码"
-                keyboardType="number-pad"
-                maxLength={6}
-                leftIcon="🔑"
-                required
-              />
-            </View>
-            
-            <Button
-              title={countdown > 0 ? `${countdown}s` : '获取验证码'}
-              onPress={handleSendCode}
-              variant="outline"
-              size="medium"
-              disabled={countdown > 0 || isSendingCode}
-              loading={isSendingCode}
-              style={styles.codeButton}
+          {loginMode === 'code' ? (
+            <>
+              {/* 验证码输入 */}
+              <View style={styles.codeInputContainer}>
+                <View style={styles.codeInputWrapper}>
+                  <Input
+                    label="验证码"
+                    value={code}
+                    onChangeText={setCode}
+                    placeholder="请输入6位验证码"
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    leftIcon="🔑"
+                    required
+                  />
+                </View>
+                
+                <Button
+                  title={countdown > 0 ? `${countdown}s` : '获取验证码'}
+                  onPress={handleSendCode}
+                  variant="outline"
+                  size="medium"
+                  disabled={countdown > 0 || isSendingCode}
+                  loading={isSendingCode}
+                  style={styles.codeButton}
+                />
+              </View>
+            </>
+          ) : (
+            <Input
+              label="密码"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="8-16位字母+数字"
+              secureTextEntry
+              leftIcon="🔒"
+              required
             />
-          </View>
+          )}
 
           {/* 开发模式调试信息 */}
-          {debugCode && (
+          {loginMode === 'code' && debugCode && (
             <View style={styles.debugContainer}>
               <Text style={styles.debugLabel}>🔧 开发模式验证码：</Text>
               <Text style={styles.debugCode}>{debugCode}</Text>
@@ -272,6 +333,31 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.textMain,
     marginBottom: Spacing.lg,
+  },
+  modeSwitch: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primaryLight,
+    borderRadius: BorderRadius.medium,
+    padding: 4,
+    marginBottom: Spacing.lg,
+  },
+  modeButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+    borderRadius: BorderRadius.medium,
+  },
+  modeButtonActive: {
+    backgroundColor: Colors.surface,
+    ...Shadows.card,
+  },
+  modeText: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSub,
+  },
+  modeTextActive: {
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
   codeInputContainer: {
     flexDirection: 'row',

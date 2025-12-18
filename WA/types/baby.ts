@@ -5,6 +5,7 @@
 export interface Baby {
   id: number;
   name: string;
+  gender?: '男' | '女';
   birthday: string; // YYYY-MM-DD
   dueDate?: string; // YYYY-MM-DD (预产期，用于矫正月龄)
   gestationalWeeks?: number; // 出生孕周 (20-45)
@@ -14,18 +15,16 @@ export interface Baby {
 
 export interface CreateBabyInput {
   name: string;
+  gender: '男' | '女';
   birthday: string; // YYYY-MM-DD
   dueDate?: string;
-  gestationalWeeks?: number;
-  note?: string;
 }
 
 export interface UpdateBabyInput {
   name?: string;
+  gender?: '男' | '女';
   birthday?: string;
   dueDate?: string;
-  gestationalWeeks?: number;
-  note?: string;
 }
 
 export interface AgeInfo {

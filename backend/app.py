@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from config import Config
 from models import db
+from utils.db_migrations import run_migrations
 
 jwt = JWTManager()
 cors = CORS()
@@ -51,6 +52,7 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.create_all()
+        run_migrations(db)
 
     @app.route("/")
     def index():

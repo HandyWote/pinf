@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth.token',
   USER_PROFILE: 'user.profile',
+  NEED_SET_PASSWORD: 'auth.need_set_password',
 } as const;
 
 // 配置

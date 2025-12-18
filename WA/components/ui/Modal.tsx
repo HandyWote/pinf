@@ -25,6 +25,7 @@ interface ModalProps {
   children: React.ReactNode;
   height?: number;
   containerStyle?: ViewStyle;
+  position?: 'bottom' | 'top';
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -34,8 +35,10 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   height = SCREEN_HEIGHT * 0.85,
   containerStyle,
+  position = 'bottom',
 }) => {
-  const translateY = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const startY = position === 'top' ? -height : SCREEN_HEIGHT;
+  const translateY = React.useRef(new Animated.Value(startY)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -55,7 +58,7 @@ export const Modal: React.FC<ModalProps> = ({
     } else {
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: SCREEN_HEIGHT,
+          toValue: startY,
           duration: 400,
           useNativeDriver: true,
         }),
@@ -75,7 +78,13 @@ export const Modal: React.FC<ModalProps> = ({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View style={[styles.overlay, { opacity }]}>
+      <Animated.View
+        style={[
+          styles.overlay,
+          position === 'top' && styles.overlayTop,
+          { opacity },
+        ]}
+      >
         <TouchableOpacity
           style={styles.backdrop}
           activeOpacity={1}
@@ -85,6 +94,7 @@ export const Modal: React.FC<ModalProps> = ({
         <Animated.View
           style={[
             styles.modalContent,
+            position === 'top' && styles.modalContentTop,
             { height, transform: [{ translateY }] },
             containerStyle,
           ]}
@@ -111,8 +121,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  overlayTop: {
+    justifyContent: 'flex-start',
+  },
   backdrop: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
   modalContent: {
     backgroundColor: theme.colors.bgContent,
@@ -120,6 +133,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingTop: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
+  },
+  modalContentTop: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   header: {
     flexDirection: 'row',

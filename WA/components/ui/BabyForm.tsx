@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Platform, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Modal } from './Modal';
 import { Input } from './Input';
@@ -29,10 +29,9 @@ export const BabyForm: React.FC<BabyFormProps> = ({
   mode = 'create',
 }: BabyFormProps) => {
   const [name, setName] = useState('');
+  const [gender, setGender] = useState<'男' | '女' | ''>('');
   const [birthday, setBirthday] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [gestationalWeeks, setGestationalWeeks] = useState('');
-  const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -47,10 +46,9 @@ export const BabyForm: React.FC<BabyFormProps> = ({
     if (visible) {
       if (initialData) {
         setName(initialData.name);
+        setGender(initialData.gender || '');
         setBirthday(initialData.birthday);
         setDueDate(initialData.dueDate || '');
-        setGestationalWeeks(initialData.gestationalWeeks?.toString() || '');
-        setNote(initialData.note || '');
         
         if (initialData.birthday) {
           setTempBirthday(new Date(initialData.birthday));
@@ -61,10 +59,9 @@ export const BabyForm: React.FC<BabyFormProps> = ({
       } else {
         // 重置表单
         setName('');
+        setGender('');
         setBirthday('');
         setDueDate('');
-        setGestationalWeeks('');
-        setNote('');
         setTempBirthday(new Date());
         setTempDueDate(new Date());
       }
@@ -80,6 +77,10 @@ export const BabyForm: React.FC<BabyFormProps> = ({
       newErrors.name = '请输入宝宝姓名';
     }
 
+    if (!gender) {
+      newErrors.gender = '请选择宝宝性别';
+    }
+
     if (!birthday) {
       newErrors.birthday = '请选择出生日期';
     } else if (!isValidDateString(birthday)) {
@@ -88,13 +89,6 @@ export const BabyForm: React.FC<BabyFormProps> = ({
 
     if (dueDate && !isValidDateString(dueDate)) {
       newErrors.dueDate = '预产期格式错误';
-    }
-
-    if (gestationalWeeks) {
-      const weeks = parseInt(gestationalWeeks, 10);
-      if (isNaN(weeks) || weeks < 20 || weeks > 45) {
-        newErrors.gestationalWeeks = '孕周需在 20-45 之间';
-      }
     }
 
     setErrors(newErrors);
@@ -109,10 +103,9 @@ export const BabyForm: React.FC<BabyFormProps> = ({
     try {
       const data: CreateBabyInput | UpdateBabyInput = {
         name: name.trim(),
+        gender: gender as '男' | '女',
         birthday,
         dueDate: dueDate || undefined,
-        gestationalWeeks: gestationalWeeks ? parseInt(gestationalWeeks, 10) : undefined,
-        note: note.trim() || undefined,
       };
 
       await onSubmit(data);
@@ -167,6 +160,30 @@ export const BabyForm: React.FC<BabyFormProps> = ({
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>
+            性别 <Text style={styles.required}>*</Text>
+          </Text>
+          <View style={styles.genderRow}>
+            {(['男', '女'] as const).map((item) => {
+              const isActive = gender === item;
+              return (
+                <TouchableOpacity
+                  key={item}
+                  style={[styles.genderButton, isActive && styles.genderButtonActive]}
+                  onPress={() => setGender(item)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.genderText, isActive && styles.genderTextActive]}>
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>
             出生日期 <Text style={styles.required}>*</Text>
           </Text>
           <Button
@@ -187,10 +204,6 @@ export const BabyForm: React.FC<BabyFormProps> = ({
           />
         )}
 
-        <View style={styles.divider} />
-        <Text style={styles.sectionTitle}>早产儿信息（可选）</Text>
-        <Text style={styles.helperText}>如果宝宝是早产儿，填写以下信息可计算矫正月龄</Text>
-
         <View style={styles.inputContainer}>
           <Text style={styles.label}>预产期</Text>
           <Button
@@ -210,29 +223,6 @@ export const BabyForm: React.FC<BabyFormProps> = ({
             onChange={handleDueDateChange}
           />
         )}
-
-        <Input
-          label="出生孕周"
-          value={gestationalWeeks}
-          onChangeText={setGestationalWeeks}
-          placeholder="例如：34"
-          keyboardType="numeric"
-          error={errors.gestationalWeeks}
-          helperText="正常范围 20-45 周"
-          containerStyle={styles.inputContainer}
-        />
-
-        <View style={styles.divider} />
-
-        <Input
-          label="备注"
-          value={note}
-          onChangeText={setNote}
-          placeholder="其他需要记录的信息..."
-          multiline
-          numberOfLines={3}
-          containerStyle={styles.inputContainer}
-        />
 
         {errors.submit && (
           <Text style={[styles.errorText, styles.submitError]}>{errors.submit}</Text>
@@ -270,21 +260,30 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     marginTop: theme.spacing.xs,
   },
-  divider: {
-    height: 1,
-    backgroundColor: theme.colors.divider,
-    marginVertical: theme.spacing.xl,
+  genderRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
   },
-  sectionTitle: {
-    fontSize: theme.fontSizes.md,
-    fontWeight: '700',
-    color: theme.colors.textMain,
-    marginBottom: theme.spacing.sm,
+  genderButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+    borderRadius: theme.borderRadius.medium,
+    paddingVertical: theme.spacing.sm,
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
   },
-  helperText: {
-    fontSize: theme.fontSizes.xs,
+  genderButtonActive: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
+  },
+  genderText: {
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.textSub,
-    marginBottom: theme.spacing.lg,
+  },
+  genderTextActive: {
+    color: theme.colors.primary,
+    fontWeight: '700',
   },
   submitError: {
     textAlign: 'center',

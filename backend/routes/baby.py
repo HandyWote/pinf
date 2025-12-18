@@ -25,6 +25,7 @@ def list_babies(current_user):
 @token_required
 @validate_request_data([
     {"name": "name", "type": str},
+    {"name": "gender", "type": str, "allowed": ["男", "女"]},
     {"name": "birthday", "type": str},
 ])
 def create_baby(current_user, data):
@@ -37,6 +38,7 @@ def create_baby(current_user, data):
         baby = Baby(
             user_id=current_user.id,
             name=data["name"],
+            gender=data["gender"],
             birthday=birthday,
             due_date=due_date,
             gestational_weeks=data.get("gestationalWeeks"),
@@ -72,6 +74,10 @@ def update_baby(current_user, baby_id):
     try:
         if "name" in data:
             baby.name = data["name"]
+        if "gender" in data:
+            if data["gender"] not in ["男", "女"]:
+                return jsonify({"status": "error", "message": "性别仅支持：男/女"}), 400
+            baby.gender = data["gender"]
         if "birthday" in data:
             baby.birthday = _parse_date(data["birthday"], "birthday")
         if "dueDate" in data:

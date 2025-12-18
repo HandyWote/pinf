@@ -17,21 +17,24 @@ export const unstable_settings = {
 function useProtectedRoute() {
   const segments = useSegments();
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, needSetPassword } = useAuthStore();
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'login';
+    const inAuthGroup = segments[0] === 'login' || segments[0] === 'set-password';
 
     if (!isAuthenticated && !inAuthGroup) {
       // 未登录且不在登录页，跳转到登录页
       router.replace('/login');
-    } else if (isAuthenticated && inAuthGroup) {
+    } else if (isAuthenticated && needSetPassword && segments[0] !== 'set-password') {
+      // 已登录但未设置密码，强制跳转设置密码页
+      router.replace('/set-password');
+    } else if (isAuthenticated && inAuthGroup && !needSetPassword) {
       // 已登录但在登录页，跳转到首页
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, isLoading, needSetPassword, segments]);
 }
 
 export default function RootLayout() {

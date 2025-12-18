@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  Dimensions,
+} from 'react-native';
 import { router } from 'expo-router';
 
 import {
@@ -11,13 +19,13 @@ import {
   FloatingActionButton,
   GrowthCard,
 } from '@/components/home';
-import { BabyForm } from '@/components/ui';
+import { BabyForm, Button, ListItem, Modal } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuthStore } from '@/store';
 import { useBabyStore } from '@/store/babyStore';
 import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
-import type { CreateBabyInput } from '@/types/baby';
+import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
 
 const mockContent = [
   { id: '1', title: '早产儿喂养指南', tag: '喂养' },
@@ -26,9 +34,13 @@ const mockContent = [
 ];
 
 export default function HomeScreen() {
-  const { logout, user } = useAuthStore();
-  const { babies, currentBaby, fetchBabies, createBaby, selectBaby, isLoading, error } = useBabyStore();
+  const { logout } = useAuthStore();
+  const { babies, currentBaby, fetchBabies, createBaby, updateBaby, deleteBaby, selectBaby } =
+    useBabyStore();
   const [showBabyForm, setShowBabyForm] = useState(false);
+  const [showBabyList, setShowBabyList] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [editingBabyId, setEditingBabyId] = useState<number | null>(null);
 
   // 初始化：加载宝宝列表
   useEffect(() => {
@@ -53,39 +65,70 @@ export default function HomeScreen() {
     );
   };
 
-  const handleCreateBaby = async (data: CreateBabyInput) => {
+  const handleCreateBaby = async (data: CreateBabyInput | UpdateBabyInput) => {
     try {
-      await createBaby(data);
+      await createBaby(data as CreateBabyInput);
       Alert.alert('成功', '宝宝信息已保存');
     } catch (error) {
       Alert.alert('失败', '保存失败，请重试');
     }
   };
 
-  const handleBabySwitcherPress = () => {
-    if (babies.length > 1) {
-      // 如果有多个宝宝，显示选择列表
-      Alert.alert(
-        '选择宝宝',
-        '',
-        [
-          ...babies.map((baby) => ({
-            text: baby.name,
-            onPress: () => selectBaby(baby.id),
-          })),
-          { text: '添加新宝宝', onPress: () => setShowBabyForm(true), style: 'default' },
-          { text: '取消', style: 'cancel' },
-        ]
-      );
-    } else {
-      // 如果只有一个或没有宝宝，直接打开添加表单
-      setShowBabyForm(true);
+  const handleUpdateBaby = async (data: CreateBabyInput | UpdateBabyInput) => {
+    if (!editingBabyId) return;
+    try {
+      await updateBaby(editingBabyId, data);
+      Alert.alert('成功', '宝宝信息已更新');
+    } catch (error) {
+      Alert.alert('失败', '更新失败，请重试');
     }
+  };
+
+  const handleDeleteBaby = (babyId: number) => {
+    Alert.alert('删除宝宝', '确定要删除该宝宝信息吗？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '删除',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteBaby(babyId);
+            Alert.alert('成功', '宝宝信息已删除');
+          } catch (error) {
+            Alert.alert('失败', '删除失败，请重试');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleBabySwitcherPress = () => {
+    setShowBabyList(true);
+  };
+
+  const handleOpenCreateForm = () => {
+    setFormMode('create');
+    setEditingBabyId(null);
+    setShowBabyList(false);
+    setShowBabyForm(true);
+  };
+
+  const handleOpenEditForm = (babyId: number) => {
+    setFormMode('edit');
+    setEditingBabyId(babyId);
+    setShowBabyList(false);
+    setShowBabyForm(true);
   };
 
   // 计算当前宝宝的年龄信息
   const ageInfo = currentBaby ? calculateBabyAge(currentBaby) : null;
   const ageDisplay = ageInfo ? formatDetailedAge(ageInfo) : null;
+
+  const listHeight = Dimensions.get('window').height * 0.4;
+
+  const editingBaby = editingBabyId
+    ? babies.find((baby) => baby.id === editingBabyId)
+    : undefined;
 
   return (
     <View style={styles.screen}>
@@ -108,7 +151,7 @@ export default function HomeScreen() {
               onPress={handleBabySwitcherPress}
             />
           ) : (
-            <TouchableOpacity onPress={() => setShowBabyForm(true)} style={styles.addBabyButton}>
+            <TouchableOpacity onPress={handleOpenCreateForm} style={styles.addBabyButton}>
               <Text style={styles.addBabyText}>+ 添加宝宝</Text>
             </TouchableOpacity>
           )}
@@ -179,9 +222,68 @@ export default function HomeScreen() {
       <BabyForm
         visible={showBabyForm}
         onClose={() => setShowBabyForm(false)}
-        onSubmit={handleCreateBaby}
-        mode="create"
+        onSubmit={formMode === 'create' ? handleCreateBaby : handleUpdateBaby}
+        mode={formMode}
+        initialData={editingBaby}
       />
+
+      <Modal
+        visible={showBabyList}
+        onClose={() => setShowBabyList(false)}
+        title="选择宝宝"
+        height={listHeight}
+        position="top"
+      >
+        <View style={styles.babyListContainer}>
+          {babies.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>暂无宝宝信息</Text>
+              <Button title="添加宝宝" onPress={handleOpenCreateForm} variant="primary" />
+            </View>
+          ) : (
+            <ScrollView contentContainerStyle={styles.babyList} showsVerticalScrollIndicator={false}>
+              {babies.map((baby) => (
+                <ListItem
+                  key={baby.id}
+                  title={`${baby.name}（${baby.gender || '未知'}）`}
+                  subtitle={`出生日期：${baby.birthday}`}
+                  onPress={() => {
+                    selectBaby(baby.id);
+                    setShowBabyList(false);
+                  }}
+                  rightContent={
+                    <View style={styles.babyActions}>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => handleOpenEditForm(baby.id)}
+                      >
+                        <Text style={styles.actionText}>编辑</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.actionDelete]}
+                        onPress={() => handleDeleteBaby(baby.id)}
+                      >
+                        <Text style={[styles.actionText, styles.actionDeleteText]}>删除</Text>
+                      </TouchableOpacity>
+                    </View>
+                  }
+                  style={
+                    currentBaby?.id === baby.id
+                      ? styles.babyItemActive
+                      : undefined
+                  }
+                />
+              ))}
+            </ScrollView>
+          )}
+
+          {babies.length > 0 && (
+            <View style={styles.addBabyFooter}>
+              <Button title="添加宝宝" onPress={handleOpenCreateForm} variant="primary" />
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -268,5 +370,50 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.md,
     fontWeight: '600',
     color: theme.colors.primary,
+  },
+  babyListContainer: {
+    flex: 1,
+  },
+  babyList: {
+    gap: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+  },
+  babyItemActive: {
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  babyActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  actionButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: theme.colors.mutedBg,
+  },
+  actionText: {
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textMain,
+    fontWeight: '600',
+  },
+  actionDelete: {
+    backgroundColor: '#FDECEA',
+  },
+  actionDeleteText: {
+    color: '#D64545',
+  },
+  addBabyFooter: {
+    paddingVertical: theme.spacing.md,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    gap: theme.spacing.md,
+  },
+  emptyText: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSub,
   },
 });

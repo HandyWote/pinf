@@ -8,6 +8,7 @@ class Baby(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     name = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(4), nullable=True)
     birthday = db.Column(db.Date, nullable=False)
     due_date = db.Column(db.Date, nullable=True)
     gestational_weeks = db.Column(db.Integer, nullable=True)
@@ -26,6 +27,7 @@ class Baby(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "gender": self.gender,
             "birthday": self.birthday.isoformat() if self.birthday else None,
             "dueDate": self.due_date.isoformat() if self.due_date else None,
             "gestationalWeeks": self.gestational_weeks,

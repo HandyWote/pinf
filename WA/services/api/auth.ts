@@ -26,7 +26,9 @@ export interface LoginResponse {
       role: string;
       createdAt: string;
       updatedAt: string;
+      needSetPassword?: boolean;
     };
+    need_set_password: boolean;
   };
 }
 
@@ -43,6 +45,25 @@ export const sendPhoneCode = async (phone: string) => {
  */
 export const phoneLogin = async (phone: string, code: string) => {
   const response = await api.post<LoginResponse>('/auth/phone/login', { phone, code });
+  return response.data;
+};
+
+/**
+ * 手机号 + 密码登录
+ */
+export const passwordLogin = async (phone: string, password: string) => {
+  const response = await api.post<LoginResponse>('/auth/password/login', { phone, password });
+  return response.data;
+};
+
+/**
+ * 设置登录密码
+ */
+export const setupPassword = async (password: string) => {
+  const response = await api.post<{ status: string; message: string; data: { user: LoginResponse['data']['user'] } }>(
+    '/auth/password/setup',
+    { password }
+  );
   return response.data;
 };
 

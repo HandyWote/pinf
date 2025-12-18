@@ -8,8 +8,6 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key}
-      - WECHAT_APP_ID=${WECHAT_APP_ID:-wxae8e4d15e58a0178}
-      - WECHAT_APP_SECRET=${WECHAT_APP_SECRET:-1344bb4c86e9cdbbdbe4088e15847eec}
       - FLASK_ENV=${FLASK_ENV:-production}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///database.db}
     volumes:

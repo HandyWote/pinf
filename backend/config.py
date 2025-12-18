@@ -19,10 +19,6 @@ class Config:
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
 
-    # 微信小程序配置（可选）
-    WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")
-    WECHAT_APP_SECRET = os.environ.get("WECHAT_APP_SECRET", "")
-
     # n8n 转发配置
     N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")
 

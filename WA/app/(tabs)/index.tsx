@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -21,13 +21,19 @@ import {
   FloatingActionButton,
   GrowthCard,
 } from '@/components/home';
+import { GrowthRecordModal } from '@/components/home/GrowthRecordModal';
+import { AppointmentModal } from '@/components/home/AppointmentModal';
 import { BabyForm, Button, ListItem, Modal } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuthStore } from '@/store';
 import { useBabyStore } from '@/store/babyStore';
+import { useGrowthStore } from '@/store/growthStore';
+import { useAppointmentStore } from '@/store/appointmentStore';
 import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
 import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
+import type { GrowthRecord } from '@/types/growth';
+import type { Appointment } from '@/types/appointment';
 
 const mockContent = [
   { id: '1', title: '早产儿喂养指南', tag: '喂养' },
@@ -53,11 +59,41 @@ export default function HomeScreen() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editingBabyId, setEditingBabyId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showGrowthModal, setShowGrowthModal] = useState(false);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+
+  const {
+    records,
+    loading: growthLoading,
+    error: growthError,
+    fetch: fetchGrowth,
+    add: addGrowth,
+  } = useGrowthStore();
+
+  const {
+    appointments,
+    loading: appointmentLoading,
+    error: appointmentError,
+    fetch: fetchAppointments,
+    add: addAppointment,
+  } = useAppointmentStore();
 
   // 初始化：加载宝宝列表
   useEffect(() => {
     fetchBabies();
   }, []);
+
+  // 选中宝宝后加载成长记录
+  useEffect(() => {
+    if (currentBaby?.id) {
+      fetchGrowth(currentBaby.id).catch(() => {});
+    }
+  }, [currentBaby?.id, fetchGrowth]);
+
+  // 加载预约数据（全量，页面过滤）
+  useEffect(() => {
+    fetchAppointments().catch(() => {});
+  }, [fetchAppointments]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -133,10 +169,25 @@ export default function HomeScreen() {
     setShowBabyForm(true);
   };
 
+  const handleAddGrowth = async (payloads: Parameters<typeof addGrowth>[1]) => {
+    if (!currentBaby?.id) return;
+    await addGrowth(currentBaby.id, payloads);
+    setShowGrowthModal(false);
+  };
+
+  const handleAddAppointment = async (payload: any) => {
+    await addAppointment({ ...payload, babyId: currentBaby?.id });
+    setShowAppointmentModal(false);
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       await fetchBabies();
+      if (currentBaby?.id) {
+        await fetchGrowth(currentBaby.id);
+      }
+      await fetchAppointments();
     } finally {
       setIsRefreshing(false);
     }
@@ -151,6 +202,12 @@ export default function HomeScreen() {
   const editingBaby = editingBabyId
     ? babies.find((baby) => baby.id === editingBabyId)
     : undefined;
+
+  const currentGrowth = currentBaby?.id ? records[currentBaby.id] || [] : [];
+  const filteredAppointments = useMemo(() => {
+    if (!currentBaby) return appointments;
+    return appointments.filter((item) => item.baby?.id === currentBaby.id);
+  }, [appointments, currentBaby]);
 
   return (
     <View style={styles.screen}>
@@ -214,8 +271,20 @@ export default function HomeScreen() {
         </View>
         <ActionGrid
           items={[
-            { id: 'growth', title: '成长曲线', icon: 'chart.bar.fill', tint: '#FADCD9' },
-            { id: 'appointment', title: '复诊提醒', icon: 'calendar', tint: '#E0E8F6' },
+            {
+              id: 'growth',
+              title: '成长曲线',
+              icon: 'chart.bar.fill',
+              tint: '#FADCD9',
+              onPress: () => router.push('/growth'),
+            },
+            {
+              id: 'appointment',
+              title: '复诊提醒',
+              icon: 'calendar',
+              tint: '#E0E8F6',
+              onPress: () => router.push('/appointments'),
+            },
             { id: 'record', title: '病历夹', icon: 'folder.fill', tint: '#DDF1EB' },
             { id: 'assess', title: '发育评估', icon: 'rectangle.stack.fill', tint: '#F0E6FF' },
           ]}
@@ -223,29 +292,63 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>近期复诊</Text>
-          <Text style={styles.sectionAction}>添加+</Text>
+          <TouchableOpacity onPress={() => setShowAppointmentModal(true)}>
+            <Text style={styles.sectionAction}>添加+</Text>
+          </TouchableOpacity>
         </View>
-        <AppointmentCard
-          clinic="儿童医院 - 眼科复查"
-          department="请携带社保卡及过往病历"
-          dateText="2025-12-15 10:00"
-          dateDay="15"
-          dateMonth="12月"
-          remindText="提前2天提醒"
-          statusLabel="待就诊"
-          statusVariant="accent"
-        />
-        <AppointmentCard
-          clinic="社区医院 - 疫苗接种"
-          department="已完成"
-          dateText="2025-11-28 14:00"
-          dateDay="28"
-          dateMonth="11月"
-          statusLabel="已完成"
-          statusVariant="muted"
-        />
+        {appointmentLoading ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>加载预约中...</Text>
+          </View>
+        ) : appointmentError ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{appointmentError}</Text>
+            <TouchableOpacity onPress={fetchAppointments}>
+              <Text style={styles.errorRetry}>重试</Text>
+            </TouchableOpacity>
+          </View>
+        ) : filteredAppointments.length === 0 ? (
+          <View style={styles.emptyStateCard}>
+            <Text style={styles.emptyText}>暂无预约</Text>
+            <Button title="添加预约" onPress={() => setShowAppointmentModal(true)} />
+          </View>
+        ) : (
+          filteredAppointments.slice(0, 2).map((item) => {
+            const date = new Date(item.scheduledAt);
+            const dateDay = String(date.getDate()).padStart(2, '0');
+            const dateMonth = `${date.getMonth() + 1}月`;
+            const statusLabel =
+              item.status === 'pending'
+                ? '待就诊'
+                : item.status === 'completed'
+                  ? '已完成'
+                  : '已过期';
+            const statusVariant =
+              item.status === 'pending' ? 'accent' : item.status === 'completed' ? 'muted' : 'primary';
+            return (
+              <AppointmentCard
+                key={item.id}
+                clinic={item.clinic}
+                department={item.department}
+                dateText={item.scheduledAt}
+                dateDay={dateDay}
+                dateMonth={dateMonth}
+                remindText={item.remindAt ? '已设置提醒' : '未设置提醒'}
+                statusLabel={statusLabel}
+                statusVariant={statusVariant}
+              />
+            );
+          })
+        )}
 
-        <GrowthCard />
+        <GrowthCard
+          records={currentGrowth}
+          loading={growthLoading}
+          error={growthError}
+          onAdd={() => setShowGrowthModal(true)}
+          onRefresh={currentBaby?.id ? () => fetchGrowth(currentBaby.id) : undefined}
+        />
 
         <ContentStrip
           title="内容课堂"
@@ -255,6 +358,16 @@ export default function HomeScreen() {
       </ScrollView>
 
       <FloatingActionButton label="记录" icon="+" />
+      <GrowthRecordModal
+        visible={showGrowthModal}
+        onClose={() => setShowGrowthModal(false)}
+        onSubmit={handleAddGrowth}
+      />
+      <AppointmentModal
+        visible={showAppointmentModal}
+        onClose={() => setShowAppointmentModal(false)}
+        onSubmit={handleAddAppointment}
+      />
 
       <BabyForm
         visible={showBabyForm}

@@ -18,6 +18,8 @@ export interface CreateBabyInput {
   gender: '男' | '女';
   birthday: string; // YYYY-MM-DD
   dueDate?: string;
+  gestationalWeeks?: number;
+  note?: string;
 }
 
 export interface UpdateBabyInput {
@@ -25,6 +27,8 @@ export interface UpdateBabyInput {
   gender?: '男' | '女';
   birthday?: string;
   dueDate?: string;
+  gestationalWeeks?: number;
+  note?: string;
 }
 
 export interface AgeInfo {

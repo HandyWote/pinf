@@ -15,67 +15,67 @@
 - 本地存储键：`auth.token`、`user.profile`、`babies.list`、`growth.<babyId>`、`visits.<babyId>`、`content.cache`、`assistant.history`、`sync.queue`、`sync.lastRun`。
 
 ## 1. 基础框架与基础设施
-1.1 初始化 WA（./WA） 项目，集成 React Navigation（Tab + Stack），主题 provider（设计 token）。
-1.2 axios 封装：baseURL `/api`，请求携带 Bearer token，401 自动登出；统一错误提示/重试策略。
-1.3 通用组件库：Button/Card/Input/Modal/Tag/ListItem/ChartContainer；颜色/圆角/阴影引用设计 token。
+1.1 **[已完成]** 初始化 WA（./WA）项目，采用 Expo Router（Tab + Stack）+ ThemeProvider + 设计 token。
+1.2 **[部分完成]** axios 封装已落地（token 拦截、超时/重试、错误提取），baseURL 仍为硬编码 dev 地址，401 仅清理存储未触发全局跳转，尚未环境化配置。
+1.3 **[已完成]** 通用组件库（Button/Card/Input/Modal/Tag/ListItem/ChartContainer）已实装并复用设计 token。
 
 ## 2. 认证模块（手机号主流程）
-2.1 登录页：手机号输入、验证码获取按钮（调用 `POST /auth/phone/code`）；验证码输入、登录（`POST /auth/phone/login`）。
-2.2 Token 持久化（AsyncStorage），用户信息缓存 `user.profile`。
-2.3 未登录拦截：路由守卫或导航中间件；401 拦截清理 token 并跳转登录。
+2.1 **[已完成]** 登录页：手机号+验证码登录流程已接入 `/auth/phone/code`、`/auth/phone/login`，含倒计时与格式校验。
+2.2 **[已完成]** Token 持久化（AsyncStorage），用户信息缓存 `user.profile`。
+2.3 **[部分完成]** 未登录拦截基于 Expo Router `useSegments` 已生效；401 拦截未联动全局登出/路由跳转。
 
 ## 3. 宝宝管理
-3.1 列表页：调用 `GET /babies` 展示宝宝卡片；空态引导添加。
-3.2 新建/编辑：`POST /babies`、`PUT /babies/{id}`；字段 `name|birthday|dueDate?|gestationalWeeks?|note?`，日期采用 YYYY-MM-DD（前端转后端格式）。
-3.3 删除：`DELETE /babies/{id}`；操作后刷新列表/缓存。
-3.4 年龄工具：实际/矫正月龄计算 util（支持 dueDate/gestationalWeeks）。
+3.1 **[部分完成]** 首页 BabySwitcher+Modal 列表已接入 `GET /babies`，有空态按钮，缺刷新/加载状态提示。
+3.2 **[部分完成]** 新建/编辑表单与 API 已接入，但仅覆盖 `name|gender|birthday|dueDate`，尚未支持 `gestationalWeeks|note`。
+3.3 **[部分完成]** 删除已串 `/babies/{id}` 并带确认，缺全局刷新与错误提示优化。
+3.4 **[已完成]** 年龄工具：实际/矫正月龄计算 util 已实现并在首页展示。
 
 ## 4. 成长记录与曲线
-4.1 数据接口：`GET/POST /babies/{babyId}/growth`，`PUT/DELETE /growth/{id}`；字段 `metric(height|weight|head|bmi)|value|unit|recordedAt|note?`。
-4.2 记录管理：按宝宝展示列表；新增/编辑/删除记录；本地缓存 `growth.<babyId>`，下拉刷新同步。
-4.3 曲线渲染：前端内置 WHO/Fenton 常量（身高/体重/头围）；X 轴月龄（WHO）或胎龄周（Fenton）；叠加用户数据点/折线；支持性别切换。
+4.1 **[未启动]** 数据接口：`GET/POST /babies/{babyId}/growth`，`PUT/DELETE /growth/{id}`；字段 `metric(height|weight|head|bmi)|value|unit|recordedAt|note?`。
+4.2 **[未启动]** 记录管理：按宝宝展示列表；新增/编辑/删除记录；本地缓存 `growth.<babyId>`，下拉刷新同步。
+4.3 **[未启动]** 曲线渲染：前端内置 WHO/Fenton 常量（身高/体重/头围）；X 轴月龄（WHO）或胎龄周（Fenton）；叠加用户数据点/折线；支持性别切换。
 
 ## 5. 预约（复诊）与提醒
-5.1 接口：`GET/POST /appointments`，`PUT/DELETE /appointments/{id}`；字段 `clinic|department|scheduledAt|remindAt?|status|note?|babyId?`。
-5.2 创建/编辑：前端计算 `remindAt` = `scheduledAt` - N 天 09:00；状态 pending/completed/overdue。
-5.3 展示：列表按时间排序；卡片显示诊所/科室/日期/状态；删除/完成操作。
-5.4 推送：集成 Expo Notifications 或 FCM+APNs；落地应用图标红点、应用内红点；本地通知兜底。
+5.1 **[未启动]** 接口：`GET/POST /appointments`，`PUT/DELETE /appointments/{id}`；字段 `clinic|department|scheduledAt|remindAt?|status|note?|babyId?`。
+5.2 **[未启动]** 创建/编辑：前端计算 `remindAt` = `scheduledAt` - N 天 09:00；状态 pending/completed/overdue。
+5.3 **[未启动]** 展示：列表按时间排序；卡片显示诊所/科室/日期/状态；删除/完成操作。
+5.4 **[未启动]** 推送：集成 Expo Notifications 或 FCM+APNs；落地应用图标红点、应用内红点；本地通知兜底。
 5.5 后端补充需求：实现订阅接口（新建）
 - `POST /notifications/subscriptions`（payload: deviceToken, platform, locale；user 从 JWT），`DELETE /notifications/subscriptions/:id`，`POST /notifications/test`（可选）。
 - 后台 job 按 `remindAt` 推送预约提醒。
 
 ## 6. 内容课堂
-6.1 列表/搜索：`GET /content/videos`，`GET /content/articles`，query 支持 `page|per_page|search|category`；缓存 1h。
-6.2 详情：`GET /content/videos/{id}`（增加 view 计数）、`GET /content/articles/{id}`；展示标题/封面/作者/发布日期/简介或正文。
-6.3 UI：轮播/卡片；手动刷新；错误回退。
+6.1 **[未启动]** 列表/搜索：`GET /content/videos`，`GET /content/articles`，query 支持 `page|per_page|search|category`；缓存 1h。
+6.2 **[未启动]** 详情：`GET /content/videos/{id}`（增加 view 计数）、`GET /content/articles/{id}`；展示标题/封面/作者/发布日期/简介或正文。
+6.3 **[未启动]** UI：轮播/卡片；手动刷新；错误回退。
 
 ## 7. 智能问答（AI）
-7.1 发送：`POST /chat/send`，传 `content`，可选 `babyId`、`messageId`、`history`（AI 端控制格式）；前端维持本地 `assistant.history`。
-7.2 历史：`GET /chat/history`（分页）；清空：`DELETE /chat/history`（可选 babyId）。
-7.3 UI：聊天气泡、loading/失败重试、上下文开关（前端可选是否携带 history）。
+7.1 **[未启动]** 发送：`POST /chat/send`，传 `content`，可选 `babyId`、`messageId`、`history`（AI 端控制格式）；前端维持本地 `assistant.history`。
+7.2 **[未启动]** 历史：`GET /chat/history`（分页）；清空：`DELETE /chat/history`（可选 babyId）。
+7.3 **[未启动]** UI：聊天气泡、loading/失败重试、上下文开关（前端可选是否携带 history）。
 
 ## 8. 同步与离线
-8.1 SyncEngine：网络监听；队列项 `{id,type,payload,createdAt}`，type 覆盖 baby/growth/appointment/chat（可扩展）。
-8.2 重放策略：网络恢复或定时轮询 `sync.queue`；`Promise.allSettled` 成功即移除，失败保留重试。
-8.3 缓存失效：内容 1h，列表 10min，可配置；手动刷新入口。
+8.1 **[未启动]** SyncEngine：网络监听；队列项 `{id,type,payload,createdAt}`，type 覆盖 baby/growth/appointment/chat（可扩展）。
+8.2 **[未启动]** 重放策略：网络恢复或定时轮询 `sync.queue`；`Promise.allSettled` 成功即移除，失败保留重试。
+8.3 **[未启动]** 缓存失效：内容 1h，列表 10min，可配置；手动刷新入口。
 
 ## 9. 我的/设置
-9.1 账户：展示手机号/角色；退出登录清 token/缓存。
-9.2 通知设置：开关推送（绑定订阅接口）、本地红点/提醒开关。
-9.3 其他：隐私/关于/反馈入口。
+9.1 **[部分完成]** 退出登录清 token/缓存已实现；账户信息展示页未落地。
+9.2 **[未启动]** 通知设置：开关推送（绑定订阅接口）、本地红点/提醒开关。
+9.3 **[未启动]** 其他：隐私/关于/反馈入口。
 
 ## 10. 推送集成步骤（简要决策）
 - **Expo 方案（最简）**：使用 Expo Notifications，获取 push token，注册到 `/notifications/subscriptions`；服务端用 Expo Push API 发送。
 - **FCM+APNs 方案**：配置 Firebase（安卓直接）、iOS 配置 APNs 密钥；前端获取 device token，注册到 `/notifications/subscriptions`；后端使用 FCM server 发送；Badge/红点在通知 payload 控制。
 
 ## 11. 测试与验收
-11.1 单元：axios 封装、年龄计算、SyncEngine 队列处理、`remindAt` 计算。
-11.2 集成：登录→建宝宝→加成长记录→看曲线→建预约→触发提醒→内容查看→AI 问答。
-11.3 E2E：Detox/Appium 覆盖核心闭环；离线→上线重放队列验证。
+11.1 **[未启动]** 单元：axios 封装、年龄计算、SyncEngine 队列处理、`remindAt` 计算。
+11.2 **[未启动]** 集成：登录→建宝宝→加成长记录→看曲线→建预约→触发提醒→内容查看→AI 问答。
+11.3 **[未启动]** E2E：Detox/Appium 覆盖核心闭环；离线→上线重放队列验证。
 
 ## 12. 交付与迁移
-12.1 如需导入旧本地数据：提供一次性迁移脚本读取旧键写入新键。
-12.2 文档：接口映射表、状态机、存储键、推送配置步骤、环境配置（Dev/Stage/Prod 域名与 key）  。
+12.1 **[未启动]** 如需导入旧本地数据：提供一次性迁移脚本读取旧键写入新键。
+12.2 **[未启动]** 文档：接口映射表、状态机、存储键、推送配置步骤、环境配置（Dev/Stage/Prod 域名与 key）。
 
 ## 13. WA 端下一步建议（基于现有进度）
 13.1 打通认证与后端环境配置：API baseURL 环境化（区分 Android 模拟器/真机/iOS），补全 401 触发全局登出与跳转逻辑。

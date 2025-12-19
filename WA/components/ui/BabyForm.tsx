@@ -32,6 +32,8 @@ export const BabyForm: React.FC<BabyFormProps> = ({
   const [gender, setGender] = useState<'男' | '女' | ''>('');
   const [birthday, setBirthday] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [gestationalWeeks, setGestationalWeeks] = useState('');
+  const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -49,6 +51,12 @@ export const BabyForm: React.FC<BabyFormProps> = ({
         setGender(initialData.gender || '');
         setBirthday(initialData.birthday);
         setDueDate(initialData.dueDate || '');
+        setGestationalWeeks(
+          initialData.gestationalWeeks !== undefined && initialData.gestationalWeeks !== null
+            ? String(initialData.gestationalWeeks)
+            : ''
+        );
+        setNote(initialData.note || '');
         
         if (initialData.birthday) {
           setTempBirthday(new Date(initialData.birthday));
@@ -62,6 +70,8 @@ export const BabyForm: React.FC<BabyFormProps> = ({
         setGender('');
         setBirthday('');
         setDueDate('');
+        setGestationalWeeks('');
+        setNote('');
         setTempBirthday(new Date());
         setTempDueDate(new Date());
       }
@@ -91,6 +101,13 @@ export const BabyForm: React.FC<BabyFormProps> = ({
       newErrors.dueDate = '预产期格式错误';
     }
 
+    if (gestationalWeeks.trim()) {
+      const week = Number(gestationalWeeks);
+      if (Number.isNaN(week) || week < 20 || week > 45) {
+        newErrors.gestationalWeeks = '孕周需在 20-45 周之间';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -101,11 +118,17 @@ export const BabyForm: React.FC<BabyFormProps> = ({
 
     setLoading(true);
     try {
+      const parsedGestationalWeeks = gestationalWeeks.trim()
+        ? Number(gestationalWeeks.trim())
+        : undefined;
+
       const data: CreateBabyInput | UpdateBabyInput = {
         name: name.trim(),
         gender: gender as '男' | '女',
         birthday,
         dueDate: dueDate || undefined,
+        gestationalWeeks: parsedGestationalWeeks,
+        note: note.trim() || undefined,
       };
 
       await onSubmit(data);
@@ -215,6 +238,27 @@ export const BabyForm: React.FC<BabyFormProps> = ({
           {errors.dueDate && <Text style={styles.errorText}>{errors.dueDate}</Text>}
         </View>
 
+        <Input
+          label="出生孕周（周）"
+          value={gestationalWeeks}
+          onChangeText={setGestationalWeeks}
+          placeholder="如 34，选填"
+          keyboardType="number-pad"
+          error={errors.gestationalWeeks}
+          containerStyle={styles.inputContainer}
+        />
+
+        <Input
+          label="备注"
+          value={note}
+          onChangeText={setNote}
+          placeholder="可记录特殊情况、医生建议等"
+          multiline
+          numberOfLines={3}
+          style={styles.textArea}
+          containerStyle={styles.inputContainer}
+        />
+
         {showDueDatePicker && (
           <DateTimePicker
             value={tempDueDate}
@@ -292,5 +336,10 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xl,
+  },
+  textArea: {
+    minHeight: 90,
+    textAlignVertical: 'top',
+    paddingTop: theme.spacing.sm,
   },
 });

@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 
@@ -35,12 +37,22 @@ const mockContent = [
 
 export default function HomeScreen() {
   const { logout } = useAuthStore();
-  const { babies, currentBaby, fetchBabies, createBaby, updateBaby, deleteBaby, selectBaby } =
-    useBabyStore();
+  const {
+    babies,
+    currentBaby,
+    fetchBabies,
+    createBaby,
+    updateBaby,
+    deleteBaby,
+    selectBaby,
+    isLoading,
+    error,
+  } = useBabyStore();
   const [showBabyForm, setShowBabyForm] = useState(false);
   const [showBabyList, setShowBabyList] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editingBabyId, setEditingBabyId] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 初始化：加载宝宝列表
   useEffect(() => {
@@ -93,6 +105,7 @@ export default function HomeScreen() {
         onPress: async () => {
           try {
             await deleteBaby(babyId);
+            await fetchBabies();
             Alert.alert('成功', '宝宝信息已删除');
           } catch (error) {
             Alert.alert('失败', '删除失败，请重试');
@@ -120,6 +133,15 @@ export default function HomeScreen() {
     setShowBabyForm(true);
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchBabies();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // 计算当前宝宝的年龄信息
   const ageInfo = currentBaby ? calculateBabyAge(currentBaby) : null;
   const ageDisplay = ageInfo ? formatDetailedAge(ageInfo) : null;
@@ -140,8 +162,23 @@ export default function HomeScreen() {
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       >
         <View style={styles.statusSpacer} />
+        {isLoading && !isRefreshing && (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>加载中...</Text>
+          </View>
+        )}
+        {error && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={fetchBabies}>
+              <Text style={styles.errorRetry}>重试</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         <View style={styles.headerRow}>
           {currentBaby && ageDisplay ? (
             <BabySwitcher
@@ -355,6 +392,38 @@ const styles = StyleSheet.create({
   sectionAction: {
     fontSize: theme.fontSizes.sm,
     color: theme.colors.primary,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
+  },
+  loadingText: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSub,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.medium,
+    backgroundColor: '#FDECEA',
+    borderWidth: 1,
+    borderColor: '#F5C6CB',
+    marginBottom: theme.spacing.md,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: theme.fontSizes.sm,
+    color: '#D64545',
+  },
+  errorRetry: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.primary,
+    fontWeight: '700',
+    paddingLeft: theme.spacing.sm,
   },
   addBabyButton: {
     flex: 1,

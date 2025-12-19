@@ -6,6 +6,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useAuthStore } from '@/store';
+import { useBabyStore } from '@/store/babyStore';
+import { setUnauthorizedHandler } from '@/services/api/client';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -38,12 +40,29 @@ function useProtectedRoute() {
 }
 
 export default function RootLayout() {
-  const { initialize } = useAuthStore();
+  const router = useRouter();
+  const { initialize, logout, isAuthenticated, isLoading } = useAuthStore();
+  const { initialize: initializeBabies } = useBabyStore();
 
   useEffect(() => {
     // 初始化认证状态
     initialize();
-  }, []);
+  }, [initialize]);
+
+  useEffect(() => {
+    // 注册 401 处理：清理登录态并跳转登录页
+    setUnauthorizedHandler(async () => {
+      await logout();
+      router.replace('/login');
+    });
+  }, [logout, router]);
+
+  useEffect(() => {
+    // 认证完成且已登录后再初始化宝宝数据
+    if (!isLoading && isAuthenticated) {
+      initializeBabies();
+    }
+  }, [initializeBabies, isAuthenticated, isLoading]);
 
   // 应用路由守卫
   useProtectedRoute();

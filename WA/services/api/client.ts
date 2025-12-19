@@ -5,6 +5,7 @@
 
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 // 存储键常量
 export const STORAGE_KEYS = {
@@ -15,10 +16,19 @@ export const STORAGE_KEYS = {
 
 // 配置
 // Android 模拟器使用 10.0.2.2 访问宿主机的 localhost
-// 真机或其他模拟器使用局域网 IP 192.168.8.101
-const API_BASE_URL = __DEV__ ? 'http://10.0.2.2:5010/api' : 'https://api.example.com/api';
+// 真机或其他模拟器使用局域网 IP（如 192.168.x.x）；生产环境由环境变量提供
+const API_BASE_URL =
+  (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl ||
+  (__DEV__ ? 'http://10.0.2.2:5010/api' : 'https://api.example.com/api');
 const REQUEST_TIMEOUT = 15000;
 const MAX_RETRIES = 2;
+
+// 全局 401 处理器，可由上层注入路由逻辑
+let unauthorizedHandler: (() => Promise<void> | void) | null = null;
+
+export const setUnauthorizedHandler = (handler: () => Promise<void> | void) => {
+  unauthorizedHandler = handler;
+};
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
@@ -58,16 +68,14 @@ apiClient.interceptors.response.use(
     // 401 未授权：清除 token 并触发登出
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
       try {
         await AsyncStorage.multiRemove([STORAGE_KEYS.AUTH_TOKEN, STORAGE_KEYS.USER_PROFILE]);
-        // 这里应该触发全局登出事件或导航到登录页
-        // 可以通过 event emitter 或全局状态管理实现
-        console.log('Token expired, user logged out');
       } catch (storageError) {
         console.error('Failed to clear storage on 401:', storageError);
       }
-
+      if (unauthorizedHandler) {
+        await unauthorizedHandler();
+      }
       return Promise.reject(error);
     }
 

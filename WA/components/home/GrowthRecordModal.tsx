@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { Button } from '@/components/ui/Button';
@@ -25,6 +25,11 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
   const [recordedAt, setRecordedAt] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // 调试日志
+  React.useEffect(() => {
+    console.log('GrowthRecordModal visible:', visible);
+  }, [visible]);
 
   const buildPayloads = () => {
     const list: Array<{ metric: GrowthMetric; value: number; unit: string; recordedAt: string; note?: string }> = [];
@@ -98,69 +103,74 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
 
   return (
     <Modal visible={visible} onClose={onClose} title="添加成长记录" height="auto">
-      <View style={styles.form}>
-        <Input
-          label="体重 (kg)"
-          value={weight}
-          onChangeText={setWeight}
-          placeholder="示例：3.2"
-          keyboardType="decimal-pad"
-          error={errors.weight}
-        />
-        <Input
-          label="身高 (cm)"
-          value={height}
-          onChangeText={setHeight}
-          placeholder="示例：52"
-          keyboardType="decimal-pad"
-          error={errors.height}
-        />
-        <Input
-          label="头围 (cm)"
-          value={head}
-          onChangeText={setHead}
-          placeholder="示例：34"
-          keyboardType="decimal-pad"
-          error={errors.head}
-        />
-
-        <View style={styles.dateRow}>
-          <Text style={styles.label}>记录时间</Text>
-          <Button
-            title={formatDateString(recordedAt)}
-            onPress={() => setShowPicker(true)}
-            variant="outline"
-            size="medium"
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.form}>
+          <Input
+            label="体重 (kg)"
+            value={weight}
+            onChangeText={setWeight}
+            placeholder="示例：3.2"
+            keyboardType="decimal-pad"
+            error={errors.weight}
           />
+          <Input
+            label="身高 (cm)"
+            value={height}
+            onChangeText={setHeight}
+            placeholder="示例：52"
+            keyboardType="decimal-pad"
+            error={errors.height}
+          />
+          <Input
+            label="头围 (cm)"
+            value={head}
+            onChangeText={setHead}
+            placeholder="示例：34"
+            keyboardType="decimal-pad"
+            error={errors.head}
+          />
+
+          <View style={styles.dateRow}>
+            <Text style={styles.label}>记录时间</Text>
+            <Button
+              title={formatDateString(recordedAt)}
+              onPress={() => setShowPicker(true)}
+              variant="outline"
+              size="medium"
+            />
+          </View>
+          {showPicker && (
+            <DateTimePicker
+              value={recordedAt}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+            />
+          )}
+
+          <Input
+            label="备注"
+            value={note}
+            onChangeText={setNote}
+            placeholder="医生建议、特殊情况等"
+            multiline
+            numberOfLines={3}
+            style={styles.textArea}
+          />
+
+          {errors.form && <Text style={styles.error}>{errors.form}</Text>}
+
+          <Button title="保存" onPress={handleSubmit} loading={loading} disabled={loading} />
         </View>
-        {showPicker && (
-          <DateTimePicker
-            value={recordedAt}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleDateChange}
-          />
-        )}
-
-        <Input
-          label="备注"
-          value={note}
-          onChangeText={setNote}
-          placeholder="医生建议、特殊情况等"
-          multiline
-          numberOfLines={3}
-          style={styles.textArea}
-        />
-
-        {errors.form && <Text style={styles.error}>{errors.form}</Text>}
-
-        <Button title="保存" onPress={handleSubmit} loading={loading} disabled={loading} />
-      </View>
+      </ScrollView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: theme.spacing.lg,
+  },
   form: {
     gap: theme.spacing.md,
   },

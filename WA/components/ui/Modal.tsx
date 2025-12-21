@@ -23,7 +23,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  height?: number;
+  height?: number | 'auto';
   containerStyle?: ViewStyle;
   position?: 'bottom' | 'top';
 }
@@ -37,21 +37,29 @@ export const Modal: React.FC<ModalProps> = ({
   containerStyle,
   position = 'bottom',
 }) => {
-  const startY = position === 'top' ? -height : SCREEN_HEIGHT;
+  // 计算实际高度值（用于动画）
+  const isAutoHeight = height === 'auto';
+  const animationHeight = isAutoHeight ? SCREEN_HEIGHT * 0.75 : (typeof height === 'number' ? height : SCREEN_HEIGHT * 0.85);
+  const startY = position === 'top' ? -animationHeight : SCREEN_HEIGHT;
   const translateY = React.useRef(new Animated.Value(startY)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    console.log('Modal visible changed:', visible);
     if (visible) {
+      // 重置初始位置
+      translateY.setValue(startY);
+      opacity.setValue(0);
+      
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: 0,
-          duration: 400,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 1,
-          duration: 300,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -59,12 +67,12 @@ export const Modal: React.FC<ModalProps> = ({
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: startY,
-          duration: 400,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 0,
-          duration: 300,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -95,7 +103,10 @@ export const Modal: React.FC<ModalProps> = ({
           style={[
             styles.modalContent,
             position === 'top' && styles.modalContentTop,
-            { height, transform: [{ translateY }] },
+            isAutoHeight 
+              ? { minHeight: 200, maxHeight: SCREEN_HEIGHT * 0.85 } 
+              : { height: typeof height === 'number' ? height : SCREEN_HEIGHT * 0.85 },
+            { transform: [{ translateY }] },
             containerStyle,
           ]}
         >
@@ -164,6 +175,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textSub,
   },
   content: {
-    flex: 1,
+    paddingBottom: theme.spacing.md,
   },
 });

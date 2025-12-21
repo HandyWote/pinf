@@ -175,6 +175,16 @@ export default function HomeScreen() {
     setShowGrowthModal(false);
   };
 
+  const handleOpenGrowthModal = () => {
+    console.log('Opening growth modal, currentBaby:', currentBaby);
+    setShowGrowthModal(true);
+  };
+
+  const handleOpenAppointmentModal = () => {
+    console.log('Opening appointment modal, currentBaby:', currentBaby);
+    setShowAppointmentModal(true);
+  };
+
   const handleAddAppointment = async (payload: any) => {
     await addAppointment({ ...payload, babyId: currentBaby?.id });
     setShowAppointmentModal(false);
@@ -292,7 +302,7 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>近期复诊</Text>
-          <TouchableOpacity onPress={() => setShowAppointmentModal(true)}>
+          <TouchableOpacity onPress={handleOpenAppointmentModal}>
             <Text style={styles.sectionAction}>添加+</Text>
           </TouchableOpacity>
         </View>
@@ -311,7 +321,7 @@ export default function HomeScreen() {
         ) : filteredAppointments.length === 0 ? (
           <View style={styles.emptyStateCard}>
             <Text style={styles.emptyText}>暂无预约</Text>
-            <Button title="添加预约" onPress={() => setShowAppointmentModal(true)} />
+            <Button title="添加预约" onPress={handleOpenAppointmentModal} />
           </View>
         ) : (
           filteredAppointments.slice(0, 2).map((item) => {
@@ -346,7 +356,7 @@ export default function HomeScreen() {
           records={currentGrowth}
           loading={growthLoading}
           error={growthError}
-          onAdd={() => setShowGrowthModal(true)}
+          onAdd={handleOpenGrowthModal}
           onRefresh={currentBaby?.id ? () => fetchGrowth(currentBaby.id) : undefined}
         />
 
@@ -593,6 +603,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
     gap: theme.spacing.md,
+  },
+  emptyStateCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.large,
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
   },
   emptyText: {
     fontSize: theme.fontSizes.sm,

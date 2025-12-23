@@ -1,4 +1,4 @@
-export type GrowthMetric = 'weight' | 'height' | 'head' | 'bmi';
+export type GrowthMetric = 'weight' | 'height' | 'head';
 
 export interface GrowthRecord {
   id: number;

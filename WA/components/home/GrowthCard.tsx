@@ -18,7 +18,6 @@ const metricMeta: Record<GrowthMetric, { label: string; unit: string }> = {
   weight: { label: '体重', unit: 'kg' },
   height: { label: '身高', unit: 'cm' },
   head: { label: '头围', unit: 'cm' },
-  bmi: { label: 'BMI', unit: '' },
 };
 
 export const GrowthCard: React.FC<Props> = ({ records, loading, error, onAdd, onRefresh }) => {

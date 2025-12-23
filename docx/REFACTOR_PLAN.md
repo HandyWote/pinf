@@ -31,14 +31,15 @@
 3.4 **[已完成]** 年龄工具：实际/矫正月龄计算 util 已实现并在首页展示。
 
 ## 4. 成长记录与曲线
-4.1 **[未启动]** 数据接口：`GET/POST /babies/{babyId}/growth`，`PUT/DELETE /growth/{id}`；字段 `metric(height|weight|head|bmi)|value|unit|recordedAt|note?`。
-4.2 **[未启动]** 记录管理：按宝宝展示列表；新增/编辑/删除记录；本地缓存 `growth.<babyId>`，下拉刷新同步。
-4.3 **[未启动]** 曲线渲染：前端内置 WHO/Fenton 常量（身高/体重/头围）；X 轴月龄（WHO）或胎龄周（Fenton）；叠加用户数据点/折线；支持性别切换。
+4.1 **[部分完成]** 数据接口：`GET/POST /babies/{babyId}/growth`，`PUT/DELETE /growth/{id}`；字段 `metric(height|weight|head|bmi)|value|unit|recordedAt|note?`。
+4.2 **[部分完成]** 记录管理：按宝宝展示列表；新增/编辑/删除记录；本地缓存 `growth.<babyId>`，下拉刷新同步。
+4.3 **[部分完成]** 曲线渲染：前端内置 WHO/Fenton 常量（身高/体重/头围）；X 轴月龄（WHO）或胎龄周（Fenton）；叠加用户数据点/折线；支持性别切换。
+4.4 **[未启动]** 曲线渲染待优化如：点击图表自动放大
 
 ## 5. 预约（复诊）与提醒
-5.1 **[未启动]** 接口：`GET/POST /appointments`，`PUT/DELETE /appointments/{id}`；字段 `clinic|department|scheduledAt|remindAt?|status|note?|babyId?`。
-5.2 **[未启动]** 创建/编辑：前端计算 `remindAt` = `scheduledAt` - N 天 09:00；状态 pending/completed/overdue。
-5.3 **[未启动]** 展示：列表按时间排序；卡片显示诊所/科室/日期/状态；删除/完成操作。
+5.1 **[完成]** 接口：`GET/POST /appointments`，`PUT/DELETE /appointments/{id}`；字段 `clinic|department|scheduledAt|remindAt?|status|note?|babyId?`。
+5.2 **[完成]** 创建/编辑：前端计算 `remindAt` = `scheduledAt` - N 天 09:00；状态 pending/completed/overdue。
+5.3 **[完成]** 展示：列表按时间排序；卡片显示诊所/科室/日期/状态；删除/完成操作。
 5.4 **[未启动]** 推送：集成 Expo Notifications 或 FCM+APNs；落地应用图标红点、应用内红点；本地通知兜底。
 5.5 后端补充需求：实现订阅接口（新建）
 - `POST /notifications/subscriptions`（payload: deviceToken, platform, locale；user 从 JWT），`DELETE /notifications/subscriptions/:id`，`POST /notifications/test`（可选）。

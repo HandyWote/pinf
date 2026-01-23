@@ -1,10 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
 
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { theme } from '@/constants/theme';
 
 type Props = {
-  icon?: string;
+  icon?: React.ComponentProps<typeof IconSymbol>['name'];
   label?: string;
   onPress?: () => void;
   visible?: boolean;
@@ -12,7 +13,7 @@ type Props = {
 };
 
 export const FloatingActionButton: React.FC<Props> = ({
-  icon = '+',
+  icon = 'plus.circle.fill',
   label = '添加',
   onPress,
   visible = true,
@@ -28,7 +29,7 @@ export const FloatingActionButton: React.FC<Props> = ({
         style,
       ]}
     >
-      <Text style={styles.icon}>{icon}</Text>
+      <IconSymbol name={icon} size={28} color={theme.colors.surface} />
       <Text style={styles.label}>{label}</Text>
     </TouchableOpacity>
   );
@@ -47,12 +48,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     ...theme.shadows.fab,
-  },
-  icon: {
-    color: theme.colors.surface,
-    fontSize: theme.layout.fab.icon,
-    lineHeight: theme.layout.fab.icon,
-    fontWeight: '700',
   },
   label: {
     color: theme.colors.surface,

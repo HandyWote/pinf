@@ -1,13 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { theme } from '@/constants/theme';
 
 type Props = {
   name: string;
   ageText: string;
   note?: string;
-  avatarLabel?: string;
+  avatarIcon?: React.ComponentProps<typeof IconSymbol>['name'];
   onPress?: () => void;
 };
 
@@ -15,7 +16,7 @@ export const BabySwitcher: React.FC<Props> = ({
   name,
   ageText,
   note,
-  avatarLabel = '👶',
+  avatarIcon = 'figure.child',
   onPress,
 }) => {
   return (
@@ -25,13 +26,13 @@ export const BabySwitcher: React.FC<Props> = ({
       onPress={onPress}
     >
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{avatarLabel}</Text>
+        <IconSymbol name={avatarIcon} size={20} color={theme.colors.textMain} />
       </View>
       <View style={styles.info}>
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.meta}>{note ? `${ageText} · ${note}` : ageText}</Text>
       </View>
-      <Text style={styles.chevron}>⌄</Text>
+      <IconSymbol name="chevron.down" size={16} color={theme.colors.textSub} />
     </TouchableOpacity>
   );
 };
@@ -55,9 +56,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 10,
   },
-  avatarText: {
-    fontSize: 18,
-  },
   info: {
     flex: 1,
   },
@@ -70,10 +68,5 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.xs,
     color: theme.colors.textSub,
     marginTop: 2,
-  },
-  chevron: {
-    fontSize: 16,
-    color: theme.colors.textSub,
-    marginLeft: 8,
   },
 });

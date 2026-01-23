@@ -20,6 +20,7 @@ const MAPPING = {
   'play.circle.fill': 'play-circle',
   'bell.fill': 'notifications',
   'person.circle.fill': 'person',
+  'person.crop.circle': 'account-circle',
   'chart.bar.fill': 'insights',
   calendar: 'calendar-today',
   'folder.fill': 'folder',
@@ -27,6 +28,14 @@ const MAPPING = {
   magnifyingglass: 'search',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.down': 'expand-more',
+  'plus.circle.fill': 'add-circle',
+  'xmark.circle.fill': 'cancel',
+  'figure.child': 'child-care',
+  'iphone': 'phone',
+  'key.fill': 'vpn-key',
+  'lock.fill': 'lock',
+  'wrench.and.screwdriver': 'build',
 } as IconMapping;
 
 /**

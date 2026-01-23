@@ -15,6 +15,7 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { theme } from '@/constants/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -125,7 +126,7 @@ export const Modal: React.FC<ModalProps> = ({
             <View style={styles.header}>
               <Text style={styles.title}>{title}</Text>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Text style={styles.closeIcon}>✕</Text>
+                <IconSymbol name="xmark.circle.fill" size={20} color={theme.colors.textSub} />
               </TouchableOpacity>
             </View>
           )}
@@ -180,10 +181,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.mutedBg,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  closeIcon: {
-    fontSize: 18,
-    color: theme.colors.textSub,
   },
   content: {
     paddingBottom: theme.spacing.md,

@@ -27,7 +27,7 @@ export const ActionGrid: React.FC<Props> = ({ items }) => {
           onPress={item.onPress}
         >
           <View style={styles.iconWrap}>
-            <IconSymbol name={item.icon} size={22} color={theme.colors.surface} />
+            <IconSymbol name={item.icon} size={22} color={theme.colors.primary} />
           </View>
           <Text style={styles.title} numberOfLines={1}>
             {item.title}

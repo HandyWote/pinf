@@ -16,6 +16,8 @@ import {
 import { router } from 'expo-router';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { theme } from '@/constants/theme';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '@/constants/tokens';
 import { setupPassword } from '@/services/api';
 import { useAuthStore } from '@/store';
@@ -69,7 +71,7 @@ export default function SetPasswordScreen() {
             onChangeText={setPassword}
             placeholder="请输入8-16位字母+数字"
             secureTextEntry
-            leftIcon="🔒"
+            leftIcon={<IconSymbol name="lock.fill" size={18} color={theme.colors.textSub} />}
             required
           />
 

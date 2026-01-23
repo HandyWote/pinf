@@ -20,6 +20,8 @@ import { useAuthStore } from '@/store';
 import { sendPhoneCode, phoneLogin, passwordLogin } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { theme } from '@/constants/theme';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '@/constants/tokens';
 
 type LoginMode = 'code' | 'password';
@@ -176,7 +178,7 @@ export default function LoginScreen() {
         {/* Logo 区域 */}
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>👶</Text>
+            <IconSymbol name="figure.child" size={40} color={theme.colors.primary} />
           </View>
           <Text style={styles.appName}>早护通</Text>
           <Text style={styles.appSlogan}>专业的早产儿护理助手</Text>
@@ -213,7 +215,7 @@ export default function LoginScreen() {
             placeholder="请输入手机号"
             keyboardType="phone-pad"
             maxLength={11}
-            leftIcon="📱"
+            leftIcon={<IconSymbol name="iphone" size={18} color={theme.colors.textSub} />}
             required
           />
 
@@ -229,7 +231,7 @@ export default function LoginScreen() {
                     placeholder="请输入6位验证码"
                     keyboardType="number-pad"
                     maxLength={6}
-                    leftIcon="🔑"
+                    leftIcon={<IconSymbol name="key.fill" size={18} color={theme.colors.textSub} />}
                     required
                   />
                 </View>
@@ -252,7 +254,7 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               placeholder="8-16位字母+数字"
               secureTextEntry
-              leftIcon="🔒"
+              leftIcon={<IconSymbol name="lock.fill" size={18} color={theme.colors.textSub} />}
               required
             />
           )}
@@ -260,7 +262,10 @@ export default function LoginScreen() {
           {/* 开发模式调试信息 */}
           {loginMode === 'code' && debugCode && (
             <View style={styles.debugContainer}>
-              <Text style={styles.debugLabel}>🔧 开发模式验证码：</Text>
+              <View style={styles.debugRow}>
+                <IconSymbol name="wrench.and.screwdriver" size={14} color={theme.colors.primary} />
+                <Text style={styles.debugLabel}> 开发模式验证码：</Text>
+              </View>
               <Text style={styles.debugCode}>{debugCode}</Text>
             </View>
           )}
@@ -381,10 +386,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderStyle: 'dashed',
   },
+  debugRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.xs,
+  },
   debugLabel: {
     fontSize: FontSizes.xs,
     color: Colors.textSub,
-    marginBottom: Spacing.xs,
   },
   debugCode: {
     fontSize: FontSizes.lg,

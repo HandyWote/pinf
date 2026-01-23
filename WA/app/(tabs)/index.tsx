@@ -283,7 +283,8 @@ export default function HomeScreen() {
             />
           ) : (
             <TouchableOpacity onPress={handleOpenCreateForm} style={styles.addBabyButton}>
-              <Text style={styles.addBabyText}>+ 添加宝宝</Text>
+              <IconSymbol name="plus.circle.fill" size={18} color={theme.colors.primary} />
+              <Text style={styles.addBabyText}> 添加宝宝</Text>
             </TouchableOpacity>
           )}
           <View style={styles.headerIcon}>
@@ -313,14 +314,14 @@ export default function HomeScreen() {
               title: '成长曲线',
               icon: 'chart.bar.fill',
               tint: '#FADCD9',
-              onPress: () => router.push('/growth'),
+              onPress: () => router.push('/growth/index'),
             },
             {
               id: 'appointment',
               title: '复诊提醒',
               icon: 'calendar',
               tint: '#E0E8F6',
-              onPress: () => router.push('/appointments'),
+              onPress: () => router.push('/appointments/index'),
             },
             { id: 'record', title: '病历夹', icon: 'folder.fill', tint: '#DDF1EB' },
             { id: 'assess', title: '发育评估', icon: 'rectangle.stack.fill', tint: '#F0E6FF' },
@@ -329,8 +330,9 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>近期复诊</Text>
-          <TouchableOpacity onPress={handleOpenAppointmentModal}>
-            <Text style={styles.sectionAction}>添加+</Text>
+          <TouchableOpacity onPress={handleOpenAppointmentModal} style={styles.sectionActionRow}>
+            <Text style={styles.sectionAction}>添加</Text>
+            <IconSymbol name="plus.circle.fill" size={14} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
         {appointmentLoading ? (
@@ -414,7 +416,7 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      <FloatingActionButton label="记录" icon="+" />
+      <FloatingActionButton label="记录" icon="plus.circle.fill" />
       <GrowthRecordModal
         visible={showGrowthModal}
         onClose={() => setShowGrowthModal(false)}
@@ -603,12 +605,19 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
     ...theme.shadows.small,
   },
   addBabyText: {
     fontSize: theme.fontSizes.md,
     fontWeight: '600',
     color: theme.colors.primary,
+  },
+  sectionActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   babyListContainer: {
     flex: 1,

@@ -78,11 +78,7 @@ export default function HomeScreen() {
     add: addAppointment,
   } = useAppointmentStore();
 
-  // 初始化：加载宝宝列表
-  useEffect(() => {
-    fetchBabies();
-  }, []);
-
+  // 初始化：加载宝宝列表已在 _layout.tsx 中通过 initializeBabies() 处理
   // 选中宝宝后加载成长记录
   useEffect(() => {
     if (currentBaby?.id) {
@@ -90,10 +86,13 @@ export default function HomeScreen() {
     }
   }, [currentBaby?.id, fetchGrowth]);
 
-  // 加载预约数据（全量，页面过滤）
+  // 加载预约数据（全量，页面过滤）- 已登录用户
+  const { isAuthenticated } = useAuthStore();
   useEffect(() => {
-    fetchAppointments().catch(() => {});
-  }, [fetchAppointments]);
+    if (isAuthenticated) {
+      fetchAppointments().catch(() => {});
+    }
+  }, [fetchAppointments, isAuthenticated]);
 
   const handleLogout = () => {
     Alert.alert(

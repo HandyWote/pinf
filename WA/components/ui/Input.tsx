@@ -36,6 +36,12 @@ export const Input: React.FC<InputProps> = ({
   ...textInputProps
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const renderIcon = (icon: React.ReactNode) => {
+    if (typeof icon === 'string' || typeof icon === 'number') {
+      return <Text style={styles.iconText}>{icon}</Text>;
+    }
+    return icon;
+  };
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -53,7 +59,7 @@ export const Input: React.FC<InputProps> = ({
           error && styles.inputContainerError,
         ]}
       >
-        {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+        {leftIcon && <View style={styles.leftIcon}>{renderIcon(leftIcon)}</View>}
         
         <TextInput
           style={[styles.input, leftIcon ? styles.inputWithLeftIcon : null]}
@@ -65,7 +71,7 @@ export const Input: React.FC<InputProps> = ({
         
         {rightIcon && (
           <TouchableOpacity style={styles.rightIcon}>
-            {rightIcon}
+            {renderIcon(rightIcon)}
           </TouchableOpacity>
         )}
       </View>
@@ -125,6 +131,9 @@ const styles = StyleSheet.create({
     paddingRight: theme.spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  iconText: {
+    fontSize: theme.fontSizes.sm,
   },
   errorText: {
     fontSize: theme.fontSizes.xs,

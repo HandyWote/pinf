@@ -6,6 +6,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 // 存储键常量
 export const STORAGE_KEYS = {
@@ -16,10 +17,13 @@ export const STORAGE_KEYS = {
 
 // 配置
 // Android 模拟器使用 10.0.2.2 访问宿主机的 localhost
-// 真机或其他模拟器使用局域网 IP（如 192.168.x.x）；生产环境由环境变量提供
-const API_BASE_URL =
-  (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl ||
-  (__DEV__ ? 'http://10.0.2.2:5010/api' : 'https://api.example.com/api');
+// Android 真机需通过环境变量覆盖为局域网 IP
+// Web/iOS 使用 localhost
+// 生产环境由环境变量提供
+const configuredBaseUrl = (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl;
+const devBaseUrl =
+  Platform.OS === 'android' ? 'http://10.0.2.2:5010/api' : 'http://localhost:5010/api';
+const API_BASE_URL = configuredBaseUrl || (__DEV__ ? devBaseUrl : 'https://api.example.com/api');
 const REQUEST_TIMEOUT = 15000;
 const MAX_RETRIES = 2;
 

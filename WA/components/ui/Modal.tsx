@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import {
   View,
+  ScrollView,
   Modal as RNModal,
   StyleSheet,
   TouchableOpacity,
@@ -79,6 +80,16 @@ export const Modal: React.FC<ModalProps> = ({
     }
   }, [visible]);
 
+  const renderChildren = () => React.Children.map(children, (child) => {
+    if (!React.isValidElement(child) || child.type !== ScrollView) {
+      return child;
+    }
+
+    return React.cloneElement(child, {
+      style: [child.props.style, styles.scrollViewFlex],
+    });
+  });
+
   return (
     <RNModal
       visible={visible}
@@ -119,7 +130,7 @@ export const Modal: React.FC<ModalProps> = ({
             </View>
           )}
           
-          <View style={styles.content}>{children}</View>
+          <View style={styles.content}>{renderChildren()}</View>
         </Animated.View>
       </Animated.View>
     </RNModal>
@@ -176,5 +187,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: theme.spacing.md,
+  },
+  scrollViewFlex: {
+    flex: 1,
   },
 });

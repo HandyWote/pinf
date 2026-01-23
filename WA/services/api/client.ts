@@ -16,15 +16,44 @@ export const STORAGE_KEYS = {
   CONTENT_CACHE: 'content.cache',
 } as const;
 
-// 配置
-// Android 模拟器使用 10.0.2.2 访问宿主机的 localhost
-// Android 真机需通过环境变量覆盖为局域网 IP
-// Web/iOS 使用 localhost
-// 生产环境由环境变量提供
-const configuredBaseUrl = (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl;
-const devBaseUrl =
-  Platform.OS === 'android' ? 'http://10.0.2.2:5010/api' : 'http://localhost:5010/api';
-const API_BASE_URL = configuredBaseUrl || (__DEV__ ? devBaseUrl : 'https://api.example.com/api');
+/**
+ * 获取 API Base URL
+ *
+ * 优先级：
+ * 1. 环境变量 API_BASE_URL（通过 app.config.ts 注入到 Constants.expoConfig.extra）
+ * 2. 开发环境默认值（根据平台自动选择）
+ * 3. 生产环境（必须显式配置）
+ */
+const getApiBaseUrl = (): string => {
+  // 1. 优先使用环境变量配置
+  const configuredBaseUrl = (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl;
+  if (configuredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
+  // 2. 开发环境默认值
+  if (__DEV__) {
+    // Android 模拟器使用 10.0.2.2 访问宿主机的 localhost
+    // iOS 模拟器、Web 使用 localhost
+    // Android 真机需要手动配置环境变量（无法自动检测局域网 IP）
+    if (Platform.OS === 'android') {
+      console.warn(
+        '[API] 未检测到 API_BASE_URL 环境变量。' +
+          'Android 真机请在 .env 文件中配置局域网 IP（如：API_BASE_URL=http://172.21.x.x:5010/api）。' +
+          '当前使用模拟器地址 10.0.2.2。'
+      );
+      return 'http://10.0.2.2:5010/api';
+    }
+    return 'http://localhost:5010/api';
+  }
+
+  // 3. 生产环境必须显式配置
+  throw new Error(
+    '[API] 生产环境必须配置 API_BASE_URL 环境变量。请在 app.config.ts 或构建时设置该变量。'
+  );
+};
+
+const API_BASE_URL = getApiBaseUrl();
 const REQUEST_TIMEOUT = 15000;
 const MAX_RETRIES = 2;
 

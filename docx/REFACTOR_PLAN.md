@@ -16,13 +16,13 @@
 
 ## 1. 基础框架与基础设施
 1.1 **[已完成]** 初始化 WA（./WA）项目，采用 Expo Router（Tab + Stack）+ ThemeProvider + 设计 token。
-1.2 **[部分完成]** axios 封装已落地（token 拦截、超时/重试、错误提取），baseURL 仍为硬编码 dev 地址，401 仅清理存储未触发全局跳转，尚未环境化配置。
+1.2 **[已完成]** axios 封装已落地（token 拦截、超时/重试、错误提取），API baseURL 已环境化配置（支持 .env + app.config.ts），401 已联动全局登出与路由跳转。
 1.3 **[已完成]** 通用组件库（Button/Card/Input/Modal/Tag/ListItem/ChartContainer）已实装并复用设计 token。
 
 ## 2. 认证模块（手机号主流程）
 2.1 **[已完成]** 登录页：手机号+验证码登录流程已接入 `/auth/phone/code`、`/auth/phone/login`，含倒计时与格式校验。
 2.2 **[已完成]** Token 持久化（AsyncStorage），用户信息缓存 `user.profile`。
-2.3 **[部分完成]** 未登录拦截基于 Expo Router `useSegments` 已生效；401 拦截未联动全局登出/路由跳转。
+2.3 **[已完成]** 未登录拦截基于 Expo Router `useSegments` 已生效；401 拦截已联动全局登出/路由跳转（通过 `setUnauthorizedHandler` + `_layout.tsx`）。
 
 ## 3. 宝宝管理
 3.1 **[部分完成]** 首页 BabySwitcher+Modal 列表已接入 `GET /babies`，有空态按钮，缺刷新/加载状态提示。
@@ -80,8 +80,8 @@
 12.2 **[未启动]** 文档：接口映射表、状态机、存储键、推送配置步骤、环境配置（Dev/Stage/Prod 域名与 key）。
 
 ## 13. WA 端下一步建议（基于现有进度）
-13.1 打通认证与后端环境配置：API baseURL 环境化（区分 Android 模拟器/真机/iOS），补全 401 触发全局登出与跳转逻辑。
-13.2 完善宝宝管理闭环：新增宝宝列表/详情/编辑/删除流程，统一成功/失败提示；首页“添加宝宝”改为完整表单流程。
+13.1 ~~打通认证与后端环境配置：API baseURL 环境化（区分 Android 模拟器/真机/iOS），补全 401 触发全局登出与跳转逻辑。~~ **[已完成]**
+13.2 完善宝宝管理闭环：新增宝宝列表/详情/编辑/删除流程，统一成功/失败提示；首页"添加宝宝"改为完整表单流程。
 13.3 成长记录模块：列表/新增/编辑/删除接入后端，并完成 WHO/Fenton 曲线渲染与年龄维度切换。
 13.4 复诊与提醒模块：预约 CRUD、提醒时间计算、本地通知先落地（Expo Notifications）。
 13.5 课堂/问答接入真实接口：替换 mock 数据，补齐加载/空态/错误态与分页/刷新。

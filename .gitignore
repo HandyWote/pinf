@@ -138,3 +138,5 @@ logs/
 *.swp
 *.swo
 *~
+
+.claude/

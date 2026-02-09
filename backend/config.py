@@ -17,11 +17,17 @@ class Config:
 
     # 数据库连接池配置（防止长时间空闲后连接断开）
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": 10,           # 连接池大小
-        "pool_recycle": 3600,      # 1小时回收连接
-        "pool_pre_ping": True,     # 使用前ping检测连接有效性
-        "pool_timeout": 30,        # 获取连接超时时间
-        "max_overflow": 20,        # 最大溢出连接数
+        "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
+        "pool_recycle": int(os.environ.get("DB_POOL_RECYCLE", "600")),
+        "pool_pre_ping": True,
+        "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
+        "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "20")),
+        "connect_args": {
+            "keepalives": int(os.environ.get("DB_KEEPALIVES", "1")),
+            "keepalives_idle": int(os.environ.get("DB_KEEPALIVES_IDLE", "30")),
+            "keepalives_interval": int(os.environ.get("DB_KEEPALIVES_INTERVAL", "10")),
+            "keepalives_count": int(os.environ.get("DB_KEEPALIVES_COUNT", "5")),
+        },
     }
 
     # JWT 配置

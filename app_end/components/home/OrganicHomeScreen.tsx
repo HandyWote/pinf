@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+/**
+ * 温暖有机风格的首页优化版本
+ * 采用柔和的渐变、有机形状和浮动动画
+ */
+
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -10,15 +15,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import {
-  ActionGrid,
-  AppointmentCard,
+  GrowthRecordModal,
 } from '@/components/home';
-import { GrowthRecordModal } from '@/components/home/GrowthRecordModal';
 import { AppointmentModal } from '@/components/home/AppointmentModal';
-import { BabyForm, Modal, OrganicBackground, OrganicCard, OrganicButton } from '@/components/ui';
+import { BabyForm, Modal, OrganicBackground, OrganicCard } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuthStore } from '@/store';
@@ -27,12 +29,15 @@ import { useGrowthStore } from '@/store/growthStore';
 import { useAppointmentStore } from '@/store/appointmentStore';
 import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
 import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
-import type { GrowthRecord } from '@/types/growth';
-import type { Appointment } from '@/types/appointment';
-import * as contentApi from '@/services/api/content';
-import type { ContentArticle } from '@/types/content';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function HomeScreen() {
+const mockContent = [
+  { id: '1', title: '早产儿喂养指南', tag: '喂养', color: organicTheme.colors.accent.mint },
+  { id: '2', title: '0-12月发育里程碑', tag: '发育', color: organicTheme.colors.accent.lavender },
+  { id: '3', title: '复诊准备清单', tag: '复诊', color: organicTheme.colors.accent.sky },
+];
+
+export default function OrganicHomeScreen() {
   const { logout } = useAuthStore();
   const {
     babies,
@@ -52,9 +57,6 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showGrowthModal, setShowGrowthModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
-  const [contentItems, setContentItems] = useState<ContentArticle[]>([]);
-  const [contentLoading, setContentLoading] = useState(false);
-  const [contentError, setContentError] = useState<string | null>(null);
 
   const {
     records,
@@ -72,6 +74,7 @@ export default function HomeScreen() {
     add: addAppointment,
   } = useAppointmentStore();
 
+  // 初始化
   useEffect(() => {
     if (currentBaby?.id) {
       fetchGrowth(currentBaby.id).catch(() => {});
@@ -84,24 +87,6 @@ export default function HomeScreen() {
       fetchAppointments().catch(() => {});
     }
   }, [fetchAppointments, isAuthenticated]);
-
-  const fetchContentPreview = useCallback(async () => {
-    setContentLoading(true);
-    setContentError(null);
-    try {
-      const res = await contentApi.listArticles({ page: 1, per_page: 5 });
-      setContentItems(res.data);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '获取内容失败';
-      setContentError(message);
-    } finally {
-      setContentLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchContentPreview();
-  }, [fetchContentPreview]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -159,36 +144,10 @@ export default function HomeScreen() {
     ]);
   };
 
-  const handleBabySwitcherPress = () => {
-    setShowBabyList(true);
-  };
-
-  const handleOpenCreateForm = () => {
-    setFormMode('create');
-    setEditingBabyId(null);
-    setShowBabyList(false);
-    setShowBabyForm(true);
-  };
-
-  const handleOpenEditForm = (babyId: number) => {
-    setFormMode('edit');
-    setEditingBabyId(babyId);
-    setShowBabyList(false);
-    setShowBabyForm(true);
-  };
-
   const handleAddGrowth = async (payloads: Parameters<typeof addGrowth>[1]) => {
     if (!currentBaby?.id) return;
     await addGrowth(currentBaby.id, payloads);
     setShowGrowthModal(false);
-  };
-
-  const handleOpenGrowthModal = () => {
-    setShowGrowthModal(true);
-  };
-
-  const handleOpenAppointmentModal = () => {
-    setShowAppointmentModal(true);
   };
 
   const handleAddAppointment = async (payload: any) => {
@@ -204,7 +163,6 @@ export default function HomeScreen() {
         await fetchGrowth(currentBaby.id);
       }
       await fetchAppointments();
-      await fetchContentPreview();
     } finally {
       setIsRefreshing(false);
     }
@@ -212,22 +170,11 @@ export default function HomeScreen() {
 
   const ageInfo = currentBaby ? calculateBabyAge(currentBaby) : null;
   const ageDisplay = ageInfo ? formatDetailedAge(ageInfo) : null;
-
   const currentGrowth = currentBaby?.id ? records[currentBaby.id] || [] : [];
   const filteredAppointments = useMemo(() => {
     if (!currentBaby) return appointments;
     return appointments.filter((item) => item.baby?.id === currentBaby.id);
   }, [appointments, currentBaby]);
-
-  const contentStripItems = useMemo(
-    () =>
-      contentItems.map((item) => ({
-        id: String(item.id),
-        title: item.title,
-        tag: item.category || item.tags?.[0] || undefined,
-      })),
-    [contentItems]
-  );
 
   const editingBaby = editingBabyId
     ? babies.find((baby) => baby.id === editingBabyId)
@@ -255,7 +202,7 @@ export default function HomeScreen() {
           <View style={styles.greeting}>
             <Text style={styles.greetingText}>早上好</Text>
             <View style={styles.greetingIcon}>
-              <IconSymbol size={20} name="sun" color={organicTheme.colors.accent.peach} />
+              <IconSymbol size={20} name="sun.max" color={organicTheme.colors.accent.peach} />
             </View>
             <Text style={styles.greetingSubtext}>又是陪伴宝宝成长的一天</Text>
           </View>
@@ -267,7 +214,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* 加载和错误状态 */}
+        {/* 宝宝信息卡片 */}
         {isLoading && !isRefreshing ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
@@ -281,51 +228,47 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </OrganicCard>
         ) : currentBaby && ageDisplay ? (
-          /* 宝宝信息卡片 */
           <OrganicCard shadow style={styles.babyCard}>
-            <TouchableOpacity onPress={handleBabySwitcherPress}>
-              <View style={styles.babyCardContent}>
-                <View style={styles.babyInfo}>
-                  <View style={styles.babyAvatar}>
-                    <Text style={styles.babyAvatarText}>
-                      {currentBaby.name.charAt(0)}
-                    </Text>
-                  </View>
-                  <View style={styles.babyDetails}>
-                    <Text style={styles.babyName}>{currentBaby.name}</Text>
-                    <Text style={styles.babyAge}>{ageDisplay.mainText}</Text>
-                    {ageDisplay.detailText && (
-                      <Text style={styles.babyMeta}>{ageDisplay.detailText}</Text>
-                    )}
-                  </View>
+            <View style={styles.babyCardContent}>
+              <View style={styles.babyInfo}>
+                <View style={styles.babyAvatar}>
+                  <Text style={styles.babyAvatarText}>
+                    {currentBaby.name.charAt(0)}
+                  </Text>
                 </View>
-
-                {babies.length > 1 && (
-                  <View style={styles.switchIndicator}>
-                    <Text style={styles.switchText}>切换</Text>
-                    <IconSymbol size={14} name="chevron.right" color={organicTheme.colors.primary.main} />
-                  </View>
-                )}
+                <View style={styles.babyDetails}>
+                  <Text style={styles.babyName}>{currentBaby.name}</Text>
+                  <Text style={styles.babyAge}>{ageDisplay.mainText}</Text>
+                  <Text style={styles.babyMeta}>{ageDisplay.detailText}</Text>
+                </View>
               </View>
 
-              {/* 年龄徽章 */}
-              {ageDisplay.badges && ageDisplay.badges.length > 0 && (
-                <View style={styles.badgesContainer}>
-                  {ageDisplay.badges.map((badge: { label: string }, index: number) => (
-                    <View key={index} style={styles.badge}>
-                      <Text style={styles.badgeText}>{badge.label}</Text>
-                    </View>
-                  ))}
-                </View>
+              {babies.length > 1 && (
+                <TouchableOpacity
+                  style={styles.switchButton}
+                  onPress={() => setShowBabyList(true)}
+                >
+                  <IconSymbol size={16} name="arrow.triangle.2.circlepath" color={organicTheme.colors.primary.main} />
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </View>
+
+            {/* 年龄徽章 */}
+            {ageDisplay.badges && ageDisplay.badges.length > 0 && (
+              <View style={styles.badgesContainer}>
+                {ageDisplay.badges.map((badge: { label: string }, index: number) => (
+                  <View key={index} style={styles.badge}>
+                    <Text style={styles.badgeText}>{badge.label}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </OrganicCard>
         ) : (
-          /* 添加宝宝卡片 */
           <OrganicCard shadow style={styles.addBabyCard}>
             <TouchableOpacity
               style={styles.addBabyContent}
-              onPress={handleOpenCreateForm}
+              onPress={() => setShowBabyForm(true)}
             >
               <View style={styles.addBabyIcon}>
                 <IconSymbol size={24} name="plus" color={organicTheme.colors.primary.main} />
@@ -352,8 +295,8 @@ export default function HomeScreen() {
               colors={[organicTheme.colors.primary.pale, organicTheme.colors.primary.soft]}
               style={styles.actionCardGradient}
             >
-              <View style={styles.actionIcon}>
-                <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
+              <View style={styles.actionIconLarge}>
+                <IconSymbol size={32} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>成长曲线</Text>
               <Text style={styles.actionCardSubtitle}>记录发育里程碑</Text>
@@ -368,8 +311,8 @@ export default function HomeScreen() {
               colors={[organicTheme.colors.accent.peach, organicTheme.colors.primary.pale]}
               style={styles.actionCardGradient}
             >
-              <View style={styles.actionIcon}>
-                <IconSymbol size={28} name="calendar" color={organicTheme.colors.primary.main} />
+              <View style={styles.actionIconLarge}>
+                <IconSymbol size={32} name="calendar" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>复诊提醒</Text>
               <Text style={styles.actionCardSubtitle}>管理预约时间</Text>
@@ -380,7 +323,7 @@ export default function HomeScreen() {
         {/* 近期预约 */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>近期复诊</Text>
-          <TouchableOpacity onPress={handleOpenAppointmentModal}>
+          <TouchableOpacity onPress={() => setShowAppointmentModal(true)}>
             <LinearGradient
               colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
               style={styles.addButton}
@@ -405,7 +348,7 @@ export default function HomeScreen() {
         ) : filteredAppointments.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="event.note" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={48} name="event" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击右上角添加复诊预约</Text>
             </View>
@@ -433,12 +376,7 @@ export default function HomeScreen() {
                     <Text style={styles.appointmentClinic}>{item.clinic}</Text>
                     <Text style={styles.appointmentDepartment}>{item.department}</Text>
                   </View>
-                  <View style={[
-                    styles.statusBadge,
-                    item.status === 'pending' ? styles.statusPending :
-                    item.status === 'completed' ? styles.statusCompleted :
-                    styles.statusExpired
-                  ]}>
+                  <View style={[styles.statusBadge, item.status === 'pending' ? styles.statusPending : item.status === 'completed' ? styles.statusCompleted : styles.statusExpired]}>
                     <Text style={styles.statusText}>{statusLabel}</Text>
                   </View>
                 </View>
@@ -450,7 +388,7 @@ export default function HomeScreen() {
         {/* 成长记录简览 */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>成长记录</Text>
-          <TouchableOpacity onPress={handleOpenGrowthModal}>
+          <TouchableOpacity onPress={() => setShowGrowthModal(true)}>
             <LinearGradient
               colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
               style={styles.addButton}
@@ -506,61 +444,28 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>内容课堂</Text>
         </View>
 
-        {contentLoading && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
-            <Text style={styles.loadingText}>加载内容中...</Text>
+        <OrganicCard shadow>
+          <View style={styles.contentStrip}>
+            {mockContent.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.contentItem}
+                onPress={() => router.push('/(tabs)/class')}
+              >
+                <View style={[styles.contentTag, { backgroundColor: item.color }]}>
+                  <Text style={styles.contentTagText}>{item.tag}</Text>
+                </View>
+                <Text style={styles.contentTitle}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        )}
-
-        {contentError && (
-          <OrganicCard variant="ghost">
-            <View style={styles.emptyContent}>
-              <Text style={styles.errorText}>{contentError}</Text>
-              <TouchableOpacity onPress={fetchContentPreview}>
-                <Text style={styles.errorRetry}>重试</Text>
-              </TouchableOpacity>
-            </View>
-          </OrganicCard>
-        )}
-
-        {!contentLoading && !contentError && contentStripItems.length > 0 && (
-          <OrganicCard shadow>
-            <View style={styles.contentStrip}>
-              {contentStripItems.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.contentItem}
-                  onPress={() => router.push(`/class-article/${item.id}`)}
-                >
-                  {item.tag && (
-                    <View style={[styles.contentTag, { backgroundColor: organicTheme.colors.accent.mint }]}>
-                      <Text style={styles.contentTagText}>{item.tag}</Text>
-                    </View>
-                  )}
-                  <Text style={styles.contentTitle}>{item.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </OrganicCard>
-        )}
-
-        {!contentLoading && !contentError && contentStripItems.length === 0 && (
-          <OrganicCard variant="ghost">
-            <View style={styles.emptyContent}>
-              <Text style={styles.emptyText}>暂无内容</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/class')}>
-                <Text style={styles.viewAllButtonText}>去课堂 →</Text>
-              </TouchableOpacity>
-            </View>
-          </OrganicCard>
-        )}
+        </OrganicCard>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
       {/* 浮动操作按钮 */}
-      <TouchableOpacity style={styles.fab} onPress={handleOpenGrowthModal}>
+      <TouchableOpacity style={styles.fab} onPress={() => setShowGrowthModal(true)}>
         <LinearGradient
           colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
           style={styles.fabGradient}
@@ -668,40 +573,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: organicTheme.colors.primary.pale,
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: organicTheme.spacing.xl,
-    gap: organicTheme.spacing.sm,
-  },
-  loadingText: {
-    fontSize: organicTheme.typography.fontSize.sm,
-    color: organicTheme.colors.text.secondary,
-  },
-  errorCard: {
-    marginBottom: organicTheme.spacing.md,
-  },
-  errorText: {
-    fontSize: organicTheme.typography.fontSize.sm,
-    color: '#D64545',
-    marginBottom: organicTheme.spacing.sm,
-  },
-  retryText: {
-    fontSize: organicTheme.typography.fontSize.sm,
-    color: organicTheme.colors.primary.main,
-    fontWeight: organicTheme.typography.fontWeight.semibold,
-  },
   babyCard: {
     marginBottom: organicTheme.spacing.xl,
   },
   babyCardContent: {
-    padding: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   babyInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: organicTheme.spacing.md,
+    flex: 1,
   },
   babyAvatar: {
     width: 56,
@@ -724,7 +607,7 @@ const styles = StyleSheet.create({
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.semibold,
     color: organicTheme.colors.text.primary,
-    marginBottom: 2,
+    marginBottom: organicTheme.spacing.xs,
   },
   babyAge: {
     fontSize: organicTheme.typography.fontSize.sm,
@@ -735,20 +618,19 @@ const styles = StyleSheet.create({
     fontSize: organicTheme.typography.fontSize.xs,
     color: organicTheme.colors.text.tertiary,
   },
-  switchIndicator: {
-    flexDirection: 'row',
+  switchButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: organicTheme.colors.primary.pale,
     alignItems: 'center',
-    gap: organicTheme.spacing.xs,
-    paddingVertical: organicTheme.spacing.sm,
-  },
-  switchText: {
-    fontSize: organicTheme.typography.fontSize.sm,
-    color: organicTheme.colors.primary.main,
+    justifyContent: 'center',
   },
   badgesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: organicTheme.spacing.sm,
+    marginTop: organicTheme.spacing.md,
   },
   badge: {
     paddingHorizontal: organicTheme.spacing.md,
@@ -767,7 +649,6 @@ const styles = StyleSheet.create({
   addBabyContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 0,
   },
   addBabyIcon: {
     width: 56,
@@ -825,7 +706,7 @@ const styles = StyleSheet.create({
     padding: organicTheme.spacing.md,
     justifyContent: 'flex-end',
   },
-  actionIcon: {
+  actionIconLarge: {
     position: 'absolute',
     top: organicTheme.spacing.md,
     right: organicTheme.spacing.md,
@@ -846,7 +727,6 @@ const styles = StyleSheet.create({
   appointmentContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 0,
   },
   appointmentDate: {
     width: 56,
@@ -950,10 +830,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: organicTheme.spacing['2xl'],
   },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: organicTheme.spacing.md,
-  },
   emptyText: {
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.medium,
@@ -964,6 +840,30 @@ const styles = StyleSheet.create({
     fontSize: organicTheme.typography.fontSize.sm,
     color: organicTheme.colors.text.secondary,
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: organicTheme.spacing.xl,
+    gap: organicTheme.spacing.sm,
+  },
+  loadingText: {
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
+  },
+  errorCard: {
+    marginBottom: organicTheme.spacing.md,
+  },
+  errorText: {
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.error,
+    marginBottom: organicTheme.spacing.sm,
+  },
+  retryText: {
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.primary.main,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   contentStrip: {
     flexDirection: 'row',

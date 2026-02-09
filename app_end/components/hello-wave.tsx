@@ -1,11 +1,13 @@
 import Animated from 'react-native-reanimated';
+import { IconSymbol } from './ui/icon-symbol';
+import { organicTheme } from '@/constants/theme';
 
 export function HelloWave() {
   return (
-    <Animated.Text
+    <Animated.View
       style={{
-        fontSize: 28,
-        lineHeight: 32,
+        width: 32,
+        height: 32,
         marginTop: -6,
         animationName: {
           '50%': { transform: [{ rotate: '25deg' }] },
@@ -13,7 +15,7 @@ export function HelloWave() {
         animationIterationCount: 4,
         animationDuration: '300ms',
       }}>
-      👋
-    </Animated.Text>
+      <IconSymbol size={28} name="waving.hand" color={organicTheme.colors.text.primary} />
+    </Animated.View>
   );
 }

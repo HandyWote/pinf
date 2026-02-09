@@ -248,16 +248,6 @@ export const BabyForm: React.FC<BabyFormProps> = ({
           containerStyle={styles.inputContainer}
         />
 
-        <Input
-          label="备注"
-          value={note}
-          onChangeText={setNote}
-          placeholder="可记录特殊情况、医生建议等"
-          multiline
-          numberOfLines={3}
-          style={styles.textArea}
-          containerStyle={styles.inputContainer}
-        />
 
         {showDueDatePicker && (
           <DateTimePicker

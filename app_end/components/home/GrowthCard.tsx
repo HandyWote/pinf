@@ -127,7 +127,7 @@ export const GrowthCard: React.FC<Props> = ({ records, loading, error, onAdd, on
                       ]}
                     />
                   )}
-                  <View style={[styles.point, { left, top }]} />
+                  <View style={[styles.point, { left: left as any, top: top as any }]} />
                 </React.Fragment>
               );
             })}

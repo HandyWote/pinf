@@ -10,3 +10,8 @@ export { Tag } from './Tag';
 export { ListItem } from './ListItem';
 export { ChartContainer } from './ChartContainer';
 export { BabyForm } from './BabyForm';
+
+// 温暖有机风格组件
+export { OrganicBackground, OrganicCardDecoration } from './OrganicBackground';
+export { OrganicCard, OrganicCardHeader } from './OrganicCard';
+export { OrganicButton, OrganicChipButton } from './OrganicButton';

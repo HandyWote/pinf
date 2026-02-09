@@ -70,7 +70,7 @@ export const AppointmentModal: React.FC<Props> = ({ visible, onClose, onSubmit }
       setDepartment('');
       setNote('');
       setDaysAhead('2');
-    } catch (error) {
+    } catch {
       setErrors({ form: '提交失败，请重试' });
     } finally {
       setLoading(false);

@@ -52,7 +52,7 @@ export const Modal: React.FC<ModalProps> = ({
       // 重置初始位置
       translateY.setValue(startY);
       opacity.setValue(0);
-      
+
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: 0,
@@ -79,15 +79,16 @@ export const Modal: React.FC<ModalProps> = ({
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, startY, translateY, opacity]);
 
   const renderChildren = () => React.Children.map(children, (child) => {
     if (!React.isValidElement(child) || child.type !== ScrollView) {
       return child;
     }
 
-    return React.cloneElement(child, {
-      style: [child.props.style, styles.scrollViewFlex],
+    const childProps = child.props as { style?: ViewStyle };
+    return React.cloneElement(child as React.ReactElement<any>, {
+      style: [childProps.style, styles.scrollViewFlex],
     });
   });
 

@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { theme } from '@/constants/theme';
-import type { GrowthMetric } from '@/types/growth';
 import { formatDateString } from '@/utils/ageCalculator';
+import type { CreateGrowthInput } from '@/types/growth';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (payloads: Array<{ metric: GrowthMetric; value: number; unit: string; recordedAt: string; note?: string }>) => Promise<void>;
+  onSubmit: (payloads: CreateGrowthInput[]) => Promise<void>;
 };
 
 export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit }) => {
@@ -31,8 +31,8 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
     console.log('GrowthRecordModal visible:', visible);
   }, [visible]);
 
-  const buildPayloads = () => {
-    const list: Array<{ metric: GrowthMetric; value: number; unit: string; recordedAt: string; note?: string }> = [];
+  const buildPayloads = (): CreateGrowthInput[] => {
+    const list: CreateGrowthInput[] = [];
     if (weight.trim()) {
       list.push({
         metric: 'weight',
@@ -87,7 +87,7 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
       setHeight('');
       setHead('');
       setNote('');
-    } catch (error) {
+    } catch {
       setErrors({ form: '提交失败，请重试' });
     } finally {
       setLoading(false);
@@ -147,16 +147,6 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
               onChange={handleDateChange}
             />
           )}
-
-          <Input
-            label="备注"
-            value={note}
-            onChangeText={setNote}
-            placeholder="医生建议、特殊情况等"
-            multiline
-            numberOfLines={3}
-            style={styles.textArea}
-          />
 
           {errors.form && <Text style={styles.error}>{errors.form}</Text>}
 

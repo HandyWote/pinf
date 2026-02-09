@@ -36,7 +36,7 @@ function useProtectedRoute() {
       // 已登录但在登录页，跳转到首页
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, needSetPassword, segments]);
+  }, [isAuthenticated, isLoading, needSetPassword, segments, router]);
 }
 
 export default function RootLayout() {
@@ -73,11 +73,13 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)/index" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           <Stack.Screen name="growth/index" options={{ headerShown: false }} />
           <Stack.Screen name="appointments/index" options={{ headerShown: false }} />
           <Stack.Screen name="class-video/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="class-article/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen name="set-password" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

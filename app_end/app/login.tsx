@@ -12,7 +12,6 @@ import {
   Platform,
   ScrollView,
   Alert,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';

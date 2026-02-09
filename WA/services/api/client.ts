@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth.token',
   USER_PROFILE: 'user.profile',
   NEED_SET_PASSWORD: 'auth.need_set_password',
+  CONTENT_CACHE: 'content.cache',
 } as const;
 
 // 配置

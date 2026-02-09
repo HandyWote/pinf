@@ -75,6 +75,8 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="growth" options={{ headerShown: false }} />
           <Stack.Screen name="appointments" options={{ headerShown: false }} />
+          <Stack.Screen name="class-video/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="class-article/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <StatusBar style="auto" />

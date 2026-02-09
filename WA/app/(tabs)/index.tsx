@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -34,12 +34,8 @@ import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
 import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
 import type { GrowthRecord } from '@/types/growth';
 import type { Appointment } from '@/types/appointment';
-
-const mockContent = [
-  { id: '1', title: '早产儿喂养指南', tag: '喂养' },
-  { id: '2', title: '0-12月发育里程碑', tag: '发育' },
-  { id: '3', title: '复诊准备清单', tag: '复诊' },
-];
+import * as contentApi from '@/services/api/content';
+import type { ContentArticle } from '@/types/content';
 
 export default function HomeScreen() {
   const { logout } = useAuthStore();
@@ -61,6 +57,9 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showGrowthModal, setShowGrowthModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [contentItems, setContentItems] = useState<ContentArticle[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentError, setContentError] = useState<string | null>(null);
 
   const {
     records,
@@ -93,6 +92,24 @@ export default function HomeScreen() {
       fetchAppointments().catch(() => {});
     }
   }, [fetchAppointments, isAuthenticated]);
+
+  const fetchContentPreview = useCallback(async () => {
+    setContentLoading(true);
+    setContentError(null);
+    try {
+      const res = await contentApi.listArticles({ page: 1, per_page: 5 });
+      setContentItems(res.data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '获取内容失败';
+      setContentError(message);
+    } finally {
+      setContentLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchContentPreview();
+  }, [fetchContentPreview]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -197,6 +214,7 @@ export default function HomeScreen() {
         await fetchGrowth(currentBaby.id);
       }
       await fetchAppointments();
+      await fetchContentPreview();
     } finally {
       setIsRefreshing(false);
     }
@@ -217,6 +235,16 @@ export default function HomeScreen() {
     if (!currentBaby) return appointments;
     return appointments.filter((item) => item.baby?.id === currentBaby.id);
   }, [appointments, currentBaby]);
+
+  const contentStripItems = useMemo(
+    () =>
+      contentItems.map((item) => ({
+        id: String(item.id),
+        title: item.title,
+        tag: item.category || item.tags?.[0] || undefined,
+      })),
+    [contentItems]
+  );
 
   return (
     <View style={styles.screen}>
@@ -361,9 +389,29 @@ export default function HomeScreen() {
 
         <ContentStrip
           title="内容课堂"
-          items={mockContent}
-          onPressItem={() => router.push('/(tabs)/class')}
+          items={contentStripItems}
+          onPressItem={(item) => router.push(`/class-article/${item.id}`)}
         />
+        {contentLoading && (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>加载内容中...</Text>
+          </View>
+        )}
+        {contentError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{contentError}</Text>
+            <TouchableOpacity onPress={fetchContentPreview}>
+              <Text style={styles.errorRetry}>重试</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {!contentLoading && !contentError && contentStripItems.length === 0 && (
+          <View style={styles.emptyStateCard}>
+            <Text style={styles.emptyText}>暂无内容</Text>
+            <Button title="去课堂" onPress={() => router.push('/class')} />
+          </View>
+        )}
       </ScrollView>
 
       <FloatingActionButton label="记录" icon="+" />

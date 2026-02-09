@@ -46,9 +46,10 @@
 - 后台 job 按 `remindAt` 推送预约提醒。
 
 ## 6. 内容课堂
-6.1 **[未启动]** 列表/搜索：`GET /content/videos`，`GET /content/articles`，query 支持 `page|per_page|search|category`；缓存 1h。
-6.2 **[未启动]** 详情：`GET /content/videos/{id}`（增加 view 计数）、`GET /content/articles/{id}`；展示标题/封面/作者/发布日期/简介或正文。
-6.3 **[未启动]** UI：轮播/卡片；手动刷新；错误回退。
+6.1 **[已完成]** 列表/搜索：`GET /content/videos`，`GET /content/articles`，query 支持 `page|per_page|search|category`；缓存 1h；前端接入分页/搜索/分类。
+6.2 **[已完成]** 详情：`GET /content/videos/{id}`（增加 view 计数）、`GET /content/articles/{id}`；详情页展示标题/封面/作者/发布日期/简介或正文。
+6.3 **[已完成]** UI：课堂页卡片列表、手动刷新、空态/错误态、详情页跳转。
+6.x **[已完成]** 本地联调辅助：`CONTENT_SEED=1` 时注入示例内容（默认关闭，不影响生产）。
 
 ## 7. 智能问答（AI）
 7.1 **[未启动]** 发送：`POST /chat/send`，传 `content`，可选 `babyId`、`messageId`、`history`（AI 端控制格式）；前端维持本地 `assistant.history`。

@@ -7,4 +7,5 @@ export * from './auth';
 export * from './baby';
 export * from './growth';
 export * from './appointment';
+export * from './content';
 export type { AxiosError } from 'axios';

@@ -1,19 +1,22 @@
-/**
- * GrowthChartView - 成长曲线图表组件
- * 使用 react-native-chart-kit 渲染 WHO/Fenton 标准曲线和用户数据
- */
-
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import {
+  Dimensions,
+  Modal as RNModal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { theme } from '@/constants/theme';
-import { calculateBabyAge } from '@/utils/ageCalculator';
-import type { Baby } from '@/types/baby';
-import type { GrowthRecord } from '@/types/growth';
-import { getWHOMetricData, type GrowthMetric, type Gender, zScoreToPercentile } from '@/utils/whoData';
-import { getFentonMetricData, shouldUseFentonData } from '@/utils/fentonData';
 
-const screenWidth = Dimensions.get('window').width - theme.layout.pagePadding * 2;
+import type { Baby } from '@/types/baby';
+import type { GrowthMetric, GrowthRecord } from '@/types/growth';
+import { buildGrowthCurveModel, type RangeMode, type StandardMode } from '@/domain/growthCurve';
+import { theme } from '@/constants/theme';
+
+const screenWidth = Dimensions.get('window').width;
 
 interface GrowthChartViewProps {
   baby: Baby;
@@ -27,18 +30,70 @@ interface GrowthChartViewProps {
   style?: any;
 }
 
-const METRIC_META: Record<GrowthMetric, { label: string; unit: string; color: string }> = {
-  weight: { label: '体重', unit: 'kg', color: '#6B9AC4' },
-  height: { label: '身高', unit: 'cm', color: '#FF9B73' },
-  head: { label: '头围', unit: 'cm', color: '#9B87B8' },
+const METRIC_META: Record<GrowthMetric, { label: string; unit: string }> = {
+  weight: { label: '体重', unit: 'kg' },
+  height: { label: '身高', unit: 'cm' },
+  head: { label: '头围', unit: 'cm' },
 };
 
-const PERCENTILE_COLORS = {
-  p97: '#E57373', // 红 - 上限警戒
-  p85: '#FFB74D', // 橙 - 偏高
-  p50: '#6B9AC4', // 蓝 - 中位数
-  p15: '#81C784', // 绿 - 偏低
-  p3: '#E57373',  // 红 - 下限警戒
+const SERIES_COLORS = {
+  p97: 'rgba(229, 115, 115, 0.7)',
+  p85: 'rgba(255, 183, 77, 0.7)',
+  p50: 'rgba(107, 154, 196, 1)',
+  p15: 'rgba(129, 199, 132, 0.7)',
+  p3: 'rgba(229, 115, 115, 0.7)',
+  user: 'rgba(255, 107, 107, 1)',
+};
+
+function toFixedSafe(value: number, fraction = 1): string {
+  return Number.isFinite(value) ? value.toFixed(fraction) : '--';
+}
+
+function interpolateUserSeries(xValues: number[], userPoints: { x: number; value: number }[]): number[] {
+  if (userPoints.length === 0) return xValues.map(() => Number.NaN);
+  if (userPoints.length === 1) {
+    const target = userPoints[0];
+    return xValues.map((x) => (Math.abs(x - target.x) < 0.51 ? target.value : target.value));
+  }
+  return xValues.map((x) => {
+    if (x <= userPoints[0].x) return userPoints[0].value;
+    if (x >= userPoints[userPoints.length - 1].x) return userPoints[userPoints.length - 1].value;
+    for (let i = 0; i < userPoints.length - 1; i++) {
+      const left = userPoints[i];
+      const right = userPoints[i + 1];
+      if (x >= left.x && x <= right.x) {
+        const ratio = (x - left.x) / (right.x - left.x || 1);
+        return left.value + (right.value - left.value) * ratio;
+      }
+    }
+    return Number.NaN;
+  });
+}
+
+function buildSparseLabels(xValues: number[], unit: 'month' | 'week', maxVisible = 8): string[] {
+  if (xValues.length <= maxVisible) {
+    return xValues.map((x) => `${Math.round(x * 10) / 10}${unit === 'month' ? '月' : '周'}`);
+  }
+  const step = Math.ceil(xValues.length / maxVisible);
+  return xValues.map((x, idx) => (idx % step === 0 ? `${Math.round(x * 10) / 10}${unit === 'month' ? '月' : '周'}` : ''));
+}
+
+type LegendState = {
+  p97: boolean;
+  p85: boolean;
+  p50: boolean;
+  p15: boolean;
+  p3: boolean;
+  user: boolean;
+};
+
+const defaultLegend: LegendState = {
+  p97: true,
+  p85: true,
+  p50: true,
+  p15: true,
+  p3: true,
+  user: true,
 };
 
 export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
@@ -52,298 +107,252 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
   loading = false,
   style,
 }) => {
-  // 计算宝宝年龄信息
-  const ageInfo = useMemo(() => calculateBabyAge(baby), [baby]);
-  const isPremature = ageInfo.isPremature;
+  const [standardMode, setStandardMode] = useState<StandardMode>('auto');
+  const [manualStandard, setManualStandard] = useState<'WHO' | 'FENTON'>('WHO');
+  const [rangeMode, setRangeMode] = useState<RangeMode>('smart');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [zoom, setZoom] = useState(1.5);
+  const [legend, setLegend] = useState<LegendState>(defaultLegend);
+  const [tooltipText, setTooltipText] = useState('');
 
-  // 确定使用的月龄
-  const effectiveMonths = ageType === 'corrected' && ageInfo.correctedMonths !== undefined
-    ? ageInfo.correctedMonths + (ageInfo.correctedDays || 0) / 30
-    : ageInfo.actualMonths + (ageInfo.actualDays || 0) / 30;
-
-  // 判断使用哪种标准数据
-  const useFenton = shouldUseFentonData(baby.gestationalWeeks, effectiveMonths);
-  const gender: Gender = baby.gender === '男' ? 'male' : 'female';
-
-  // 获取标准数据
-  const standardData = useMemo(() => {
-    if (useFenton) {
-      const fentonData = getFentonMetricData(gender, metric);
-      // 转换 Fenton 数据（周龄转月龄）
-      return fentonData.percentiles.map(p => ({
-        ageMonths: (p.ageMonths as number) / 4.33, // 周转月
-        p3: p.p3,
-        p15: p.p15,
-        p50: p.p50,
-        p85: p.p85,
-        p97: p.p97,
-      }));
-    } else {
-      return getWHOMetricData(gender, metric).percentiles;
-    }
-  }, [useFenton, gender, metric]);
-
-  // 准备图表数据
-  const chartData = useMemo(() => {
-    // 过滤当前指标的记录
-    const filteredRecords = records
-      .filter(r => r.metric === metric)
-      .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
-
-    // 计算每个记录的月龄
-    const recordsWithAge = filteredRecords.map(record => {
-      const recordDate = new Date(record.recordedAt);
-      const birthDate = new Date(baby.birthday);
-      const ageInDays = Math.floor((recordDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
-      const ageInMonths = ageInDays / 30.44;
-
-      return {
-        ...record,
-        ageMonths: ageInMonths,
-      };
-    });
-
-    // 标准曲线数据点
-    const standardPoints = standardData.map(p => ({
-      x: Math.round(p.ageMonths * 10) / 10,
-      y: {
-        p97: p.p97,
-        p85: p.p85,
-        p50: p.p50,
-        p15: p.p15,
-        p3: p.p3,
-      },
-    }));
-
-    // 用户数据点
-    const userPoints = recordsWithAge.map(r => ({
-      x: Math.round(r.ageMonths * 10) / 10,
-      y: r.value,
-      record: r,
-    }));
-
-    return { standardPoints, userPoints };
-  }, [records, metric, baby.birthday, standardData]);
-
-  // 计算最新数据的百分位
-  const latestPercentile = useMemo(() => {
-    if (chartData.userPoints.length === 0) return null;
-
-    const latest = chartData.userPoints[chartData.userPoints.length - 1];
-    const lmsData = getWHOMetricData(gender, metric).lms;
-    const nearestLMS = lmsData.reduce((prev, curr) =>
-      Math.abs(curr.ageMonths - latest.x) < Math.abs(prev.ageMonths - latest.x) ? curr : prev
-    );
-
-    // 计算 Z 分数和百分位
-    const zScore = (Math.pow(latest.y / nearestLMS.M, nearestLMS.L) - 1) / (nearestLMS.L * nearestLMS.S);
-    const percentile = zScoreToPercentile(zScore);
-
-    return {
-      value: latest.y,
-      percentile: percentile,
-      ageMonths: latest.x,
-    };
-  }, [chartData.userPoints, gender, metric]);
-
-  // 构建图表数据集
-  const lineChartData = useMemo(() => {
-    const labels = chartData.standardPoints.map(p => `${p.x}月`);
-
-    // 为用户数据创建填充数组（null 替换为上一个有效值或跳过）
-    const userDataArray = chartData.standardPoints.map((_, i) => {
-      const userPoint = chartData.userPoints.find(up => Math.abs(up.x - _.x) < 0.5);
-      return userPoint?.y ?? NaN;
-    });
-
-    // 移除 NaN 值用于渲染
-    const cleanUserData = userDataArray.map(v => Number.isNaN(v) ? 0 : v);
-
-    return {
-      labels,
-      datasets: [
-        // P97 曲线
-        {
-          data: chartData.standardPoints.map(p => p.y.p97),
-          color: (opacity = 1) => `rgba(229, 115, 115, ${opacity * 0.3})`,
-          strokeWidth: 1,
-        },
-        // P85 曲线
-        {
-          data: chartData.standardPoints.map(p => p.y.p85),
-          color: (opacity = 1) => `rgba(255, 183, 77, ${opacity * 0.4})`,
-          strokeWidth: 1,
-        },
-        // P50 中位数
-        {
-          data: chartData.standardPoints.map(p => p.y.p50),
-          color: (opacity = 1) => `rgba(107, 154, 196, ${opacity * 0.5})`,
-          strokeWidth: 2,
-        },
-        // P15 曲线
-        {
-          data: chartData.standardPoints.map(p => p.y.p15),
-          color: (opacity = 1) => `rgba(129, 199, 132, ${opacity * 0.4})`,
-          strokeWidth: 1,
-        },
-        // P3 曲线
-        {
-          data: chartData.standardPoints.map(p => p.y.p3),
-          color: (opacity = 1) => `rgba(229, 115, 115, ${opacity * 0.3})`,
-          strokeWidth: 1,
-        },
-        // 用户数据（用散点表示）
-        ...(chartData.userPoints.length > 0 ? [{
-          data: cleanUserData,
-          color: (opacity = 1) => `rgba(107, 154, 196, ${opacity})`,
-          strokeWidth: 2,
-        }] : []),
-      ],
-    };
-  }, [chartData]);
-
-  // 计算 Y 轴范围
-  const yAxisRange = useMemo(() => {
-    const allValues = [
-      ...chartData.standardPoints.flatMap(p => [p.y.p3, p.y.p97]),
-      ...chartData.userPoints.map(p => p.y),
-    ];
-    const min = Math.floor(Math.min(...allValues) * 0.95);
-    const max = Math.ceil(Math.max(...allValues) * 1.05);
-    return [min, max];
-  }, [chartData]);
+  const model = useMemo(
+    () =>
+      buildGrowthCurveModel({
+        baby,
+        metric,
+        records,
+        ageType,
+        rangeMode,
+        standardMode,
+        manualStandard: standardMode === 'manual' ? manualStandard : undefined,
+      }),
+    [baby, metric, records, ageType, rangeMode, standardMode, manualStandard]
+  );
 
   const meta = METRIC_META[metric];
 
+  const xValues = useMemo(() => model.standardPoints.map((p) => p.x), [model.standardPoints]);
+  const labels = useMemo(() => buildSparseLabels(xValues, model.meta.axisUnit), [xValues, model.meta.axisUnit]);
+  const userData = useMemo(() => interpolateUserSeries(xValues, model.userPoints), [xValues, model.userPoints]);
+
+  const chartData = useMemo(() => {
+    const datasets: { data: number[]; color: (opacity?: number) => string; strokeWidth: number }[] = [];
+    if (legend.p97) datasets.push({ data: model.standardPoints.map((p) => p.p97), color: () => SERIES_COLORS.p97, strokeWidth: 1 });
+    if (legend.p85) datasets.push({ data: model.standardPoints.map((p) => p.p85), color: () => SERIES_COLORS.p85, strokeWidth: 1 });
+    if (legend.p50) datasets.push({ data: model.standardPoints.map((p) => p.p50), color: () => SERIES_COLORS.p50, strokeWidth: 2 });
+    if (legend.p15) datasets.push({ data: model.standardPoints.map((p) => p.p15), color: () => SERIES_COLORS.p15, strokeWidth: 1 });
+    if (legend.p3) datasets.push({ data: model.standardPoints.map((p) => p.p3), color: () => SERIES_COLORS.p3, strokeWidth: 1 });
+    if (legend.user && model.userPoints.length > 0) {
+      datasets.push({ data: userData, color: () => SERIES_COLORS.user, strokeWidth: 2 });
+    }
+    return { labels, datasets };
+  }, [labels, legend, model.standardPoints, model.userPoints.length, userData]);
+
+  const toggleLegend = (key: keyof LegendState) => {
+    setLegend((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const renderChart = (width: number, height: number) => (
+    <LineChart
+      data={chartData}
+      width={width}
+      height={height}
+      fromZero={false}
+      bezier={false}
+      withInnerLines
+      withOuterLines
+      withVerticalLines={false}
+      withHorizontalLines
+      withVerticalLabels
+      withHorizontalLabels
+      yAxisInterval={1}
+      yAxisSuffix=""
+      chartConfig={{
+        backgroundColor: 'transparent',
+        backgroundGradientFrom: 'transparent',
+        backgroundGradientTo: 'transparent',
+        decimalPlaces: 1,
+        color: () => theme.colors.primary,
+        labelColor: () => theme.colors.textSub,
+        propsForDots: {
+          r: '3',
+          strokeWidth: '1',
+          stroke: '#FFFFFF',
+        },
+      }}
+      style={styles.chart}
+      onDataPointClick={({ index, value }) => {
+        const x = xValues[index];
+        const unit = model.meta.axisUnit === 'month' ? '月' : '周';
+        setTooltipText(`年龄 ${toFixedSafe(x, 1)}${unit} · 数值 ${toFixedSafe(value, 2)}${meta.unit}`);
+      }}
+    />
+  );
+
+  const latestPercentileText =
+    model.assessment.latestPercentile === null ? '--' : `P${Math.round(model.assessment.latestPercentile)}`;
+
   return (
     <View style={[styles.container, style]}>
-      {/* 头部控制区 */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>{meta.label}曲线</Text>
           {loading && <ActivityIndicator size="small" color={theme.colors.primary} />}
         </View>
-
-        {/* 指标切换 */}
-        <View style={styles.metricSwitch}>
-          {(Object.keys(METRIC_META) as GrowthMetric[]).map((key) => {
-            const active = metric === key;
-            return (
-              <TouchableOpacity
-                key={key}
-                style={[styles.metricChip, active && styles.metricChipActive]}
-                onPress={() => onMetricChange(key)}
-              >
-                <Text style={[styles.metricChipText, active && styles.metricChipTextActive]}>
-                  {METRIC_META[key].label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* 月龄类型切换（仅早产儿） */}
-        {isPremature && onAgeTypeChange && (
-          <View style={styles.ageTypeSwitch}>
-            <TouchableOpacity
-              style={[styles.ageTypeChip, ageType === 'actual' && styles.ageTypeChipActive]}
-              onPress={() => onAgeTypeChange('actual')}
-            >
-              <Text style={[styles.ageTypeText, ageType === 'actual' && styles.ageTypeTextActive]}>
-                实际月龄
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.ageTypeChip, ageType === 'corrected' && styles.ageTypeChipActive]}
-              onPress={() => onAgeTypeChange('corrected')}
-            >
-              <Text style={[styles.ageTypeText, ageType === 'corrected' && styles.ageTypeTextActive]}>
-                矫正月龄
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <TouchableOpacity style={styles.fullscreenBtn} onPress={() => setIsFullscreen(true)}>
+          <Text style={styles.fullscreenText}>全屏</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* 百分位说明 */}
-      {latestPercentile && (
-        <View style={styles.percentileBadge}>
-          <Text style={styles.percentileText}>
-            当前: {latestPercentile.value}{meta.unit} (P{Math.round(latestPercentile.percentile)})
-          </Text>
-          <Text style={styles.ageText}>
-            {ageType === 'corrected' ? '矫正' : '实际'}月龄: {Math.round(latestPercentile.ageMonths * 10) / 10}个月
-          </Text>
+      <View style={styles.metricSwitch}>
+        {(Object.keys(METRIC_META) as GrowthMetric[]).map((key) => {
+          const active = metric === key;
+          return (
+            <TouchableOpacity key={key} style={[styles.chip, active && styles.chipActive]} onPress={() => onMetricChange(key)}>
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{METRIC_META[key].label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <View style={styles.modeRow}>
+        <View style={styles.inlineGroup}>
+          <TouchableOpacity
+            style={[styles.smallChip, standardMode === 'auto' && styles.smallChipActive]}
+            onPress={() => setStandardMode('auto')}
+          >
+            <Text style={[styles.smallChipText, standardMode === 'auto' && styles.smallChipTextActive]}>自动</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.smallChip, standardMode === 'manual' && styles.smallChipActive]}
+            onPress={() => setStandardMode('manual')}
+          >
+            <Text style={[styles.smallChipText, standardMode === 'manual' && styles.smallChipTextActive]}>手动</Text>
+          </TouchableOpacity>
+          {standardMode === 'manual' && (
+            <>
+              <TouchableOpacity
+                style={[styles.smallChip, manualStandard === 'WHO' && styles.smallChipActive]}
+                onPress={() => setManualStandard('WHO')}
+              >
+                <Text style={[styles.smallChipText, manualStandard === 'WHO' && styles.smallChipTextActive]}>WHO</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.smallChip, manualStandard === 'FENTON' && styles.smallChipActive]}
+                onPress={() => setManualStandard('FENTON')}
+              >
+                <Text style={[styles.smallChipText, manualStandard === 'FENTON' && styles.smallChipTextActive]}>Fenton</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        <View style={styles.inlineGroup}>
+          <TouchableOpacity
+            style={[styles.smallChip, rangeMode === 'smart' && styles.smallChipActive]}
+            onPress={() => setRangeMode('smart')}
+          >
+            <Text style={[styles.smallChipText, rangeMode === 'smart' && styles.smallChipTextActive]}>智能视窗</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.smallChip, rangeMode === 'full' && styles.smallChipActive]}
+            onPress={() => setRangeMode('full')}
+          >
+            <Text style={[styles.smallChipText, rangeMode === 'full' && styles.smallChipTextActive]}>全程视图</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {model.meta.isPremature && onAgeTypeChange && model.meta.standard === 'WHO' && (
+        <View style={styles.ageTypeSwitch}>
+          <TouchableOpacity
+            style={[styles.smallChip, ageType === 'actual' && styles.smallChipActive]}
+            onPress={() => onAgeTypeChange('actual')}
+          >
+            <Text style={[styles.smallChipText, ageType === 'actual' && styles.smallChipTextActive]}>实际月龄</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.smallChip, ageType === 'corrected' && styles.smallChipActive]}
+            onPress={() => onAgeTypeChange('corrected')}
+          >
+            <Text style={[styles.smallChipText, ageType === 'corrected' && styles.smallChipTextActive]}>矫正月龄</Text>
+          </TouchableOpacity>
         </View>
       )}
 
-      {/* 图表区域 */}
+      <Text style={styles.metaText}>{model.meta.description}</Text>
+
+      <View style={styles.assessmentCard}>
+        <Text style={styles.assessmentText}>最新百分位：{latestPercentileText}</Text>
+        <Text style={styles.assessmentText}>区间标签：{model.assessment.zone ?? '--'}</Text>
+        <Text style={styles.assessmentText}>近3次趋势：{model.assessment.trend}</Text>
+      </View>
+
       <View style={styles.chartWrapper}>
-        {chartData.standardPoints.length > 0 ? (
-          <LineChart
-            data={lineChartData}
-            width={screenWidth - theme.layout.pagePadding * 2}
-            height={240}
-            chartConfig={{
-              backgroundColor: 'transparent',
-              backgroundGradientFrom: 'transparent',
-              backgroundGradientTo: 'transparent',
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(107, 154, 196, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(107, 154, 196, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-              propsForDots: {
-                r: '4',
-                strokeWidth: '2',
-                stroke: theme.colors.primary,
-              },
-            }}
-            bezier
-            style={styles.chart}
-            yAxisInterval={yAxisRange as any}
-            withVerticalLines={false}
-            withHorizontalLines={true}
-            withDots={true}
-            withInnerLines={true}
-            withOuterLines={true}
-            withVerticalLabels={true}
-            withHorizontalLabels={true}
-          />
+        {model.standardPoints.length > 0 ? (
+          renderChart(screenWidth - theme.layout.pagePadding * 3, 240)
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>暂无标准数据</Text>
+            <Text style={styles.emptyText}>暂无可展示的标准曲线数据</Text>
           </View>
         )}
       </View>
 
-      {/* 图例说明 */}
+      {tooltipText ? <Text style={styles.tooltipText}>{tooltipText}</Text> : null}
+
       <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: PERCENTILE_COLORS.p50 }]} />
-          <Text style={styles.legendText}>中位数 P50</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: PERCENTILE_COLORS.p85 }]} />
-          <Text style={styles.legendText}>P85 / P15</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: PERCENTILE_COLORS.p97 }]} />
-          <Text style={styles.legendText}>P97 / P3</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: theme.colors.primary }]} />
-          <Text style={styles.legendText}>宝宝数据</Text>
-        </View>
+        {([
+          ['p97', 'P97'],
+          ['p85', 'P85'],
+          ['p50', 'P50'],
+          ['p15', 'P15'],
+          ['p3', 'P3'],
+          ['user', '宝宝'],
+        ] as [keyof LegendState, string][]).map(([key, label]) => (
+          <TouchableOpacity key={key} style={styles.legendItem} onPress={() => toggleLegend(key)}>
+            <View style={[styles.legendDot, { backgroundColor: SERIES_COLORS[key], opacity: legend[key] ? 1 : 0.3 }]} />
+            <Text style={[styles.legendText, !legend[key] && styles.legendTextMuted]}>{label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* 刷新按钮 */}
       {onRefresh && (
         <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
           <Text style={styles.refreshText}>刷新</Text>
         </TouchableOpacity>
       )}
+
+      <RNModal visible={isFullscreen} animationType="slide" onRequestClose={() => setIsFullscreen(false)}>
+        <View style={styles.fullscreenContainer}>
+          <View style={styles.fullscreenHeader}>
+            <Text style={styles.fullscreenTitle}>{meta.label}全屏曲线</Text>
+            <View style={styles.fullscreenActions}>
+              <TouchableOpacity
+                style={styles.zoomBtn}
+                onPress={() => setZoom((z) => Math.max(1, Math.round((z - 0.5) * 10) / 10))}
+              >
+                <Text style={styles.zoomText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.zoomLevel}>{zoom.toFixed(1)}x</Text>
+              <TouchableOpacity
+                style={styles.zoomBtn}
+                onPress={() => setZoom((z) => Math.min(3, Math.round((z + 0.5) * 10) / 10))}
+              >
+                <Text style={styles.zoomText}>+</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setIsFullscreen(false)}>
+                <Text style={styles.closeText}>关闭</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView horizontal contentContainerStyle={styles.fullscreenChartContent} showsHorizontalScrollIndicator>
+            {renderChart(screenWidth * zoom, 360)}
+          </ScrollView>
+
+          {tooltipText ? <Text style={styles.tooltipText}>{tooltipText}</Text> : null}
+        </View>
+      </RNModal>
     </View>
   );
 };
@@ -357,128 +366,209 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   header: {
-    gap: theme.spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: theme.spacing.sm,
   },
   title: {
     fontSize: theme.fontSizes.lg,
     fontWeight: '700',
     color: theme.colors.textMain,
   },
-  metricSwitch: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  metricChip: {
+  fullscreenBtn: {
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: 6,
-    borderRadius: theme.borderRadius.medium,
-    backgroundColor: theme.colors.mutedBg,
-  },
-  metricChipActive: {
+    borderRadius: theme.borderRadius.full,
     backgroundColor: theme.colors.primaryLight,
+  },
+  fullscreenText: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.sm,
+    fontWeight: '600',
+  },
+  metricSwitch: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  chip: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.full,
     borderWidth: 1,
+    borderColor: '#DCE5EE',
+    backgroundColor: '#FFFFFF',
+  },
+  chipActive: {
+    backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
-  metricChipText: {
-    fontSize: theme.fontSizes.xs,
+  chipText: {
     color: theme.colors.textSub,
+    fontSize: theme.fontSizes.sm,
   },
-  metricChipTextActive: {
+  chipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  modeRow: {
+    gap: theme.spacing.xs,
+  },
+  inlineGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
+  },
+  smallChip: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 5,
+    borderRadius: theme.borderRadius.small,
+    borderWidth: 1,
+    borderColor: '#DCE5EE',
+  },
+  smallChipActive: {
+    backgroundColor: theme.colors.primaryLight,
+    borderColor: theme.colors.primary,
+  },
+  smallChipText: {
+    color: theme.colors.textSub,
+    fontSize: theme.fontSizes.xs,
+  },
+  smallChipTextActive: {
     color: theme.colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   ageTypeSwitch: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
-    marginTop: theme.spacing.xs,
   },
-  ageTypeChip: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 4,
-    borderRadius: theme.borderRadius.medium,
-    backgroundColor: theme.colors.mutedBg,
-  },
-  ageTypeChipActive: {
-    backgroundColor: theme.colors.accent + '20',
-    borderWidth: 1,
-    borderColor: theme.colors.accent,
-  },
-  ageTypeText: {
-    fontSize: theme.fontSizes.xs,
+  metaText: {
     color: theme.colors.textSub,
+    fontSize: theme.fontSizes.xs,
   },
-  ageTypeTextActive: {
-    color: theme.colors.accent,
-    fontWeight: '600',
-  },
-  percentileBadge: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.primaryLight + '30',
+  assessmentCard: {
+    backgroundColor: theme.colors.primaryLight,
     borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.sm,
+    gap: 4,
   },
-  percentileText: {
+  assessmentText: {
+    color: theme.colors.textMain,
     fontSize: theme.fontSizes.sm,
-    fontWeight: '600',
-    color: theme.colors.primary,
-  },
-  ageText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textSub,
   },
   chartWrapper: {
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: theme.borderRadius.medium,
     overflow: 'hidden',
   },
   chart: {
+    marginVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.medium,
   },
   emptyState: {
-    height: 240,
-    justifyContent: 'center',
+    height: 220,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyText: {
-    fontSize: theme.fontSizes.sm,
     color: theme.colors.textSub,
+  },
+  tooltipText: {
+    color: theme.colors.textSub,
+    fontSize: theme.fontSizes.xs,
   },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.md,
-    justifyContent: 'center',
+    gap: theme.spacing.sm,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    gap: 6,
   },
   legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
   },
   legendText: {
     fontSize: theme.fontSizes.xs,
     color: theme.colors.textSub,
   },
+  legendTextMuted: {
+    opacity: 0.5,
+  },
   refreshButton: {
-    alignSelf: 'flex-end',
-    paddingVertical: theme.spacing.sm,
+    alignSelf: 'flex-start',
     paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.primaryLight,
+    paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.medium,
+    backgroundColor: theme.colors.primaryLight,
   },
   refreshText: {
-    fontSize: theme.fontSizes.sm,
     color: theme.colors.primary,
+    fontSize: theme.fontSizes.sm,
     fontWeight: '600',
+  },
+  fullscreenContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  fullscreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  fullscreenTitle: {
+    fontSize: theme.fontSizes.md,
+    fontWeight: '700',
+    color: theme.colors.textMain,
+  },
+  fullscreenActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  zoomBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#DCE5EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoomText: {
+    color: theme.colors.textMain,
+    fontSize: theme.fontSizes.md,
+    fontWeight: '700',
+  },
+  zoomLevel: {
+    minWidth: 40,
+    textAlign: 'center',
+    color: theme.colors.textSub,
+    fontSize: theme.fontSizes.xs,
+  },
+  closeBtn: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 6,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.primaryLight,
+  },
+  closeText: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.xs,
+    fontWeight: '600',
+  },
+  fullscreenChartContent: {
+    paddingRight: theme.spacing.lg,
   },
 });

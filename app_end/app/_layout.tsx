@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { LogBox } from 'react-native';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -8,6 +9,15 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useAuthStore } from '@/store';
 import { useBabyStore } from '@/store/babyStore';
 import { setUnauthorizedHandler } from '@/services/api/client';
+
+// 忽略 react-native-svg-charts 在 Web 平台的已知警告
+if (__DEV__) {
+  LogBox.ignoreLogs([
+    'Received `false` for a non-boolean attribute `animate`',
+    'React does not recognize the `animationDuration` prop on a DOM element',
+    'React does not recognize the `renderPlaceholder` prop on a DOM element',
+  ]);
+}
 
 export const unstable_settings = {
   anchor: '(tabs)',

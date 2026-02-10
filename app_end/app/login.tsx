@@ -17,11 +17,10 @@ import {
 import { router } from 'expo-router';
 import { useAuthStore } from '@/store';
 import { sendPhoneCode, phoneLogin, passwordLogin } from '@/services/api';
-import { Button } from '@/components/ui/Button';
+import { OrganicBackground, OrganicCard, OrganicButton } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { theme } from '@/constants/theme';
-import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '@/constants/tokens';
+import { organicTheme } from '@/constants/theme';
 
 type LoginMode = 'code' | 'password';
 
@@ -166,249 +165,273 @@ export default function LoginScreen() {
   }, []);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <OrganicBackground variant="morning">
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Logo 区域 */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <IconSymbol name="figure.child" size={40} color={theme.colors.primary} />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo 区域 */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoCircle}>
+              <IconSymbol name="figure.child" size={40} color={organicTheme.colors.primary.main} />
+            </View>
+            <Text style={styles.appName}>早护通</Text>
+            <Text style={styles.appSlogan}>专业的早产儿护理助手</Text>
           </View>
-          <Text style={styles.appName}>早护通</Text>
-          <Text style={styles.appSlogan}>专业的早产儿护理助手</Text>
-        </View>
 
-        {/* 表单区域 */}
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>手机号登录</Text>
+          {/* 表单区域 */}
+          <OrganicCard shadow style={styles.formContainer}>
+            <Text style={styles.title}>手机号登录</Text>
 
-          <View style={styles.modeSwitch}>
-            <TouchableOpacity
-              style={[styles.modeButton, loginMode === 'code' && styles.modeButtonActive]}
-              onPress={() => setLoginMode('code')}
-            >
-              <Text style={[styles.modeText, loginMode === 'code' && styles.modeTextActive]}>
-                验证码登录
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modeButton, loginMode === 'password' && styles.modeButtonActive]}
-              onPress={() => setLoginMode('password')}
-            >
-              <Text style={[styles.modeText, loginMode === 'password' && styles.modeTextActive]}>
-                密码登录
-              </Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* 手机号输入 */}
-          <Input
-            label="手机号"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="请输入手机号"
-            keyboardType="phone-pad"
-            maxLength={11}
-            leftIcon={<IconSymbol name="iphone" size={18} color={theme.colors.textSub} />}
-            required
-          />
+            <View style={styles.modeSwitch}>
+              <TouchableOpacity
+                style={[styles.modeButton, loginMode === 'code' && styles.modeButtonActive]}
+                onPress={() => setLoginMode('code')}
+              >
+                <Text style={[styles.modeText, loginMode === 'code' && styles.modeTextActive]}>
+                  验证码登录
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modeButton, loginMode === 'password' && styles.modeButtonActive]}
+                onPress={() => setLoginMode('password')}
+              >
+                <Text style={[styles.modeText, loginMode === 'password' && styles.modeTextActive]}>
+                  密码登录
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          {loginMode === 'code' ? (
-            <>
-              {/* 验证码输入 */}
-              <View style={styles.codeInputContainer}>
-                <View style={styles.codeInputWrapper}>
-                  <Input
-                    label="验证码"
-                    value={code}
-                    onChangeText={setCode}
-                    placeholder="请输入6位验证码"
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    leftIcon={<IconSymbol name="key.fill" size={18} color={theme.colors.textSub} />}
-                    required
-                  />
-                </View>
-                
-                <Button
-                  title={countdown > 0 ? `${countdown}s` : '获取验证码'}
-                  onPress={handleSendCode}
-                  variant="outline"
-                  size="medium"
-                  disabled={countdown > 0 || isSendingCode}
-                  loading={isSendingCode}
-                  style={styles.codeButton}
-                />
-              </View>
-            </>
-          ) : (
+            {/* 手机号输入 */}
             <Input
-              label="密码"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="8-16位字母+数字"
-              secureTextEntry
-              leftIcon={<IconSymbol name="lock.fill" size={18} color={theme.colors.textSub} />}
+              label="手机号"
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="请输入手机号"
+              keyboardType="phone-pad"
+              maxLength={11}
+              leftIcon={<IconSymbol name="iphone" size={18} color={organicTheme.colors.text.secondary} />}
               required
             />
-          )}
 
-          {/* 开发模式调试信息 */}
-          {loginMode === 'code' && debugCode && (
-            <View style={styles.debugContainer}>
-              <View style={styles.debugRow}>
-                <IconSymbol name="wrench.and.screwdriver" size={14} color={theme.colors.primary} />
-                <Text style={styles.debugLabel}> 开发模式验证码：</Text>
+            {loginMode === 'code' ? (
+              <>
+                {/* 验证码输入 */}
+                <View style={styles.codeInputContainer}>
+                  <View style={styles.codeInputWrapper}>
+                    <Input
+                      label="验证码"
+                      value={code}
+                      onChangeText={setCode}
+                      placeholder="请输入6位验证码"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      leftIcon={<IconSymbol name="key.fill" size={18} color={organicTheme.colors.text.secondary} />}
+                      required
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.codeButton,
+                      (countdown > 0 || isSendingCode) && styles.codeButtonDisabled,
+                    ]}
+                    onPress={handleSendCode}
+                    disabled={countdown > 0 || isSendingCode}
+                  >
+                    <Text style={[
+                      styles.codeButtonText,
+                      (countdown > 0 || isSendingCode) && styles.codeButtonTextDisabled,
+                    ]}>
+                      {isSendingCode ? '发送中...' : countdown > 0 ? `${countdown}s` : '获取验证码'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <Input
+                label="密码"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="8-16位字母+数字"
+                secureTextEntry
+                leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
+                required
+              />
+            )}
+
+            {/* 开发模式调试信息 */}
+            {loginMode === 'code' && debugCode && (
+              <View style={styles.debugContainer}>
+                <View style={styles.debugRow}>
+                  <IconSymbol name="wrench.and.screwdriver" size={14} color={organicTheme.colors.primary.main} />
+                  <Text style={styles.debugLabel}> 开发模式验证码：</Text>
+                </View>
+                <Text style={styles.debugCode}>{debugCode}</Text>
               </View>
-              <Text style={styles.debugCode}>{debugCode}</Text>
-            </View>
-          )}
+            )}
 
-          {/* 登录按钮 */}
-          <Button
-            title="登录"
-            onPress={handleLogin}
-            variant="primary"
-            size="large"
-            disabled={isLoading}
-            loading={isLoading}
-            style={styles.loginButton}
-          />
+            {/* 登录按钮 */}
+            <OrganicButton
+              title={isLoading ? '登录中...' : '登录'}
+              onPress={handleLogin}
+              disabled={isLoading}
+              loading={isLoading}
+              style={styles.loginButton}
+            />
 
-          {/* 提示信息 */}
-          <Text style={styles.hint}>
-            登录即表示同意《用户协议》和《隐私政策》
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {/* 提示信息 */}
+            <Text style={styles.hint}>
+              登录即表示同意《用户协议》和《隐私政策》
+            </Text>
+          </OrganicCard>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </OrganicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgBody,
   },
   scrollContent: {
     flexGrow: 1,
-    padding: Spacing.xl,
+    padding: organicTheme.spacing.lg,
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: Spacing.xl * 2,
-    marginBottom: Spacing.xl * 2,
+    marginTop: organicTheme.spacing['5xl'],
+    marginBottom: organicTheme.spacing['3xl'],
   },
   logoCircle: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: organicTheme.colors.primary.pale,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: organicTheme.spacing.md,
   },
   logoText: {
     fontSize: 50,
   },
   appName: {
-    fontSize: FontSizes.lg * 1.5,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: Spacing.xs,
+    fontSize: organicTheme.typography.fontSize['3xl'],
+    fontWeight: organicTheme.typography.fontWeight.bold,
+    color: organicTheme.colors.primary.main,
+    marginBottom: organicTheme.spacing.sm,
   },
   appSlogan: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSub,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
   },
   formContainer: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.large,
-    padding: Spacing.xl,
-    ...Shadows.card,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
+    padding: organicTheme.spacing.xl,
   },
   title: {
-    fontSize: FontSizes.lg,
-    fontWeight: 'bold',
-    color: Colors.textMain,
-    marginBottom: Spacing.lg,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.bold,
+    color: organicTheme.colors.text.primary,
+    marginBottom: organicTheme.spacing.lg,
   },
   modeSwitch: {
     flexDirection: 'row',
-    backgroundColor: Colors.primaryLight,
-    borderRadius: BorderRadius.medium,
+    backgroundColor: organicTheme.colors.primary.pale,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
     padding: 4,
-    marginBottom: Spacing.lg,
+    marginBottom: organicTheme.spacing.lg,
   },
   modeButton: {
     flex: 1,
-    paddingVertical: Spacing.sm,
+    paddingVertical: organicTheme.spacing.sm,
     alignItems: 'center',
-    borderRadius: BorderRadius.medium,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
   },
   modeButtonActive: {
-    backgroundColor: Colors.surface,
-    ...Shadows.card,
+    backgroundColor: organicTheme.colors.background.paper,
+    ...organicTheme.shadows.soft[0],
   },
   modeText: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSub,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
   },
   modeTextActive: {
-    color: Colors.primary,
-    fontWeight: 'bold',
+    color: organicTheme.colors.primary.main,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   codeInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    gap: organicTheme.spacing.sm,
+    marginBottom: organicTheme.spacing.md,
   },
   codeInputWrapper: {
     flex: 1,
   },
   codeButton: {
-    marginBottom: Spacing.xs,
+    marginBottom: organicTheme.spacing.xs,
     minWidth: 100,
+    height: 48,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    backgroundColor: organicTheme.colors.primary.pale,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: organicTheme.colors.primary.main,
+  },
+  codeButtonDisabled: {
+    backgroundColor: organicTheme.colors.background.cream,
+    borderColor: organicTheme.colors.text.tertiary,
+  },
+  codeButtonText: {
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.primary.main,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  codeButtonTextDisabled: {
+    color: organicTheme.colors.text.tertiary,
   },
   debugContainer: {
-    backgroundColor: Colors.primaryLight,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.medium,
-    marginBottom: Spacing.md,
+    backgroundColor: organicTheme.colors.primary.pale,
+    padding: organicTheme.spacing.md,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    marginBottom: organicTheme.spacing.md,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: organicTheme.colors.primary.main,
     borderStyle: 'dashed',
   },
   debugRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    marginBottom: Spacing.xs,
+    gap: organicTheme.spacing.xs,
+    marginBottom: organicTheme.spacing.xs,
   },
   debugLabel: {
-    fontSize: FontSizes.xs,
-    color: Colors.textSub,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
   },
   debugCode: {
-    fontSize: FontSizes.lg,
-    fontWeight: 'bold',
-    color: Colors.primary,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.bold,
+    color: organicTheme.colors.primary.main,
     letterSpacing: 4,
+    textAlign: 'center',
   },
   loginButton: {
-    marginTop: Spacing.md,
+    marginTop: organicTheme.spacing.md,
   },
   hint: {
-    fontSize: FontSizes.xs,
-    color: Colors.textSub,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
     textAlign: 'center',
-    marginTop: Spacing.lg,
+    marginTop: organicTheme.spacing.lg,
     lineHeight: 18,
   },
 });

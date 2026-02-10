@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Button, Card, Input } from '@/components/ui';
-import { theme } from '@/constants/theme';
+import { OrganicBackground, OrganicCard } from '@/components/ui';
+import { organicTheme } from '@/constants/theme';
 
 const messages = [
   {
@@ -26,8 +26,6 @@ const messages = [
 type Role = 'assistant' | 'user';
 
 export default function QAScreen() {
-  const [question, setQuestion] = useState('');
-
   const renderAvatar = (role: Role) => (
     <View
       style={[
@@ -38,119 +36,110 @@ export default function QAScreen() {
       <IconSymbol
         name={role === 'assistant' ? 'message.fill' : 'person.circle.fill'}
         size={18}
-        color={theme.colors.surface}
+        color="#FFFFFF"
       />
     </View>
   );
 
   return (
-    <View style={styles.screen}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.statusSpacer} />
+    <OrganicBackground variant="morning">
+      <View style={styles.screen}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.statusSpacer} />
 
-        <Text style={styles.title}>智能育儿助手</Text>
-        <Text style={styles.subtitle}>基于 PINF.TOP AI 模型</Text>
+          <Text style={styles.title}>智能育儿助手</Text>
+          <Text style={styles.subtitle}>基于 PINF.TOP AI 模型</Text>
 
-        <Card style={styles.chatCard}>
-          <View style={styles.chatList}>
-            {messages.map((message) => {
-              const isUser = message.role === 'user';
-              return (
-                <View
-                  key={message.id}
-                  style={[
-                    styles.messageRow,
-                    isUser && styles.messageRowUser,
-                  ]}
-                >
-                  {renderAvatar(message.role as Role)}
+          <OrganicCard shadow style={styles.chatCard}>
+            <View style={styles.chatList}>
+              {messages.map((message) => {
+                const isUser = message.role === 'user';
+                return (
                   <View
+                    key={message.id}
                     style={[
-                      styles.bubble,
-                      isUser ? styles.bubbleUser : styles.bubbleAssistant,
+                      styles.messageRow,
+                      isUser && styles.messageRowUser,
                     ]}
                   >
-                    <Text
+                    {renderAvatar(message.role as Role)}
+                    <View
                       style={[
-                        styles.bubbleText,
-                        isUser && styles.bubbleTextUser,
+                        styles.bubble,
+                        isUser ? styles.bubbleUser : styles.bubbleAssistant,
                       ]}
                     >
-                      {message.text}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.bubbleText,
+                          isUser && styles.bubbleTextUser,
+                        ]}
+                      >
+                        {message.text}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
-      </ScrollView>
+                );
+              })}
+            </View>
+          </OrganicCard>
+        </ScrollView>
 
-      <View style={styles.inputBar}>
-        <Input
-          placeholder="输入您的问题..."
-          value={question}
-          onChangeText={setQuestion}
-          containerStyle={styles.inputContainer}
-          style={styles.input}
-          rightIcon={
-            <IconSymbol
-              name="paperplane.fill"
-              size={18}
-              color={theme.colors.primary}
-            />
-          }
-        />
-        <Button
-          title="发送"
-          onPress={() => {}}
-          size="small"
-          style={styles.sendButton}
-        />
+        <View style={styles.inputBar}>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputPlaceholder}>输入您的问题...</Text>
+            <View style={styles.sendIconButton}>
+              <IconSymbol
+                name="paperplane.fill"
+                size={18}
+                color="#FFFFFF"
+              />
+            </View>
+          </View>
+        </View>
       </View>
-    </View>
+    </OrganicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: theme.colors.bgBody,
   },
   container: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: theme.layout.pagePadding,
-    paddingBottom: theme.layout.safeBottom + 20,
+    paddingHorizontal: organicTheme.spacing.lg,
+    paddingBottom: 100,
   },
   statusSpacer: {
-    height: theme.layout.safeTop,
+    height: 44,
   },
   title: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '800',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.xl,
+    fontWeight: organicTheme.typography.fontWeight.bold,
+    color: organicTheme.colors.text.primary,
   },
   subtitle: {
     marginTop: 6,
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
   },
   chatCard: {
-    marginTop: theme.layout.sectionGap,
+    marginTop: organicTheme.spacing.lg,
   },
   chatList: {
-    gap: theme.spacing.md,
+    gap: organicTheme.spacing.md,
   },
   messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: theme.spacing.sm,
+    gap: organicTheme.spacing.sm,
   },
   messageRowUser: {
     flexDirection: 'row-reverse',
@@ -163,53 +152,66 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarAssistant: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: organicTheme.colors.primary.main,
   },
   avatarUser: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: organicTheme.colors.accent.peach,
   },
   bubble: {
     flex: 1,
-    padding: theme.spacing.md,
-    borderRadius: 16,
+    padding: organicTheme.spacing.md,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
     maxWidth: '82%',
   },
   bubbleAssistant: {
-    backgroundColor: theme.colors.surface,
-    ...theme.shadows.small,
+    backgroundColor: organicTheme.colors.background.paper,
+    ...organicTheme.shadows.soft[0],
   },
   bubbleUser: {
-    backgroundColor: theme.colors.primary,
-    borderTopRightRadius: 4,
+    backgroundColor: organicTheme.colors.primary.main,
+    borderTopRightRadius: 6,
   },
   bubbleText: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.primary,
     lineHeight: 20,
   },
   bubbleTextUser: {
-    color: theme.colors.surface,
+    color: '#FFFFFF',
   },
   inputBar: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: theme.layout.pagePadding,
-    paddingBottom: theme.layout.safeBottom - 20,
-    backgroundColor: theme.colors.bgBody,
+    paddingHorizontal: organicTheme.spacing.lg,
+    paddingBottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
   },
-  inputContainer: {
+  inputWrapper: {
     flex: 1,
-    marginBottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.sm,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.primary.pale,
+    ...organicTheme.shadows.soft[0],
   },
-  input: {
-    paddingRight: theme.spacing.lg,
+  inputPlaceholder: {
+    flex: 1,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
   },
-  sendButton: {
-    paddingHorizontal: theme.spacing.md,
+  sendIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: organicTheme.colors.primary.main,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

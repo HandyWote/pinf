@@ -45,23 +45,20 @@ export default function OrganicHomeScreen() {
     fetchBabies,
     createBaby,
     updateBaby,
-    deleteBaby,
     selectBaby,
     isLoading,
     error,
   } = useBabyStore();
   const [showBabyForm, setShowBabyForm] = useState(false);
   const [showBabyList, setShowBabyList] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [editingBabyId, setEditingBabyId] = useState<number | null>(null);
+  const [formMode] = useState<'create' | 'edit'>('create');
+  const [editingBabyId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showGrowthModal, setShowGrowthModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
 
   const {
     records,
-    loading: growthLoading,
-    error: growthError,
     fetch: fetchGrowth,
     add: addGrowth,
   } = useGrowthStore();
@@ -123,25 +120,6 @@ export default function OrganicHomeScreen() {
     } catch {
       Alert.alert('失败', '更新失败，请重试');
     }
-  };
-
-  const handleDeleteBaby = (babyId: number) => {
-    Alert.alert('删除宝宝', '确定要删除该宝宝信息吗？', [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '删除',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteBaby(babyId);
-            await fetchBabies();
-            Alert.alert('成功', '宝宝信息已删除');
-          } catch {
-            Alert.alert('失败', '删除失败，请重试');
-          }
-        },
-      },
-    ]);
   };
 
   const handleAddGrowth = async (payloads: Parameters<typeof addGrowth>[1]) => {

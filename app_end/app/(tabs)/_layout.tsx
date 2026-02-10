@@ -3,30 +3,30 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { theme } from '@/constants/theme';
+import { organicTheme } from '@/constants/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: '#B2BEC3',
+        tabBarActiveTintColor: organicTheme.colors.primary.main,
+        tabBarInactiveTintColor: organicTheme.colors.text.tertiary,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
           position: 'absolute',
-          height: theme.layout.tab.height,
-          marginHorizontal: theme.layout.tab.marginHorizontal,
-          marginBottom: theme.layout.tab.marginBottom,
-          borderRadius: theme.layout.tab.radius,
-          backgroundColor: 'rgba(255,255,255,0.95)',
+          height: 65,
+          marginHorizontal: organicTheme.spacing.lg,
+          marginBottom: organicTheme.spacing.lg,
+          borderRadius: organicTheme.shapes.borderRadius.soft,
+          backgroundColor: 'rgba(255, 254, 252, 0.95)',
           borderTopWidth: 0,
           paddingVertical: 10,
-          ...theme.shadows.nav,
+          ...organicTheme.shadows.floating[0],
         },
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
+          fontSize: organicTheme.typography.fontSize.xs,
+          fontWeight: organicTheme.typography.fontWeight.semibold,
         },
       }}>
       <Tabs.Screen

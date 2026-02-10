@@ -12,13 +12,9 @@ import {
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import {
-  ActionGrid,
-  AppointmentCard,
-} from '@/components/home';
 import { GrowthRecordModal } from '@/components/home/GrowthRecordModal';
 import { AppointmentModal } from '@/components/home/AppointmentModal';
-import { BabyForm, Modal, OrganicBackground, OrganicCard, OrganicButton } from '@/components/ui';
+import { BabyForm, Modal, OrganicBackground, OrganicCard } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuthStore } from '@/store';
@@ -40,7 +36,6 @@ export default function HomeScreen() {
     fetchBabies,
     createBaby,
     updateBaby,
-    deleteBaby,
     selectBaby,
     isLoading,
     error,
@@ -58,8 +53,6 @@ export default function HomeScreen() {
 
   const {
     records,
-    loading: growthLoading,
-    error: growthError,
     fetch: fetchGrowth,
     add: addGrowth,
   } = useGrowthStore();
@@ -140,25 +133,6 @@ export default function HomeScreen() {
     }
   };
 
-  const handleDeleteBaby = (babyId: number) => {
-    Alert.alert('删除宝宝', '确定要删除该宝宝信息吗？', [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '删除',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteBaby(babyId);
-            await fetchBabies();
-            Alert.alert('成功', '宝宝信息已删除');
-          } catch {
-            Alert.alert('失败', '删除失败，请重试');
-          }
-        },
-      },
-    ]);
-  };
-
   const handleBabySwitcherPress = () => {
     setShowBabyList(true);
   };
@@ -166,13 +140,6 @@ export default function HomeScreen() {
   const handleOpenCreateForm = () => {
     setFormMode('create');
     setEditingBabyId(null);
-    setShowBabyList(false);
-    setShowBabyForm(true);
-  };
-
-  const handleOpenEditForm = (babyId: number) => {
-    setFormMode('edit');
-    setEditingBabyId(babyId);
     setShowBabyList(false);
     setShowBabyForm(true);
   };
@@ -255,7 +222,7 @@ export default function HomeScreen() {
           <View style={styles.greeting}>
             <Text style={styles.greetingText}>早上好</Text>
             <View style={styles.greetingIcon}>
-              <IconSymbol size={20} name="sun" color={organicTheme.colors.accent.peach} />
+              <IconSymbol size={20} name="sun.max" color={organicTheme.colors.accent.peach} />
             </View>
             <Text style={styles.greetingSubtext}>又是陪伴宝宝成长的一天</Text>
           </View>
@@ -405,7 +372,7 @@ export default function HomeScreen() {
         ) : filteredAppointments.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="event.note" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={48} name="event" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击右上角添加复诊预约</Text>
             </View>
@@ -501,6 +468,7 @@ export default function HomeScreen() {
           </OrganicCard>
         )}
 
+<<<<<<< HEAD
         {/* 内容课堂 */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>内容课堂</Text>

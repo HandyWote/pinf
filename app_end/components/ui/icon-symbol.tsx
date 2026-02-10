@@ -30,6 +30,7 @@ const MAPPING = {
   'chevron.left': 'chevron-left',
   'chevron.right': 'chevron-right',
   'chevron.down': 'expand-more',
+  'plus': 'add',
   'plus.circle.fill': 'add-circle',
   'xmark.circle.fill': 'cancel',
   'figure.child': 'child-care',

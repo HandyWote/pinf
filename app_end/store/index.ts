@@ -40,7 +40,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   needSetPassword: false,
 
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setUser: (user) => {
+    AsyncStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user)).catch(console.error);
+    set({ user, isAuthenticated: !!user });
+  },
   
   setToken: (token) => set({ token, isAuthenticated: !!token }),
 

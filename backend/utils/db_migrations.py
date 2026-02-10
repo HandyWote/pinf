@@ -11,6 +11,10 @@ _MIGRATIONS = [
         "id": "2024_11_03_add_gender_to_babies",
         "sql": "ALTER TABLE babies ADD COLUMN IF NOT EXISTS gender VARCHAR(4)",
     },
+    {
+        "id": "2026_02_10_add_name_to_users",
+        "sql": "ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(50)",
+    },
 ]
 
 

@@ -22,6 +22,7 @@ export interface LoginResponse {
     user: {
       id: string;
       phone: string;
+      name?: string;
       wxOpenid?: string;
       role: string;
       createdAt: string;
@@ -63,6 +64,17 @@ export const setupPassword = async (password: string) => {
   const response = await api.post<{ status: string; message: string; data: { user: LoginResponse['data']['user'] } }>(
     '/auth/password/setup',
     { password }
+  );
+  return response.data;
+};
+
+/**
+ * 更新用户昵称
+ */
+export const updateProfile = async (name: string) => {
+  const response = await api.put<{ status: string; message: string; data: { user: LoginResponse['data']['user'] } }>(
+    '/auth/profile',
+    { name }
   );
   return response.data;
 };

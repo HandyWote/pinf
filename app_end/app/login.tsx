@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -21,6 +20,7 @@ import { OrganicBackground, OrganicCard, OrganicButton } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
+import { useFeedback } from '@/contexts/FeedbackContext';
 
 type LoginMode = 'code' | 'password';
 
@@ -33,9 +33,11 @@ export default function LoginScreen() {
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [debugCode, setDebugCode] = useState(''); // 开发模式下显示验证码
+  const [formError, setFormError] = useState('');
   
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { login } = useAuthStore();
+  const { notify } = useFeedback();
 
   // 验证手机号格式
   const validatePhone = (phone: string): boolean => {
@@ -71,8 +73,9 @@ export default function LoginScreen() {
 
   // 发送验证码
   const handleSendCode = async () => {
+    setFormError('');
     if (!validatePhone(phone)) {
-      Alert.alert('提示', '请输入正确的手机号');
+      setFormError('请输入正确的手机号');
       return;
     }
 
@@ -89,19 +92,15 @@ export default function LoginScreen() {
       // 开发模式下显示验证码
       if (response.data.code) {
         setDebugCode(response.data.code);
-        Alert.alert(
-          '验证码已发送',
-          `开发模式：验证码为 ${response.data.code}\n\n生产环境中验证码将通过短信发送`,
-          [{ text: '知道了' }]
-        );
+        notify(`验证码已发送，开发模式验证码：${response.data.code}`, 'success');
       } else {
-        Alert.alert('成功', '验证码已发送，请查收短信');
+        notify('验证码已发送，请查收短信', 'success');
       }
       
       startCountdown(60);
     } catch (error: any) {
       console.error('发送验证码失败:', error);
-      Alert.alert('错误', error.response?.data?.message || '发送验证码失败，请重试');
+      notify(error.response?.data?.message || '发送验证码失败，请重试', 'error');
     } finally {
       setIsSendingCode(false);
     }
@@ -109,19 +108,20 @@ export default function LoginScreen() {
 
   // 登录
   const handleLogin = async () => {
+    setFormError('');
     if (!validatePhone(phone)) {
-      Alert.alert('提示', '请输入正确的手机号');
+      setFormError('请输入正确的手机号');
       return;
     }
 
     if (loginMode === 'code') {
       if (!code || code.length !== 6) {
-        Alert.alert('提示', '请输入6位验证码');
+        setFormError('请输入6位验证码');
         return;
       }
     } else {
       if (!validatePassword(password)) {
-        Alert.alert('提示', '密码需为8-16位字母+数字组合');
+        setFormError('密码需为8-16位字母+数字组合');
         return;
       }
     }
@@ -149,7 +149,7 @@ export default function LoginScreen() {
         loginMode === 'code'
           ? '登录失败，请检查验证码是否正确'
           : '登录失败，请检查密码是否正确';
-      Alert.alert('登录失败', error.response?.data?.message || fallbackMessage);
+      notify(error.response?.data?.message || fallbackMessage, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -211,7 +211,10 @@ export default function LoginScreen() {
             <Input
               label="手机号"
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(value) => {
+                setPhone(value);
+                if (formError) setFormError('');
+              }}
               placeholder="请输入手机号"
               keyboardType="phone-pad"
               maxLength={11}
@@ -227,7 +230,10 @@ export default function LoginScreen() {
                     <Input
                       label="验证码"
                       value={code}
-                      onChangeText={setCode}
+                      onChangeText={(value) => {
+                        setCode(value);
+                        if (formError) setFormError('');
+                      }}
                       placeholder="请输入6位验证码"
                       keyboardType="number-pad"
                       maxLength={6}
@@ -257,7 +263,10 @@ export default function LoginScreen() {
               <Input
                 label="密码"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  if (formError) setFormError('');
+                }}
                 placeholder="8-16位字母+数字"
                 secureTextEntry
                 leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
@@ -277,6 +286,7 @@ export default function LoginScreen() {
             )}
 
             {/* 登录按钮 */}
+            {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
             <OrganicButton
               title={isLoading ? '登录中...' : '登录'}
               onPress={handleLogin}
@@ -426,6 +436,11 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: organicTheme.spacing.md,
+  },
+  errorText: {
+    marginTop: organicTheme.spacing.sm,
+    color: '#C54A4A',
+    fontSize: organicTheme.typography.fontSize.sm,
   },
   hint: {
     fontSize: organicTheme.typography.fontSize.xs,

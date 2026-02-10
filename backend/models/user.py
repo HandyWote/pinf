@@ -7,6 +7,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(20), unique=True, nullable=True)
+    name = db.Column(db.String(50), nullable=True)
     wx_openid = db.Column(db.String(100), unique=True, nullable=True)
     role = db.Column(db.String(20), default="user", nullable=False)
     password_hash = db.Column(db.String(255), nullable=True)
@@ -21,6 +22,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "phone": self.phone,
+            "name": self.name,
             "wxOpenid": self.wx_openid,
             "role": self.role,
             "needSetPassword": self.password_hash is None,

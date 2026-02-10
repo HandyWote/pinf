@@ -10,20 +10,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { router } from 'expo-router';
 import { OrganicBackground, OrganicCard, OrganicButton } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
+import { useFeedback } from '@/contexts/FeedbackContext';
 import { setupPassword } from '@/services/api';
 import { useAuthStore } from '@/store';
 
 export default function SetPasswordScreen() {
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { setNeedSetPassword } = useAuthStore();
+  const { needSetPassword, setNeedSetPassword } = useAuthStore();
+  const { notify } = useFeedback();
 
   const validatePassword = (value: string): boolean => {
     const pattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/;
@@ -31,20 +36,40 @@ export default function SetPasswordScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!validatePassword(password)) {
-      Alert.alert('提示', '密码需为8-16位字母+数字组合');
+    const normalizedPassword = password.trim();
+    const normalizedConfirmPassword = confirmPassword.trim();
+    setFormError('');
+
+    if (!normalizedPassword || !normalizedConfirmPassword) {
+      setFormError('请完整填写密码和确认密码');
+      return;
+    }
+
+    if (!validatePassword(normalizedPassword)) {
+      setFormError('密码需为8-16位字母+数字组合');
+      return;
+    }
+
+    if (normalizedPassword !== normalizedConfirmPassword) {
+      setFormError('两次输入的密码不一致');
       return;
     }
 
     setIsLoading(true);
     try {
-      await setupPassword(password);
+      console.log('[SetPassword] start request: /auth/password/setup');
+      await setupPassword(normalizedPassword);
+      console.log('[SetPassword] request success');
       setNeedSetPassword(false);
-      Alert.alert('成功', '密码设置成功');
+      notify('密码设置成功', 'success');
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('设置密码失败:', error);
-      Alert.alert('失败', error.response?.data?.message || '设置密码失败，请重试');
+      console.error('[SetPassword] request failed:', {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+      });
+      notify(error?.response?.data?.message || '设置密码失败，请重试', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +86,15 @@ export default function SetPasswordScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {!needSetPassword && (
+            <View style={styles.topActions}>
+              <TouchableOpacity style={styles.exitButton} onPress={() => router.replace('/profile')}>
+                <IconSymbol name="chevron.left" size={16} color={organicTheme.colors.text.secondary} />
+                <Text style={styles.exitButtonText}>退出修改</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <OrganicCard shadow style={styles.formContainer}>
             <Text style={styles.title}>设置登录密码</Text>
             <Text style={styles.subtitle}>为了账户安全，请设置8-16位字母+数字密码</Text>
@@ -68,15 +102,33 @@ export default function SetPasswordScreen() {
             <Input
               label="密码"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(value) => {
+                setPassword(value);
+                if (formError) setFormError('');
+              }}
               placeholder="请输入8-16位字母+数字"
               secureTextEntry
               leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
               required
             />
 
+            <Input
+              label="确认密码"
+              value={confirmPassword}
+              onChangeText={(value) => {
+                setConfirmPassword(value);
+                if (formError) setFormError('');
+              }}
+              placeholder="请再次输入密码"
+              secureTextEntry
+              leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
+              required
+            />
+
+            {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
+
             <OrganicButton
-              title={isLoading ? '设置中...' : '完成'}
+              title={isLoading ? '设置中...' : '确认设置'}
               onPress={handleSubmit}
               disabled={isLoading}
               loading={isLoading}
@@ -98,6 +150,26 @@ const styles = StyleSheet.create({
     padding: organicTheme.spacing.lg,
     justifyContent: 'center',
   },
+  topActions: {
+    marginBottom: organicTheme.spacing.md,
+    alignItems: 'flex-start',
+  },
+  exitButton: {
+    minHeight: 36,
+    paddingHorizontal: organicTheme.spacing.md,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.primary.pale,
+    backgroundColor: organicTheme.colors.background.paper,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: organicTheme.spacing.xs,
+  },
+  exitButtonText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.medium,
+  },
   formContainer: {
     borderRadius: organicTheme.shapes.borderRadius.soft,
     padding: organicTheme.spacing.xl,
@@ -112,6 +184,11 @@ const styles = StyleSheet.create({
     fontSize: organicTheme.typography.fontSize.sm,
     color: organicTheme.colors.text.secondary,
     marginBottom: organicTheme.spacing.lg,
+  },
+  errorText: {
+    marginTop: organicTheme.spacing.xs,
+    color: '#C54A4A',
+    fontSize: organicTheme.typography.fontSize.sm,
   },
   submitButton: {
     marginTop: organicTheme.spacing.md,

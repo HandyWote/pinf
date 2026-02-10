@@ -10,7 +10,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -20,6 +19,7 @@ import { theme } from '@/constants/theme';
 import { Button } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { useFeedback } from '@/contexts/FeedbackContext';
 import { formatDateString } from '@/utils/ageCalculator';
 import type { GrowthRecord, GrowthMetric } from '@/types/growth';
 
@@ -51,6 +51,7 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
   const [editDate, setEditDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { confirm, notify } = useFeedback();
 
   // 按指标分组记录
   const groupedRecords = React.useMemo(() => {
@@ -82,19 +83,16 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
     setEditModalVisible(true);
   };
 
-  const handleDelete = (record: GrowthRecord) => {
-    Alert.alert(
-      '删除记录',
-      `确定要删除这条${METRIC_META[record.metric].label}记录吗？`,
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: () => onDelete?.(record.id),
-        },
-      ]
-    );
+  const handleDelete = async (record: GrowthRecord) => {
+    const confirmed = await confirm({
+      title: '删除记录',
+      message: `确定要删除这条${METRIC_META[record.metric].label}记录吗？`,
+      confirmText: '删除',
+      cancelText: '取消',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    await onDelete?.(record.id);
   };
 
   const handleSubmitEdit = async () => {
@@ -102,7 +100,7 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
 
     const numValue = parseFloat(editValue);
     if (isNaN(numValue) || numValue <= 0) {
-      Alert.alert('错误', '请输入有效的数值');
+      notify('请输入有效的数值', 'error');
       return;
     }
 
@@ -118,7 +116,7 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
       setEditValue('');
       setEditNote('');
     } catch {
-      Alert.alert('错误', '更新记录失败，请重试');
+      notify('更新记录失败，请重试', 'error');
     } finally {
       setSubmitting(false);
     }

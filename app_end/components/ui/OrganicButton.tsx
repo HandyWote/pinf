@@ -99,12 +99,14 @@ export const OrganicButton: React.FC<OrganicButtonProps> = ({
   };
 
   const getBackgroundColor = () => {
+    if (disabled) return organicTheme.colors.primary.pale;
     if (variant === 'ghost') return 'transparent';
     if (variant === 'soft') return organicTheme.colors.primary.pale;
     return undefined;
   };
 
   const getTextColor = () => {
+    if (disabled) return organicTheme.colors.text.secondary;
     if (variant === 'primary' || variant === 'secondary') return '#FFFFFF';
     return organicTheme.colors.text.primary;
   };

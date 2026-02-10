@@ -120,6 +120,30 @@ def setup_password(data, current_user):
     })
 
 
+@auth_bp.route("/auth/profile", methods=["PUT"])
+@validate_request_data([{"name": "name", "type": str}])
+@token_required
+def update_profile(data, current_user):
+    """
+    更新用户资料（当前仅支持昵称）。
+    """
+    name = data["name"].strip()
+
+    if not name:
+        return jsonify({"status": "error", "message": "昵称不能为空"}), 400
+    if len(name) > 50:
+        return jsonify({"status": "error", "message": "昵称长度不能超过50个字符"}), 400
+
+    current_user.name = name
+    db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "昵称更新成功",
+        "data": {"user": current_user.to_dict()},
+    })
+
+
 @auth_bp.route("/auth/password/login", methods=["POST"])
 @validate_request_data([
     {"name": "phone", "type": str},

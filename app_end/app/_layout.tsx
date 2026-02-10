@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { FeedbackProvider } from '@/contexts/FeedbackContext';
 import { useAuthStore } from '@/store';
 import { useBabyStore } from '@/store/babyStore';
 import { setUnauthorizedHandler } from '@/services/api/client';
@@ -34,7 +35,7 @@ function useProtectedRoute() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'login' || segments[0] === 'set-password';
+    const inAuthGroup = segments[0] === 'login';
 
     if (!isAuthenticated && !inAuthGroup) {
       // 未登录且不在登录页，跳转到登录页
@@ -80,18 +81,21 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <Stack>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)/index" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-          <Stack.Screen name="growth/index" options={{ headerShown: false }} />
-          <Stack.Screen name="appointments/index" options={{ headerShown: false }} />
-          <Stack.Screen name="class-video/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="class-article/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="set-password" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
+        <FeedbackProvider>
+          <Stack>
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)/index" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen name="growth/index" options={{ headerShown: false }} />
+            <Stack.Screen name="appointments/index" options={{ headerShown: false }} />
+            <Stack.Screen name="class-video/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="class-article/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="set-password" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </FeedbackProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { AppointmentCard, AppointmentModal } from '@/components/home';
 import { OrganicBackground, OrganicCard, OrganicButton } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
+import { useFeedback } from '@/contexts/FeedbackContext';
 import { useAppointmentStore } from '@/store/appointmentStore';
 import { useBabyStore } from '@/store/babyStore';
 
@@ -12,6 +13,7 @@ export default function AppointmentPage() {
   const router = useRouter();
   const { appointments, fetch, remove, error, add } = useAppointmentStore();
   const { currentBaby } = useBabyStore();
+  const { confirm, notify } = useFeedback();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -23,17 +25,22 @@ export default function AppointmentPage() {
     return appointments.filter((item) => item.baby?.id === currentBaby.id);
   }, [appointments, currentBaby]);
 
-  const handleDelete = (id: number) => {
-    Alert.alert('删除预约', '确定删除该预约吗？', [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '删除',
-        style: 'destructive',
-        onPress: async () => {
-          await remove(id);
-        },
-      },
-    ]);
+  const handleDelete = async (id: number) => {
+    const confirmed = await confirm({
+      title: '删除预约',
+      message: '确定删除该预约吗？',
+      confirmText: '删除',
+      cancelText: '取消',
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await remove(id);
+      notify('预约已删除', 'success');
+    } catch {
+      notify('删除失败，请重试', 'error');
+    }
   };
 
   const handleSubmit = async (payload: any) => {
@@ -78,7 +85,7 @@ export default function AppointmentPage() {
         {filtered.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyBox}>
-              <IconSymbol size={48} name="event.note" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={48} name="calendar" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击上方按钮添加复诊预约</Text>
             </View>

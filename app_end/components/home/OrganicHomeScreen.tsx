@@ -10,7 +10,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Alert,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
@@ -23,6 +22,7 @@ import { AppointmentModal } from '@/components/home/AppointmentModal';
 import { BabyForm, Modal, OrganicBackground, OrganicCard } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useFeedback } from '@/contexts/FeedbackContext';
 import { useAuthStore } from '@/store';
 import { useBabyStore } from '@/store/babyStore';
 import { useGrowthStore } from '@/store/growthStore';
@@ -39,6 +39,7 @@ const mockContent = [
 
 export default function OrganicHomeScreen() {
   const { logout } = useAuthStore();
+  const { confirm, notify } = useFeedback();
   const {
     babies,
     currentBaby,
@@ -85,30 +86,25 @@ export default function OrganicHomeScreen() {
     }
   }, [fetchAppointments, isAuthenticated]);
 
-  const handleLogout = () => {
-    Alert.alert(
-      '退出登录',
-      '确定要退出登录吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '确定',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/login');
-          },
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    const confirmed = await confirm({
+      title: '退出登录',
+      message: '确定要退出登录吗？',
+      confirmText: '确定',
+      cancelText: '取消',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    await logout();
+    router.replace('/login');
   };
 
   const handleCreateBaby = async (data: CreateBabyInput | UpdateBabyInput) => {
     try {
       await createBaby(data as CreateBabyInput);
-      Alert.alert('成功', '宝宝信息已保存');
+      notify('宝宝信息已保存', 'success');
     } catch {
-      Alert.alert('失败', '保存失败，请重试');
+      notify('保存失败，请重试', 'error');
     }
   };
 
@@ -116,9 +112,9 @@ export default function OrganicHomeScreen() {
     if (!editingBabyId) return;
     try {
       await updateBaby(editingBabyId, data);
-      Alert.alert('成功', '宝宝信息已更新');
+      notify('宝宝信息已更新', 'success');
     } catch {
-      Alert.alert('失败', '更新失败，请重试');
+      notify('更新失败，请重试', 'error');
     }
   };
 
@@ -326,7 +322,7 @@ export default function OrganicHomeScreen() {
         ) : filteredAppointments.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="event" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={48} name="calendar" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击右上角添加复诊预约</Text>
             </View>

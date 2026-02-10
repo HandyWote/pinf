@@ -15,7 +15,7 @@ export function HelloWave() {
         animationIterationCount: 4,
         animationDuration: '300ms',
       }}>
-      <IconSymbol size={28} name="waving.hand" color={organicTheme.colors.text.primary} />
+      <IconSymbol size={28} name="hand.wave.fill" color={organicTheme.colors.text.primary} />
     </Animated.View>
   );
 }

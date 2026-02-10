@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { theme } from '@/constants/theme';
+import { organicTheme, theme } from '@/constants/theme';
 
 type Props = {
   icon?: React.ComponentProps<typeof IconSymbol>['name'];
@@ -29,7 +29,7 @@ export const FloatingActionButton: React.FC<Props> = ({
         style,
       ]}
     >
-      <IconSymbol name={icon} size={28} color={theme.colors.surface} />
+      <IconSymbol name={icon} size={organicTheme.iconSizes.lg} color={theme.colors.surface} />
       <Text style={styles.label}>{label}</Text>
     </TouchableOpacity>
   );

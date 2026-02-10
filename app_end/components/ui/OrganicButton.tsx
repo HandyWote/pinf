@@ -3,7 +3,7 @@
  * 柔和的形状、渐变和触觉反馈动画
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -40,8 +40,10 @@ export const OrganicButton: React.FC<OrganicButtonProps> = ({
   iconPosition = 'left',
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [isPressed, setIsPressed] = useState(false);
 
   const handlePressIn = () => {
+    setIsPressed(true);
     Animated.spring(scaleAnim, {
       toValue: 0.95,
       ...organicTheme.animation.spring,
@@ -50,6 +52,7 @@ export const OrganicButton: React.FC<OrganicButtonProps> = ({
   };
 
   const handlePressOut = () => {
+    setIsPressed(false);
     Animated.spring(scaleAnim, {
       toValue: 1,
       ...organicTheme.animation.spring,
@@ -112,8 +115,10 @@ export const OrganicButton: React.FC<OrganicButtonProps> = ({
   };
 
   const getBorderColor = () => {
-    if (variant === 'ghost') return organicTheme.colors.primary.main;
-    return 'transparent';
+    if (disabled) return organicTheme.colors.border.subtle;
+    if (variant === 'ghost') return isPressed ? organicTheme.colors.border.strong : organicTheme.colors.border.accent;
+    if (variant === 'soft') return isPressed ? organicTheme.colors.border.default : organicTheme.colors.border.light;
+    return isPressed ? organicTheme.colors.border.strong : organicTheme.colors.border.default;
   };
 
   const buttonContent = (
@@ -149,9 +154,9 @@ export const OrganicButton: React.FC<OrganicButtonProps> = ({
     styles.button,
     sizeStyles[size],
     getBackgroundColor() && { backgroundColor: getBackgroundColor() },
-    getBorderColor() !== 'transparent' && {
+    {
       borderColor: getBorderColor() as string,
-      borderWidth: 2,
+      borderWidth: 1,
     },
     style,
   ];
@@ -188,7 +193,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: organicTheme.colors.border.default,
   },
   content: {
     flexDirection: 'row',
@@ -246,11 +251,11 @@ const chipStyles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.pill,
     backgroundColor: organicTheme.colors.background.paper,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.default,
   },
   active: {
     backgroundColor: organicTheme.colors.primary.main,
-    borderColor: organicTheme.colors.primary.main,
+    borderColor: organicTheme.colors.border.strong,
   },
   text: {
     fontSize: organicTheme.typography.fontSize.sm,

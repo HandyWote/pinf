@@ -22,7 +22,7 @@ export default function TabLayout() {
           backgroundColor: 'rgba(255, 254, 252, 0.95)',
           borderTopWidth: 0,
           paddingVertical: 10,
-          ...organicTheme.shadows.floating[0],
+          ...organicTheme.shadows.floating[1],
         },
         tabBarLabelStyle: {
           fontSize: organicTheme.typography.fontSize.xs,
@@ -34,7 +34,7 @@ export default function TabLayout() {
         options={{
           title: '首页',
           tabBarIcon: ({ color }: { color: string }) => (
-            <IconSymbol size={22} name="house.fill" color={color} />
+            <IconSymbol size={organicTheme.iconSizes.tab} name="house.fill" color={color} />
           ),
         }}
       />
@@ -43,7 +43,7 @@ export default function TabLayout() {
         options={{
           title: '问答',
           tabBarIcon: ({ color }: { color: string }) => (
-            <IconSymbol size={22} name="message.fill" color={color} />
+            <IconSymbol size={organicTheme.iconSizes.tab} name="message.fill" color={color} />
           ),
         }}
       />
@@ -52,7 +52,7 @@ export default function TabLayout() {
         options={{
           title: '课堂',
           tabBarIcon: ({ color }: { color: string }) => (
-            <IconSymbol size={22} name="play.circle.fill" color={color} />
+            <IconSymbol size={organicTheme.iconSizes.tab} name="play.circle.fill" color={color} />
           ),
         }}
       />

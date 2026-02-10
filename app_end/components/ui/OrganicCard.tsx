@@ -3,7 +3,7 @@
  * 柔和的边缘、浮动效果和微妙的动画
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -32,8 +32,10 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
+  const [isPressed, setIsPressed] = useState(false);
 
   const handlePressIn = () => {
+    setIsPressed(true);
     Animated.parallel([
       Animated.timing(scaleAnim, {
         toValue: 0.97,
@@ -49,6 +51,7 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
   };
 
   const handlePressOut = () => {
+    setIsPressed(false);
     Animated.parallel([
       Animated.timing(scaleAnim, {
         toValue: 1,
@@ -97,8 +100,11 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
 
   const containerStyle = [
     styles.card,
+    variant === 'ghost' && styles.ghostCard,
+    variant === 'soft' && styles.softCard,
     shadow && styles.shadow,
     variant === 'glass' && styles.glassCard,
+    onPress && isPressed && styles.pressedCard,
     style,
   ];
 
@@ -135,14 +141,19 @@ const styles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.soft,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.default,
+  },
+  ghostCard: {
+    borderColor: organicTheme.colors.border.subtle,
+  },
+  softCard: {
+    borderColor: organicTheme.colors.border.light,
   },
   shadow: {
-    shadowColor: organicTheme.colors.primary.main,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    ...organicTheme.shadows.soft[1],
+  },
+  pressedCard: {
+    borderColor: organicTheme.colors.border.strong,
   },
   glassCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',

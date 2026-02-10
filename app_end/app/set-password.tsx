@@ -89,7 +89,7 @@ export default function SetPasswordScreen() {
           {!needSetPassword && (
             <View style={styles.topActions}>
               <TouchableOpacity style={styles.exitButton} onPress={() => router.replace('/profile')}>
-                <IconSymbol name="chevron.left" size={16} color={organicTheme.colors.text.secondary} />
+                <IconSymbol name="chevron.left" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />
                 <Text style={styles.exitButtonText}>退出修改</Text>
               </TouchableOpacity>
             </View>
@@ -108,7 +108,7 @@ export default function SetPasswordScreen() {
               }}
               placeholder="请输入8-16位字母+数字"
               secureTextEntry
-              leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
+              leftIcon={<IconSymbol name="lock.fill" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />}
               required
             />
 
@@ -121,7 +121,7 @@ export default function SetPasswordScreen() {
               }}
               placeholder="请再次输入密码"
               secureTextEntry
-              leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
+              leftIcon={<IconSymbol name="lock.fill" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />}
               required
             />
 
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: organicTheme.spacing.md,
     borderRadius: organicTheme.shapes.borderRadius.pill,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.default,
     backgroundColor: organicTheme.colors.background.paper,
     flexDirection: 'row',
     alignItems: 'center',

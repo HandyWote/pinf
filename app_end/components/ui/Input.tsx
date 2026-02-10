@@ -13,7 +13,7 @@ import {
   TextInputProps,
   TouchableOpacity,
 } from 'react-native';
-import { theme } from '@/constants/theme';
+import { organicTheme } from '@/constants/theme';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -63,7 +63,7 @@ export const Input: React.FC<InputProps> = ({
         
         <TextInput
           style={[styles.input, leftIcon ? styles.inputWithLeftIcon : null]}
-          placeholderTextColor={theme.colors.mutedText}
+          placeholderTextColor={organicTheme.colors.text.tertiary}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...textInputProps}
@@ -87,62 +87,61 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: theme.spacing.md,
+    marginBottom: organicTheme.spacing.md,
   },
   label: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textSub,
-    marginBottom: theme.spacing.xs,
-    fontWeight: '500',
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
+    marginBottom: organicTheme.spacing.xs,
+    fontWeight: organicTheme.typography.fontWeight.medium,
   },
   required: {
-    color: theme.colors.accent,
+    color: '#C54A4A',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.medium,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
     borderWidth: 1,
-    borderColor: 'transparent',
-    ...theme.shadows.small,
+    borderColor: organicTheme.colors.border.default,
   },
   inputContainerFocused: {
-    borderColor: theme.colors.primary,
+    borderColor: organicTheme.colors.border.strong,
   },
   inputContainerError: {
-    borderColor: theme.colors.accent,
+    borderColor: organicTheme.colors.border.danger,
   },
   input: {
     flex: 1,
-    padding: theme.spacing.md,
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMain,
+    padding: organicTheme.spacing.md,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.primary,
   },
   inputWithLeftIcon: {
     paddingLeft: 0,
   },
   leftIcon: {
-    paddingLeft: theme.spacing.md,
+    paddingLeft: organicTheme.spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   rightIcon: {
-    paddingRight: theme.spacing.md,
+    paddingRight: organicTheme.spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: organicTheme.typography.fontSize.sm,
   },
   errorText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.accent,
-    marginTop: theme.spacing.xs,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: '#C54A4A',
+    marginTop: organicTheme.spacing.xs,
   },
   helperText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textSub,
-    marginTop: theme.spacing.xs,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
+    marginTop: organicTheme.spacing.xs,
   },
 });

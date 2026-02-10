@@ -4,7 +4,7 @@
  */
 
 import { Colors, Gradients, Spacing, BorderRadius, FontSizes, Shadows, Fonts, Layout } from './tokens';
-import { OrganicColors, OrganicGradients, OrganicShapes, OrganicShadows, OrganicAnimation, OrganicTypography, OrganicSpacing } from './organic-tokens';
+import { OrganicColors, OrganicGradients, OrganicShapes, OrganicShadows, OrganicAnimation, OrganicTypography, OrganicSpacing, OrganicIconSizes } from './organic-tokens';
 
 // 原有设计系统
 export const theme = {
@@ -27,6 +27,7 @@ export const organicTheme = {
   animation: OrganicAnimation,
   typography: OrganicTypography,
   spacing: OrganicSpacing,
+  iconSizes: OrganicIconSizes,
 } as const;
 
 export type Theme = typeof theme;
@@ -34,4 +35,4 @@ export type OrganicTheme = typeof organicTheme;
 
 // 便于需要单独引用 token 的场景
 export { Colors, Gradients, Spacing, BorderRadius, FontSizes, Shadows, Fonts, Layout };
-export { OrganicColors, OrganicGradients, OrganicShapes, OrganicShadows, OrganicAnimation, OrganicTypography, OrganicSpacing };
+export { OrganicColors, OrganicGradients, OrganicShapes, OrganicShadows, OrganicAnimation, OrganicTypography, OrganicSpacing, OrganicIconSizes };

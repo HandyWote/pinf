@@ -54,7 +54,7 @@ export default function AppointmentPage() {
         {/* 头部导航 */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol size={24} name="chevron.left" color={organicTheme.colors.text.primary} />
+            <IconSymbol size={organicTheme.iconSizes.md} name="chevron.left" color={organicTheme.colors.text.primary} />
           </TouchableOpacity>
           <Text style={styles.title}>预约/复诊</Text>
           <View style={styles.placeholder} />
@@ -62,7 +62,7 @@ export default function AppointmentPage() {
 
         {currentBaby && (
           <View style={styles.babyInfo}>
-            <IconSymbol size={16} name="figure.child" color={organicTheme.colors.primary.main} />
+            <IconSymbol size={organicTheme.iconSizes.xs} name="figure.child" color={organicTheme.colors.primary.main} />
             <Text style={styles.babyName}>当前宝宝：{currentBaby.name}</Text>
           </View>
         )}
@@ -85,7 +85,7 @@ export default function AppointmentPage() {
         {filtered.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyBox}>
-              <IconSymbol size={48} name="calendar" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xl} name="calendar" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击上方按钮添加复诊预约</Text>
             </View>

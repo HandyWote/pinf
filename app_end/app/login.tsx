@@ -178,7 +178,7 @@ export default function LoginScreen() {
           {/* Logo 区域 */}
           <View style={styles.logoContainer}>
             <View style={styles.logoCircle}>
-              <IconSymbol name="figure.child" size={40} color={organicTheme.colors.primary.main} />
+              <IconSymbol name="figure.child" size={organicTheme.iconSizes.xl} color={organicTheme.colors.primary.main} />
             </View>
             <Text style={styles.appName}>早护通</Text>
             <Text style={styles.appSlogan}>专业的早产儿护理助手</Text>
@@ -218,7 +218,7 @@ export default function LoginScreen() {
               placeholder="请输入手机号"
               keyboardType="phone-pad"
               maxLength={11}
-              leftIcon={<IconSymbol name="iphone" size={18} color={organicTheme.colors.text.secondary} />}
+              leftIcon={<IconSymbol name="iphone" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />}
               required
             />
 
@@ -237,7 +237,7 @@ export default function LoginScreen() {
                       placeholder="请输入6位验证码"
                       keyboardType="number-pad"
                       maxLength={6}
-                      leftIcon={<IconSymbol name="key.fill" size={18} color={organicTheme.colors.text.secondary} />}
+                      leftIcon={<IconSymbol name="key.fill" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />}
                       required
                     />
                   </View>
@@ -269,7 +269,7 @@ export default function LoginScreen() {
                 }}
                 placeholder="8-16位字母+数字"
                 secureTextEntry
-                leftIcon={<IconSymbol name="lock.fill" size={18} color={organicTheme.colors.text.secondary} />}
+                leftIcon={<IconSymbol name="lock.fill" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />}
                 required
               />
             )}
@@ -278,7 +278,7 @@ export default function LoginScreen() {
             {loginMode === 'code' && debugCode && (
               <View style={styles.debugContainer}>
                 <View style={styles.debugRow}>
-                  <IconSymbol name="wrench.and.screwdriver" size={14} color={organicTheme.colors.primary.main} />
+                  <IconSymbol name="wrench.and.screwdriver" size={organicTheme.iconSizes.xxs} color={organicTheme.colors.primary.main} />
                   <Text style={styles.debugLabel}> 开发模式验证码：</Text>
                 </View>
                 <Text style={styles.debugCode}>{debugCode}</Text>
@@ -334,12 +334,26 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: organicTheme.typography.fontSize['3xl'],
     fontWeight: organicTheme.typography.fontWeight.bold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.display,
+      android: organicTheme.typography.fontFamily.android.display,
+      default: organicTheme.typography.fontFamily.ios.display,
+    }),
     color: organicTheme.colors.primary.main,
     marginBottom: organicTheme.spacing.sm,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 42,
   },
   appSlogan: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   formContainer: {
     borderRadius: organicTheme.shapes.borderRadius.soft,
@@ -348,8 +362,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: organicTheme.typography.fontSize.lg,
     fontWeight: organicTheme.typography.fontWeight.bold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.bold,
+      android: organicTheme.typography.fontFamily.android.bold,
+      default: organicTheme.typography.fontFamily.ios.bold,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: organicTheme.spacing.lg,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 24,
   },
   modeSwitch: {
     flexDirection: 'row',
@@ -370,7 +391,13 @@ const styles = StyleSheet.create({
   },
   modeText: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.medium,
+      android: organicTheme.typography.fontFamily.android.medium,
+      default: organicTheme.typography.fontFamily.ios.medium,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
   },
   modeTextActive: {
     color: organicTheme.colors.primary.main,
@@ -394,16 +421,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.main,
+    borderColor: organicTheme.colors.border.accent,
   },
   codeButtonDisabled: {
     backgroundColor: organicTheme.colors.background.cream,
-    borderColor: organicTheme.colors.text.tertiary,
+    borderColor: organicTheme.colors.border.subtle,
   },
   codeButtonText: {
     fontSize: organicTheme.typography.fontSize.sm,
     color: organicTheme.colors.primary.main,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
   },
   codeButtonTextDisabled: {
     color: organicTheme.colors.text.tertiary,
@@ -414,7 +447,7 @@ const styles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.cozy,
     marginBottom: organicTheme.spacing.md,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.main,
+    borderColor: organicTheme.colors.border.accent,
     borderStyle: 'dashed',
   },
   debugRow: {
@@ -430,6 +463,11 @@ const styles = StyleSheet.create({
   debugCode: {
     fontSize: organicTheme.typography.fontSize.lg,
     fontWeight: organicTheme.typography.fontWeight.bold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.mono,
+      android: organicTheme.typography.fontFamily.android.mono,
+      default: organicTheme.typography.fontFamily.ios.mono,
+    }),
     color: organicTheme.colors.primary.main,
     letterSpacing: 4,
     textAlign: 'center',
@@ -444,9 +482,15 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: organicTheme.typography.fontSize.xs,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
     textAlign: 'center',
     marginTop: organicTheme.spacing.lg,
-    lineHeight: 18,
+    lineHeight: 20,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
   },
 });

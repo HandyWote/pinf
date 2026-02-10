@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: organicTheme.spacing.md,
     paddingVertical: organicTheme.spacing.sm,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.default,
     ...organicTheme.shadows.soft[0],
   },
   inputPlaceholder: {

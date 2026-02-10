@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { theme } from '@/constants/theme';
+import { organicTheme, theme } from '@/constants/theme';
 
 type Props = {
   name: string;
@@ -26,13 +26,13 @@ export const BabySwitcher: React.FC<Props> = ({
       onPress={onPress}
     >
       <View style={styles.avatar}>
-        <IconSymbol name={avatarIcon} size={20} color={theme.colors.textMain} />
+        <IconSymbol name={avatarIcon} size={organicTheme.iconSizes.sm} color={theme.colors.textMain} />
       </View>
       <View style={styles.info}>
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.meta}>{note ? `${ageText} · ${note}` : ageText}</Text>
       </View>
-      <IconSymbol name="chevron.down" size={16} color={theme.colors.textSub} />
+      <IconSymbol name="chevron.down" size={organicTheme.iconSizes.xs} color={theme.colors.textSub} />
     </TouchableOpacity>
   );
 };

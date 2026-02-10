@@ -44,6 +44,15 @@ export const OrganicColors = {
   warning: '#FFE0B2',
   error: '#FFCCCB',
   info: '#BBDEFB',
+  // 边框分级
+  border: {
+    subtle: 'rgba(74, 74, 74, 0.06)',
+    light: 'rgba(74, 74, 74, 0.12)',
+    default: 'rgba(74, 74, 74, 0.18)',
+    strong: 'rgba(74, 74, 74, 0.25)',
+    accent: 'rgba(255, 181, 167, 0.45)',
+    danger: 'rgba(197, 74, 74, 0.45)',
+  },
 } as const;
 
 export const OrganicGradients = {
@@ -143,13 +152,19 @@ export const OrganicTypography = {
     ios: {
       regular: 'SF Pro Text',
       medium: 'SF Pro Text',
+      semibold: 'SF Pro Display',
       bold: 'SF Pro Display',
+      display: 'Avenir Next',
+      mono: 'Menlo',
     },
     // Android
     android: {
       regular: 'sans-serif',
       medium: 'sans-serif-medium',
+      semibold: 'sans-serif-medium',
       bold: 'sans-serif',
+      display: 'sans-serif-medium',
+      mono: 'monospace',
     },
   },
 
@@ -179,6 +194,14 @@ export const OrganicTypography = {
     normal: 1.5,
     relaxed: 1.75,
   },
+
+  // 字距
+  letterSpacing: {
+    tight: -0.4,
+    normal: 0,
+    relaxed: 0.2,
+    wide: 0.4,
+  },
 } as const;
 
 export const OrganicSpacing = {
@@ -192,4 +215,14 @@ export const OrganicSpacing = {
   '3xl': 32,
   '4xl': 40,
   '5xl': 48,
+} as const;
+
+export const OrganicIconSizes = {
+  xxs: 14,
+  xs: 16,
+  sm: 20,
+  md: 24,
+  lg: 32,
+  xl: 40,
+  tab: 22,
 } as const;

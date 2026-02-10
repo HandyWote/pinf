@@ -16,7 +16,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { theme } from '@/constants/theme';
+import { organicTheme } from '@/constants/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -127,7 +127,7 @@ export const Modal: React.FC<ModalProps> = ({
             <View style={styles.header}>
               <Text style={styles.title}>{title}</Text>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <IconSymbol name="xmark.circle.fill" size={20} color={theme.colors.textSub} />
+                <IconSymbol name="xmark.circle.fill" size={organicTheme.iconSizes.sm} color={organicTheme.colors.text.secondary} />
               </TouchableOpacity>
             </View>
           )}
@@ -152,39 +152,43 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   modalContent: {
-    backgroundColor: theme.colors.bgContent,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingTop: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderTopLeftRadius: organicTheme.shapes.borderRadius.soft,
+    borderTopRightRadius: organicTheme.shapes.borderRadius.soft,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
+    paddingTop: organicTheme.spacing.xl,
+    paddingHorizontal: organicTheme.spacing.lg,
   },
   modalContentTop: {
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    borderBottomLeftRadius: organicTheme.shapes.borderRadius.soft,
+    borderBottomRightRadius: organicTheme.shapes.borderRadius.soft,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.lg,
+    marginBottom: organicTheme.spacing.lg,
   },
   title: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '800',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    color: organicTheme.colors.text.primary,
   },
   closeButton: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: theme.colors.mutedBg,
+    backgroundColor: organicTheme.colors.primary.pale,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
-    paddingBottom: theme.spacing.md,
+    paddingBottom: organicTheme.spacing.md,
   },
   scrollViewFlex: {
     flex: 1,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity, RefreshControl } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GrowthRecordModal } from '@/components/home';
@@ -63,11 +63,11 @@ export default function GrowthPage() {
       {/* 头部 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <IconSymbol size={24} name="chevron.left" color={organicTheme.colors.text.primary} />
+          <IconSymbol size={organicTheme.iconSizes.md} name="chevron.left" color={organicTheme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={styles.title}>成长曲线</Text>
         <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-          <IconSymbol size={20} name="arrow.clockwise" color={organicTheme.colors.text.secondary} />
+          <IconSymbol size={organicTheme.iconSizes.sm} name="arrow.clockwise" color={organicTheme.colors.text.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -86,7 +86,7 @@ export default function GrowthPage() {
       >
         {!currentBaby ? (
           <View style={styles.centerBox}>
-            <IconSymbol size={48} name="figure.child" color={organicTheme.colors.text.secondary} />
+            <IconSymbol size={organicTheme.iconSizes.xl} name="figure.child" color={organicTheme.colors.text.secondary} />
             <Text style={styles.centerText}>请先添加或选择宝宝</Text>
           </View>
         ) : (
@@ -106,7 +106,7 @@ export default function GrowthPage() {
                 style={[styles.viewTab, viewMode === 'chart' && styles.viewTabActive]}
                 onPress={() => setViewMode('chart')}
               >
-                <IconSymbol size={18} name="chart.line.uptrend.xyaxis" color={viewMode === 'chart' ? organicTheme.colors.primary.main : organicTheme.colors.text.secondary} />
+                <IconSymbol size={organicTheme.iconSizes.xs} name="chart.line.uptrend.xyaxis" color={viewMode === 'chart' ? organicTheme.colors.primary.main : organicTheme.colors.text.secondary} />
                 <Text style={[styles.viewTabText, viewMode === 'chart' && styles.viewTabTextActive]}>
                   曲线图
                 </Text>
@@ -115,7 +115,7 @@ export default function GrowthPage() {
                 style={[styles.viewTab, viewMode === 'list' && styles.viewTabActive]}
                 onPress={() => setViewMode('list')}
               >
-                <IconSymbol size={18} name="list.bullet" color={viewMode === 'list' ? organicTheme.colors.primary.main : organicTheme.colors.text.secondary} />
+                <IconSymbol size={organicTheme.iconSizes.xs} name="list.bullet" color={viewMode === 'list' ? organicTheme.colors.primary.main : organicTheme.colors.text.secondary} />
                 <Text style={[styles.viewTabText, viewMode === 'list' && styles.viewTabTextActive]}>
                   记录列表
                 </Text>
@@ -188,7 +188,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: organicTheme.typography.fontSize.lg,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.primary,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 24,
   },
   refreshButton: {
     width: 40,
@@ -215,7 +222,14 @@ const styles = StyleSheet.create({
   },
   centerText: {
     fontSize: organicTheme.typography.fontSize.md,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.medium,
+      android: organicTheme.typography.fontFamily.android.medium,
+      default: organicTheme.typography.fontFamily.ios.medium,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 22,
   },
   babyCard: {
     backgroundColor: organicTheme.colors.background.paper,
@@ -226,12 +240,26 @@ const styles = StyleSheet.create({
   babyName: {
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: organicTheme.spacing.xs,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 22,
   },
   babyMeta: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   viewSwitch: {
     flexDirection: 'row',
@@ -252,7 +280,13 @@ const styles = StyleSheet.create({
   },
   viewTabText: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.medium,
+      android: organicTheme.typography.fontFamily.android.medium,
+      default: organicTheme.typography.fontFamily.ios.medium,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
   },
   viewTabTextActive: {
     color: organicTheme.colors.primary.main,
@@ -269,6 +303,13 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: '#FFFFFF',
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 22,
   },
 });

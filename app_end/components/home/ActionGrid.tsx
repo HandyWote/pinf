@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
-import { theme } from '@/constants/theme';
+import { organicTheme, theme } from '@/constants/theme';
 
 type ActionItem = {
   id: string;
@@ -27,7 +27,7 @@ export const ActionGrid: React.FC<Props> = ({ items }) => {
           onPress={item.onPress}
         >
           <View style={styles.iconWrap}>
-            <IconSymbol name={item.icon} size={22} color={theme.colors.primary} />
+            <IconSymbol name={item.icon} size={organicTheme.iconSizes.tab} color={theme.colors.primary} />
           </View>
           <Text style={styles.title} numberOfLines={1}>
             {item.title}

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -204,14 +205,14 @@ export default function HomeScreen() {
           <View style={styles.greeting}>
             <Text style={styles.greetingText}>早上好</Text>
             <View style={styles.greetingIcon}>
-              <IconSymbol size={20} name="sun.max" color={organicTheme.colors.accent.peach} />
+              <IconSymbol size={organicTheme.iconSizes.sm} name="sun.max" color={organicTheme.colors.accent.peach} />
             </View>
             <Text style={styles.greetingSubtext}>又是陪伴宝宝成长的一天</Text>
           </View>
 
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/profile')}>
-              <IconSymbol size={18} name="person.crop.circle" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xs} name="person.crop.circle" color={organicTheme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -252,7 +253,7 @@ export default function HomeScreen() {
                 {babies.length > 1 && (
                   <View style={styles.switchIndicator}>
                     <Text style={styles.switchText}>切换</Text>
-                    <IconSymbol size={14} name="chevron.right" color={organicTheme.colors.primary.main} />
+                    <IconSymbol size={organicTheme.iconSizes.xxs} name="chevron.right" color={organicTheme.colors.primary.main} />
                   </View>
                 )}
               </View>
@@ -277,7 +278,7 @@ export default function HomeScreen() {
               onPress={handleOpenCreateForm}
             >
               <View style={styles.addBabyIcon}>
-                <IconSymbol size={24} name="plus" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.md} name="plus" color={organicTheme.colors.primary.main} />
               </View>
               <View style={styles.addBabyText}>
                 <Text style={styles.addBabyTitle}>添加宝宝</Text>
@@ -302,7 +303,7 @@ export default function HomeScreen() {
               style={styles.actionCardGradient}
             >
               <View style={styles.actionIcon}>
-                <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.lg} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>成长曲线</Text>
               <Text style={styles.actionCardSubtitle}>记录发育里程碑</Text>
@@ -318,7 +319,7 @@ export default function HomeScreen() {
               style={styles.actionCardGradient}
             >
               <View style={styles.actionIcon}>
-                <IconSymbol size={28} name="calendar" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.lg} name="calendar" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>复诊提醒</Text>
               <Text style={styles.actionCardSubtitle}>管理预约时间</Text>
@@ -334,7 +335,7 @@ export default function HomeScreen() {
               colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
               style={styles.addButton}
             >
-              <IconSymbol size={14} name="plus" color="#FFFFFF" />
+              <IconSymbol size={organicTheme.iconSizes.xxs} name="plus" color="#FFFFFF" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -354,7 +355,7 @@ export default function HomeScreen() {
         ) : filteredAppointments.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="calendar" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xl} name="calendar" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击右上角添加复诊预约</Text>
             </View>
@@ -404,7 +405,7 @@ export default function HomeScreen() {
               colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
               style={styles.addButton}
             >
-              <IconSymbol size={14} name="plus" color="#FFFFFF" />
+              <IconSymbol size={organicTheme.iconSizes.xxs} name="plus" color="#FFFFFF" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -443,7 +444,7 @@ export default function HomeScreen() {
         ) : (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="figure.child" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xl} name="figure.child" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无成长记录</Text>
               <Text style={styles.emptySubtext}>点击上方 + 添加第一条记录</Text>
             </View>
@@ -514,7 +515,7 @@ export default function HomeScreen() {
           colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
           style={styles.fabGradient}
         >
-          <IconSymbol size={24} name="plus" color="#FFFFFF" />
+          <IconSymbol size={organicTheme.iconSizes.md} name="plus" color="#FFFFFF" />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -547,6 +548,7 @@ export default function HomeScreen() {
           {babies.map((baby) => (
             <TouchableOpacity
               key={baby.id}
+              activeOpacity={0.78}
               style={[
                 styles.babyListItem,
                 currentBaby?.id === baby.id && styles.babyListItemActive,
@@ -558,7 +560,7 @@ export default function HomeScreen() {
             >
               <Text style={styles.babyListItemName}>{baby.name}</Text>
               {currentBaby?.id === baby.id && (
-                <IconSymbol size={16} name="checkmark.circle.fill" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.xs} name="checkmark.circle.fill" color={organicTheme.colors.primary.main} />
               )}
             </TouchableOpacity>
           ))}
@@ -591,8 +593,15 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: organicTheme.typography.fontSize['2xl'],
     fontWeight: organicTheme.typography.fontWeight.bold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.display,
+      android: organicTheme.typography.fontFamily.android.display,
+      default: organicTheme.typography.fontFamily.ios.display,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: organicTheme.spacing.xs,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 36,
   },
   greetingIcon: {
     flexDirection: 'row',
@@ -601,7 +610,14 @@ const styles = StyleSheet.create({
   },
   greetingSubtext: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   headerActions: {
     flexDirection: 'row',
@@ -615,7 +631,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.light,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -707,8 +723,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: organicTheme.typography.fontSize.xs,
-    color: organicTheme.colors.primary.main,
-    fontWeight: organicTheme.typography.fontWeight.medium,
+    color: organicTheme.colors.text.primary,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   addBabyCard: {
     marginBottom: organicTheme.spacing.xl,
@@ -749,7 +765,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: organicTheme.typography.fontSize.lg,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.primary,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 24,
   },
   addButton: {
     width: 32,
@@ -768,6 +791,8 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: organicTheme.shapes.borderRadius.soft,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
   },
   actionCardGradient: {
     flex: 1,
@@ -781,13 +806,27 @@ const styles = StyleSheet.create({
   },
   actionCardTitle: {
     fontSize: organicTheme.typography.fontSize.md,
-    fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontWeight: organicTheme.typography.fontWeight.bold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.bold,
+      android: organicTheme.typography.fontFamily.android.bold,
+      default: organicTheme.typography.fontFamily.ios.bold,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: 2,
+    letterSpacing: organicTheme.typography.letterSpacing.normal,
+    lineHeight: 22,
   },
   actionCardSubtitle: {
     fontSize: organicTheme.typography.fontSize.xs,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 16,
   },
   appointmentCard: {
     marginBottom: organicTheme.spacing.md,
@@ -821,12 +860,25 @@ const styles = StyleSheet.create({
   appointmentClinic: {
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.medium,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.medium,
+      android: organicTheme.typography.fontFamily.android.medium,
+      default: organicTheme.typography.fontFamily.ios.medium,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: 2,
+    lineHeight: 22,
   },
   appointmentDepartment: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   statusBadge: {
     paddingHorizontal: organicTheme.spacing.md,
@@ -856,10 +908,17 @@ const styles = StyleSheet.create({
   growthPreviewTitle: {
     fontSize: organicTheme.typography.fontSize.sm,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.secondary,
     marginBottom: organicTheme.spacing.md,
     paddingHorizontal: organicTheme.spacing.lg,
     paddingTop: organicTheme.spacing.lg,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   growthMetrics: {
     flexDirection: 'row',
@@ -878,7 +937,14 @@ const styles = StyleSheet.create({
   growthMetricValue: {
     fontSize: organicTheme.typography.fontSize.lg,
     fontWeight: organicTheme.typography.fontWeight.bold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.mono,
+      android: organicTheme.typography.fontFamily.android.mono,
+      default: organicTheme.typography.fontFamily.ios.mono,
+    }),
     color: organicTheme.colors.primary.main,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 26,
   },
   growthMetricUnit: {
     fontSize: organicTheme.typography.fontSize.sm,
@@ -886,7 +952,7 @@ const styles = StyleSheet.create({
   },
   viewAllButton: {
     borderTopWidth: 1,
-    borderTopColor: organicTheme.colors.primary.pale,
+    borderTopColor: organicTheme.colors.border.light,
     paddingVertical: organicTheme.spacing.md,
     alignItems: 'center',
   },
@@ -906,13 +972,26 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.medium,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.medium,
+      android: organicTheme.typography.fontFamily.android.medium,
+      default: organicTheme.typography.fontFamily.ios.medium,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: organicTheme.spacing.xs,
+    lineHeight: 24,
   },
   emptySubtext: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
     textAlign: 'center',
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   contentStrip: {
     flexDirection: 'row',
@@ -925,7 +1004,7 @@ const styles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.cozy,
     backgroundColor: organicTheme.colors.background.cream,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.light,
   },
   contentTag: {
     alignSelf: 'flex-start',
@@ -954,7 +1033,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     overflow: 'hidden',
-    ...organicTheme.shadows.floating[0],
+    ...organicTheme.shadows.floating[1],
   },
   fabGradient: {
     flex: 1,
@@ -973,11 +1052,11 @@ const styles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.cozy,
     backgroundColor: organicTheme.colors.background.paper,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.light,
   },
   babyListItemActive: {
     backgroundColor: organicTheme.colors.primary.pale,
-    borderColor: organicTheme.colors.primary.main,
+    borderColor: organicTheme.colors.border.strong,
   },
   babyListItemName: {
     fontSize: organicTheme.typography.fontSize.md,

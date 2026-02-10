@@ -176,14 +176,14 @@ export default function OrganicHomeScreen() {
           <View style={styles.greeting}>
             <Text style={styles.greetingText}>早上好</Text>
             <View style={styles.greetingIcon}>
-              <IconSymbol size={20} name="sun.max" color={organicTheme.colors.accent.peach} />
+              <IconSymbol size={organicTheme.iconSizes.sm} name="sun.max" color={organicTheme.colors.accent.peach} />
             </View>
             <Text style={styles.greetingSubtext}>又是陪伴宝宝成长的一天</Text>
           </View>
 
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.iconButton} onPress={handleLogout}>
-              <IconSymbol size={18} name="person.crop.circle" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xs} name="person.crop.circle" color={organicTheme.colors.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -222,7 +222,7 @@ export default function OrganicHomeScreen() {
                   style={styles.switchButton}
                   onPress={() => setShowBabyList(true)}
                 >
-                  <IconSymbol size={16} name="arrow.triangle.2.circlepath" color={organicTheme.colors.primary.main} />
+                  <IconSymbol size={organicTheme.iconSizes.xs} name="arrow.triangle.2.circlepath" color={organicTheme.colors.primary.main} />
                 </TouchableOpacity>
               )}
             </View>
@@ -245,7 +245,7 @@ export default function OrganicHomeScreen() {
               onPress={() => setShowBabyForm(true)}
             >
               <View style={styles.addBabyIcon}>
-                <IconSymbol size={24} name="plus" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.md} name="plus" color={organicTheme.colors.primary.main} />
               </View>
               <View style={styles.addBabyText}>
                 <Text style={styles.addBabyTitle}>添加宝宝</Text>
@@ -270,7 +270,7 @@ export default function OrganicHomeScreen() {
               style={styles.actionCardGradient}
             >
               <View style={styles.actionIconLarge}>
-                <IconSymbol size={32} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.lg} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>成长曲线</Text>
               <Text style={styles.actionCardSubtitle}>记录发育里程碑</Text>
@@ -286,7 +286,7 @@ export default function OrganicHomeScreen() {
               style={styles.actionCardGradient}
             >
               <View style={styles.actionIconLarge}>
-                <IconSymbol size={32} name="calendar" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.lg} name="calendar" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>复诊提醒</Text>
               <Text style={styles.actionCardSubtitle}>管理预约时间</Text>
@@ -302,7 +302,7 @@ export default function OrganicHomeScreen() {
               colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
               style={styles.addButton}
             >
-              <IconSymbol size={14} name="plus" color="#FFFFFF" />
+              <IconSymbol size={organicTheme.iconSizes.xxs} name="plus" color="#FFFFFF" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -322,7 +322,7 @@ export default function OrganicHomeScreen() {
         ) : filteredAppointments.length === 0 ? (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="calendar" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xl} name="calendar" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无预约</Text>
               <Text style={styles.emptySubtext}>点击右上角添加复诊预约</Text>
             </View>
@@ -367,7 +367,7 @@ export default function OrganicHomeScreen() {
               colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
               style={styles.addButton}
             >
-              <IconSymbol size={14} name="plus" color="#FFFFFF" />
+              <IconSymbol size={organicTheme.iconSizes.xxs} name="plus" color="#FFFFFF" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -406,7 +406,7 @@ export default function OrganicHomeScreen() {
         ) : (
           <OrganicCard variant="ghost">
             <View style={styles.emptyContent}>
-              <IconSymbol size={48} name="figure.child" color={organicTheme.colors.text.secondary} />
+              <IconSymbol size={organicTheme.iconSizes.xl} name="figure.child" color={organicTheme.colors.text.secondary} />
               <Text style={styles.emptyText}>暂无成长记录</Text>
               <Text style={styles.emptySubtext}>点击上方 + 添加第一条记录</Text>
             </View>
@@ -444,7 +444,7 @@ export default function OrganicHomeScreen() {
           colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
           style={styles.fabGradient}
         >
-          <IconSymbol size={24} name="plus" color="#FFFFFF" />
+          <IconSymbol size={organicTheme.iconSizes.md} name="plus" color="#FFFFFF" />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -488,7 +488,7 @@ export default function OrganicHomeScreen() {
             >
               <Text style={styles.babyListItemName}>{baby.name}</Text>
               {currentBaby?.id === baby.id && (
-                <IconSymbol size={16} name="checkmark.circle.fill" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.xs} name="checkmark.circle.fill" color={organicTheme.colors.primary.main} />
               )}
             </TouchableOpacity>
           ))}
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.light,
   },
   babyCard: {
     marginBottom: organicTheme.spacing.xl,
@@ -674,6 +674,8 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: organicTheme.shapes.borderRadius.soft,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
   },
   actionCardGradient: {
     flex: 1,
@@ -791,7 +793,7 @@ const styles = StyleSheet.create({
   },
   viewAllButton: {
     borderTopWidth: 1,
-    borderTopColor: organicTheme.colors.primary.pale,
+    borderTopColor: organicTheme.colors.border.light,
     paddingVertical: organicTheme.spacing.md,
     alignItems: 'center',
   },
@@ -850,7 +852,7 @@ const styles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.cozy,
     backgroundColor: organicTheme.colors.background.cream,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.light,
   },
   contentTag: {
     alignSelf: 'flex-start',
@@ -879,7 +881,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     overflow: 'hidden',
-    ...organicTheme.shadows.floating[0],
+    ...organicTheme.shadows.floating[1],
   },
   fabGradient: {
     flex: 1,
@@ -898,11 +900,11 @@ const styles = StyleSheet.create({
     borderRadius: organicTheme.shapes.borderRadius.cozy,
     backgroundColor: organicTheme.colors.background.paper,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.light,
   },
   babyListItemActive: {
     backgroundColor: organicTheme.colors.primary.pale,
-    borderColor: organicTheme.colors.primary.main,
+    borderColor: organicTheme.colors.border.strong,
   },
   babyListItemName: {
     fontSize: organicTheme.typography.fontSize.md,

@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 
@@ -82,7 +83,7 @@ export default function ProfileScreen() {
 
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <IconSymbol size={20} name="chevron.left" color={organicTheme.colors.text.primary} />
+            <IconSymbol size={organicTheme.iconSizes.sm} name="chevron.left" color={organicTheme.colors.text.primary} />
           </TouchableOpacity>
           <Text style={styles.title}>我的</Text>
           <View style={styles.headerPlaceholder} />
@@ -91,7 +92,7 @@ export default function ProfileScreen() {
         <OrganicCard shadow style={styles.profileCard}>
           <View style={styles.profileTop}>
             <View style={styles.avatarWrap}>
-              <IconSymbol size={26} name="person.circle.fill" color={organicTheme.colors.primary.main} />
+              <IconSymbol size={organicTheme.iconSizes.md} name="person.circle.fill" color={organicTheme.colors.primary.main} />
             </View>
             <View style={styles.profileText}>
               <Text style={styles.nickname}>{displayName}</Text>
@@ -126,11 +127,11 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/set-password')}>
             <View style={styles.menuLeft}>
               <View style={styles.menuIcon}>
-                <IconSymbol size={16} name="lock.fill" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.xs} name="lock.fill" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.menuText}>修改密码</Text>
             </View>
-            <IconSymbol size={16} name="chevron.right" color={organicTheme.colors.text.secondary} />
+            <IconSymbol size={organicTheme.iconSizes.xs} name="chevron.right" color={organicTheme.colors.text.secondary} />
           </TouchableOpacity>
         </OrganicCard>
 
@@ -139,7 +140,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           variant="ghost"
           style={styles.logoutButton}
-          icon={<IconSymbol size={16} name="person.crop.circle" color={organicTheme.colors.primary.main} />}
+          icon={<IconSymbol size={organicTheme.iconSizes.xs} name="person.crop.circle" color={organicTheme.colors.primary.main} />}
         />
       </ScrollView>
     </OrganicBackground>
@@ -169,14 +170,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: organicTheme.colors.background.paper,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.default,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: organicTheme.typography.fontSize.lg,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.primary,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 24,
   },
   headerPlaceholder: {
     width: 40,
@@ -203,12 +211,26 @@ const styles = StyleSheet.create({
   nickname: {
     fontSize: organicTheme.typography.fontSize.md,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: 4,
+    letterSpacing: organicTheme.typography.letterSpacing.normal,
+    lineHeight: 22,
   },
   phone: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
+    lineHeight: 20,
   },
   sectionCard: {
     marginBottom: organicTheme.spacing.md,
@@ -216,21 +238,34 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: organicTheme.typography.fontSize.base,
     fontWeight: organicTheme.typography.fontWeight.semibold,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.semibold,
+      android: organicTheme.typography.fontFamily.android.semibold,
+      default: organicTheme.typography.fontFamily.ios.semibold,
+    }),
     color: organicTheme.colors.text.primary,
     marginBottom: organicTheme.spacing.md,
+    letterSpacing: organicTheme.typography.letterSpacing.tight,
+    lineHeight: 22,
   },
   fieldBlock: {
     gap: organicTheme.spacing.sm,
   },
   fieldLabel: {
     fontSize: organicTheme.typography.fontSize.sm,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.regular,
+      android: organicTheme.typography.fontFamily.android.regular,
+      default: organicTheme.typography.fontFamily.ios.regular,
+    }),
     color: organicTheme.colors.text.secondary,
+    letterSpacing: organicTheme.typography.letterSpacing.relaxed,
   },
   nicknameInput: {
     height: 48,
     borderRadius: organicTheme.shapes.borderRadius.cozy,
     borderWidth: 1,
-    borderColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.default,
     backgroundColor: organicTheme.colors.background.paper,
     paddingHorizontal: organicTheme.spacing.md,
     color: organicTheme.colors.text.primary,
@@ -262,6 +297,12 @@ const styles = StyleSheet.create({
     fontSize: organicTheme.typography.fontSize.base,
     color: organicTheme.colors.text.primary,
     fontWeight: organicTheme.typography.fontWeight.medium,
+    fontFamily: Platform.select({
+      ios: organicTheme.typography.fontFamily.ios.medium,
+      android: organicTheme.typography.fontFamily.android.medium,
+      default: organicTheme.typography.fontFamily.ios.medium,
+    }),
+    lineHeight: 22,
   },
   logoutButton: {
     marginTop: organicTheme.spacing.sm,

@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Button, Card, Input, ListItem, Tag } from '@/components/ui';
-import { theme } from '@/constants/theme';
+import { organicTheme, theme } from '@/constants/theme';
 import { STORAGE_KEYS } from '@/services/api/client';
 import * as contentApi from '@/services/api/content';
 import type { ContentArticle, ContentPagination, ContentVideo } from '@/types/content';
@@ -237,7 +237,7 @@ export default function ClassScreen() {
           onChangeText={setSearchText}
           onSubmitEditing={handleSearchSubmit}
           returnKeyType="search"
-          leftIcon={<IconSymbol name="magnifyingglass" size={18} color={theme.colors.textSub} />}
+          leftIcon={<IconSymbol name="magnifyingglass" size={organicTheme.iconSizes.xs} color={theme.colors.textSub} />}
         />
 
         <View style={styles.categoryRow}>
@@ -303,7 +303,7 @@ export default function ClassScreen() {
                   {!video.coverUrl && <View style={styles.videoPlaceholder} />}
                   <View style={styles.videoOverlay} />
                   <View style={styles.playIcon}>
-                    <IconSymbol name="play.circle.fill" size={36} color={theme.colors.surface} />
+                    <IconSymbol name="play.circle.fill" size={organicTheme.iconSizes.xl} color={theme.colors.surface} />
                   </View>
                   <Text style={styles.videoTitle} numberOfLines={2}>
                     {video.title}

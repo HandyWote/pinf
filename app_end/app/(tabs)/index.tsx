@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -24,10 +24,6 @@ import { useGrowthStore } from '@/store/growthStore';
 import { useAppointmentStore } from '@/store/appointmentStore';
 import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
 import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
-import type { GrowthRecord } from '@/types/growth';
-import type { Appointment } from '@/types/appointment';
-import * as contentApi from '@/services/api/content';
-import type { ContentArticle } from '@/types/content';
 
 export default function HomeScreen() {
   const { notify } = useFeedback();
@@ -48,9 +44,6 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showGrowthModal, setShowGrowthModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
-  const [contentItems, setContentItems] = useState<ContentArticle[]>([]);
-  const [contentLoading, setContentLoading] = useState(false);
-  const [contentError, setContentError] = useState<string | null>(null);
 
   const {
     records,
@@ -78,24 +71,6 @@ export default function HomeScreen() {
       fetchAppointments().catch(() => {});
     }
   }, [fetchAppointments, isAuthenticated]);
-
-  const fetchContentPreview = useCallback(async () => {
-    setContentLoading(true);
-    setContentError(null);
-    try {
-      const res = await contentApi.listArticles({ page: 1, per_page: 5 });
-      setContentItems(res.data);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '获取内容失败';
-      setContentError(message);
-    } finally {
-      setContentLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchContentPreview();
-  }, [fetchContentPreview]);
 
   const handleCreateBaby = async (data: CreateBabyInput | UpdateBabyInput) => {
     try {
@@ -154,7 +129,6 @@ export default function HomeScreen() {
         await fetchGrowth(currentBaby.id);
       }
       await fetchAppointments();
-      await fetchContentPreview();
     } finally {
       setIsRefreshing(false);
     }
@@ -168,16 +142,6 @@ export default function HomeScreen() {
     if (!currentBaby) return appointments;
     return appointments.filter((item) => item.baby?.id === currentBaby.id);
   }, [appointments, currentBaby]);
-
-  const contentStripItems = useMemo(
-    () =>
-      contentItems.map((item) => ({
-        id: String(item.id),
-        title: item.title,
-        tag: item.category || item.tags?.[0] || undefined,
-      })),
-    [contentItems]
-  );
 
   const editingBaby = editingBabyId
     ? babies.find((baby) => baby.id === editingBabyId)
@@ -451,61 +415,7 @@ export default function HomeScreen() {
           </OrganicCard>
         )}
 
-        {/* 内容课堂 */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>内容课堂</Text>
-        </View>
-
-        {contentLoading && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
-            <Text style={styles.loadingText}>加载内容中...</Text>
-          </View>
-        )}
-
-        {contentError && (
-          <OrganicCard variant="ghost">
-            <View style={styles.emptyContent}>
-              <Text style={styles.errorText}>{contentError}</Text>
-              <TouchableOpacity onPress={fetchContentPreview}>
-                <Text style={styles.errorRetry}>重试</Text>
-              </TouchableOpacity>
-            </View>
-          </OrganicCard>
-        )}
-
-        {!contentLoading && !contentError && contentStripItems.length > 0 && (
-          <OrganicCard shadow>
-            <View style={styles.contentStrip}>
-              {contentStripItems.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.contentItem}
-                  onPress={() => router.push(`/class-article/${item.id}`)}
-                >
-                  {item.tag && (
-                    <View style={[styles.contentTag, { backgroundColor: organicTheme.colors.accent.mint }]}>
-                      <Text style={styles.contentTagText}>{item.tag}</Text>
-                    </View>
-                  )}
-                  <Text style={styles.contentTitle}>{item.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </OrganicCard>
-        )}
-
-        {!contentLoading && !contentError && contentStripItems.length === 0 && (
-          <OrganicCard variant="ghost">
-            <View style={styles.emptyContent}>
-              <Text style={styles.emptyText}>暂无内容</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/class')}>
-                <Text style={styles.viewAllButtonText}>去课堂 →</Text>
-              </TouchableOpacity>
-            </View>
-          </OrganicCard>
-        )}
-
+        
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -997,30 +907,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: organicTheme.spacing.sm,
-  },
-  contentItem: {
-    width: '100%',
-    padding: organicTheme.spacing.md,
-    borderRadius: organicTheme.shapes.borderRadius.cozy,
-    backgroundColor: organicTheme.colors.background.cream,
-    borderWidth: 1,
-    borderColor: organicTheme.colors.border.light,
-  },
-  contentTag: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: organicTheme.spacing.sm,
-    paddingVertical: 2,
-    borderRadius: organicTheme.shapes.borderRadius.pill,
-    marginBottom: organicTheme.spacing.xs,
-  },
-  contentTagText: {
-    fontSize: organicTheme.typography.fontSize.xs,
-    color: organicTheme.colors.text.primary,
-    fontWeight: organicTheme.typography.fontWeight.medium,
-  },
-  contentTitle: {
-    fontSize: organicTheme.typography.fontSize.sm,
-    color: organicTheme.colors.text.primary,
   },
   bottomSpacer: {
     height: organicTheme.spacing['2xl'],

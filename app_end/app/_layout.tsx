@@ -17,6 +17,13 @@ if (__DEV__) {
     'Received `false` for a non-boolean attribute `animate`',
     'React does not recognize the `animationDuration` prop on a DOM element',
     'React does not recognize the `renderPlaceholder` prop on a DOM element',
+    'Invalid DOM property `transform-origin`',
+    'Unknown event handler property `onStartShouldSetResponder`',
+    'Unknown event handler property `onResponderTerminationRequest`',
+    'Unknown event handler property `onResponderGrant`',
+    'Unknown event handler property `onResponderMove`',
+    'Unknown event handler property `onResponderRelease`',
+    'Unknown event handler property `onResponderTerminate`',
   ]);
 }
 
@@ -85,7 +92,6 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)/index" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
             <Stack.Screen name="growth/index" options={{ headerShown: false }} />
             <Stack.Screen name="appointments/index" options={{ headerShown: false }} />

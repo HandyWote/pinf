@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   Dimensions,
   Modal as RNModal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -107,6 +108,7 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
   loading = false,
   style,
 }) => {
+  const isWeb = Platform.OS === 'web';
   const [standardMode, setStandardMode] = useState<StandardMode>('auto');
   const [manualStandard, setManualStandard] = useState<'WHO' | 'FENTON'>('WHO');
   const [rangeMode, setRangeMode] = useState<RangeMode>('smart');
@@ -165,6 +167,7 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
       withHorizontalLines
       withVerticalLabels
       withHorizontalLabels
+      withDots={!isWeb}
       yAxisInterval={1}
       yAxisSuffix=""
       chartConfig={{
@@ -181,11 +184,15 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
         },
       }}
       style={styles.chart}
-      onDataPointClick={({ index, value }) => {
-        const x = xValues[index];
-        const unit = model.meta.axisUnit === 'month' ? '月' : '周';
-        setTooltipText(`年龄 ${toFixedSafe(x, 1)}${unit} · 数值 ${toFixedSafe(value, 2)}${meta.unit}`);
-      }}
+      onDataPointClick={
+        isWeb
+          ? undefined
+          : ({ index, value }) => {
+              const x = xValues[index];
+              const unit = model.meta.axisUnit === 'month' ? '月' : '周';
+              setTooltipText(`年龄 ${toFixedSafe(x, 1)}${unit} · 数值 ${toFixedSafe(value, 2)}${meta.unit}`);
+            }
+      }
     />
   );
 

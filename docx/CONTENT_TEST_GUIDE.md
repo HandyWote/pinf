@@ -1,5 +1,7 @@
 # 内容课堂接口测试文档（手动）
 
+> **前端状态**: 内容课堂模块已完成集成，包括列表页、搜索、分类筛选、视频/文章详情页。前端文件位于 `app_end/app/(tabs)/class.tsx`、`app_end/app/class-video/[id].tsx`、`app_end/app/class-article/[id].tsx`。
+
 ## 1. 基础信息
 - Base URL: `http://localhost:5010/api`
 - 认证方式：JWT Bearer Token

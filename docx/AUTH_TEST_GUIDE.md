@@ -23,11 +23,11 @@ python app.py
 ### 2. 启动前端应用
 
 ```powershell
-# 进入 WA 目录
-cd D:\pinf\WA
+# 进入 app_end 目录
+cd D:\pinf\app_end
 
 # 启动 Expo
-npx expo start
+npm start
 ```
 
 ---
@@ -154,8 +154,8 @@ Invoke-RestMethod -Uri http://localhost:5010/api/auth/phone/login -Method POST -
 #### 1. 启动应用
 
 ```powershell
-cd D:\pinf\WA
-npx expo start
+cd D:\pinf\app_end
+npm start
 ```
 
 选择一个运行方式：
@@ -312,10 +312,15 @@ Stop-Process -Id <进程ID> -Force
 
 ### 2. 前端无法连接后端
 
-检查 `WA/services/api/client.ts` 中的 `API_BASE_URL`：
+检查 `app_end/services/api/client.ts` 中的 `API_BASE_URL`：
 
 ```typescript
 const API_BASE_URL = __DEV__ ? 'http://localhost:5010/api' : 'https://api.example.com/api';
+```
+
+或者通过环境变量配置（`.env` 文件）：
+```env
+API_BASE_URL=http://localhost:5010/api
 ```
 
 ### 3. 数据库错误

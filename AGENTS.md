@@ -48,11 +48,35 @@
 *   **图标尺寸语义化**：`IconSymbol` 尺寸统一使用 `organicTheme.iconSizes.*`，避免散落 `size={数字}`。
 *   **排版语义化**：优先使用 `organicTheme.typography`（含 `fontFamily/letterSpacing/lineHeight`）构建标题、正文、数据值层级，避免页面内临时硬编码。
 *   **防回流原则**：若发现旧写法回流（如裸 `borderColor` 或随意图标尺寸），修复时优先替换为 token 引用，不做临时补丁。
+*   **图标映射管理**：新增图标时需在 `app_end/components/ui/icon-symbol-map.ts` 中添加 SF Symbol → Ionicons 映射，确保类型安全。
+
+## Git 最佳实践
+
+### Git 操作约束
+- **禁止擅自操作**: 除非用户**明确要求**，否则不得执行 `git add`、`git commit`、`git push` 等 Git 操作
+- **代码修改与提交分离**: 代码编辑完成后，等待用户确认后再执行提交操作
+- **变基等危险操作**: 涉及历史重写的操作（rebase、reset --hard、force push）必须先征得用户同意
+
+### 分支变基与历史整理
+- **变基场景**: 当需要将功能分支插入到历史特定位置时，使用 `git rebase --onto <新基准> <旧基准>`
+- **历史重写警告**: 变基会改变提交 hash，已推送的分支需要 `git push --force`，需谨慎操作
+- **目录重命名处理**: 变基过程中的目录重命名（如 `WA/` → `app_end/`）会自动处理，但新增文件需手动移动
+- **备份习惯**: 重大变基前创建备份分支 `git branch backup-$(date +%Y%m%d)`
+
+### 图标管理规范
+- **命名规范**: 使用 SF Symbol 风格（如 `sun.max.fill`, `moon.stars`），保持跨平台一致性
+- **映射维护**: 所有图标必须在 `icon-symbol-map.ts` 中声明映射，类型系统会自动检查
+- **尺寸规范**: 统一使用 `organicTheme.iconSizes.*` token，禁止硬编码数字
+- **新增流程**:
+  1. 确认 Ionicons 支持该图标
+  2. 在映射表中添加 SF Symbol 名称 → Ionicons 名称
+  3. 使用 `IconSymbol name="your.icon" />`
 
 ## Project Structure & Modules
 - `backend/`: Flask API service. Business logic split across `routes/` (blueprints by domain), `models/` (SQLAlchemy models), `utils/`, and `instance/` for local data/config. `app.py` bootstraps the service.
+- `app_end/`: React Native Expo 移动应用。使用 Expo Router 文件路由，Zustand 状态管理，Organic 主题设计系统。
 - `wechat_end/`: **已弃用**的微信小程序代码，仅供参考/存档，不再维护。
-- `mobile_end/`, `web_end/`: 仍为空壳；WAend 客户端将改为 **React Native** 重构（后续代码放在 mobile_end 或独立包，优先复用后端接口）。
+- `mobile_end/`, `web_end/`: 当前为空壳或占位目录。
 
 ## Build, Test, and Development Commands
 - Backend setup (from repo root):
@@ -64,16 +88,30 @@
   ```
 - Quick smoke check: `curl http://localhost:5010/api/health` should return a healthy status.
 - Docker (backend): `docker build -t babysitting-backend ./backend` then `docker run -p 5010:5000 babysitting-backend`. For compose, use `docker-compose -f backend/docker-compose.yml up -d`.
-- React Native 客户端：WAend 改为 RN 重构，当前仓库未包含 RN 代码；请在后续 RN 工程中接入本后端接口。旧小程序流程已弃用。
+- React Native (app_end/):
+  ```bash
+  cd app_end
+  npm install
+  npm start        # 启动开发服务器
+  npm run lint     # 代码检查
+  npm run ios      # iOS 模拟器
+  npm run android  # Android 模拟器/真机
+  npm run web      # Web 浏览器
+  ```
 
 ## Coding Style & Naming Conventions
 - Python: follow PEP 8, 4-space indents, `snake_case` functions/variables, `PascalCase` models. Keep responses consistent (`{"status": "...", "message": "...", ...}`) and group routes per blueprint in `routes/`.
-- Mini Program: 2-space indents (config defaults), keep page folders cohesive (`pages/<feature>/index.{wxml,wxss,js,json}`), and prefer small utilities in `utils/` over inline helpers.
+- React Native (app_end/):
+  - TypeScript: 使用 Organic 主题 Token，优先复用 `components/ui/` 组件
+  - 图标: 使用 IconSymbol 组件，SF Symbol 风格命名，映射到 Ionicons
+  - 状态管理: Zustand stores (authStore, babyStore, growthStore, appointmentStore)
+  - API: 统一使用 `services/api/` 封装的客户端
+  - 反馈: 使用 FeedbackContext 的 notify/confirm，不直接调用 Alert.alert
 - Configuration: prefer environment variables over hard-coded defaults; add docstrings for non-trivial functions and keep module boundaries clear.
 
 ## Testing Guidelines
-- No shared suite exists yet; add backend tests alongside features using `pytest` and Flask’s test client. Organize under `backend/tests/` with `test_<module>.py`. Example run (after adding pytest to dev deps): `pytest backend/tests -q`.
-- For Mini Program changes, exercise flows in WeChat DevTools (login, navigation, API calls) and note manual steps in PRs. Include screenshots when UI is touched.
+- No shared suite exists yet; add backend tests alongside features using `pytest` and Flask's test client. Organize under `backend/tests/` with `test_<module>.py`. Example run (after adding pytest to dev deps): `pytest backend/tests -q`.
+- React Native: 在 Expo 中手动测试关键流程，使用 `npm run lint` 检查代码规范。包含 UI 变更的 PR 应附上截图或录屏。
 
 ## Commit & Pull Request Guidelines
 - Git history currently uses short, descriptive Chinese summaries (e.g., “整合先前代码，准备进一步开发”); keep one-line summaries under ~72 chars. If helpful, prefix with feature area (e.g., `auth: ...`).

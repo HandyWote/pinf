@@ -49,6 +49,11 @@
 *   **排版语义化**：优先使用 `organicTheme.typography`（含 `fontFamily/letterSpacing/lineHeight`）构建标题、正文、数据值层级，避免页面内临时硬编码。
 *   **防回流原则**：若发现旧写法回流（如裸 `borderColor` 或随意图标尺寸），修复时优先替换为 token 引用，不做临时补丁。
 
+### 7. Git 操作约束（新增）
+*   **禁止擅自操作**: 除非用户**明确要求**，否则不得执行 `git add`、`git commit`、`git push` 等 Git 操作
+*   **代码修改与提交分离**: 代码编辑完成后，等待用户确认后再执行提交操作
+*   **变基等危险操作**: 涉及历史重写的操作（rebase、reset --hard、force push）必须先征得用户同意
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 项目概述
@@ -159,19 +164,28 @@ npm run lint
 | Content | `/api/content/videos`, `/api/content/articles` | 内容课堂 |
 | Chat | `/api/chat/send`, `/api/chat/history` | AI 聊天（转发 n8n） |
 
-### 移动应用 (WA/)
+### 移动应用 (app_end/)
 
 - `app/` - Expo Router 页面（文件路由）
   - `(tabs)/` - Tab 导航页面（首页、课堂、问答）
   - `appointments/` - 预约管理
   - `growth/` - 成长记录
+  - `class-article/[id].tsx`, `class-video/[id].tsx` - 内容课堂详情页
   - `login.tsx`, `set-password.tsx` - 认证流程
-- `components/ui/` - 可复用 UI 组件库
-- `constants/` - 设计 Token 和主题配置
-- `services/api/` - API 客户端层（auth, baby, growth, appointment）
+  - `profile.tsx` - 个人中心
+- `components/ui/` - 可复用 UI 组件库（OrganicCard, OrganicButton, IconSymbol 等）
+- `components/ui/icon-symbol-map.ts` - SF Symbol 到 Ionicons 的映射表
+- `constants/` - 设计 Token 和主题配置（organic-tokens.ts, theme.ts）
+- `contexts/` - React Context 提供者（ThemeContext, FeedbackContext）
+- `services/api/` - API 客户端层（auth, baby, growth, appointment, content）
 - `store/` - Zustand 状态管理
-- `contexts/` - React Context 提供者
 - `types/` - TypeScript 类型定义
+
+### Git 工作流注意事项
+
+- **目录历史**: 项目曾使用 `WA/` 作为应用目录，后重命名为 `app_end/`
+- **图标映射**: 使用 SF Symbol 风格命名，实际渲染 Ionicons，新增图标需更新 `icon-symbol-map.ts`
+- **分支清理**: 变基后需删除临时分支，历史重写后需强制推送（谨慎操作）
 
 ### 弃用代码
 
@@ -181,16 +195,26 @@ npm run lint
 
 ## 设计规范
 
-基于 `WA/constants/tokens.ts`：
+基于 `app_end/constants/organic-tokens.ts` 和 `app_end/constants/theme.ts`：
+
+### Organic 主题 Token
 
 | 分类 | 规格 |
 |------|------|
-| **颜色** | Primary #6B9AC4, Accent #FF9B73, Background #F0F4F8 |
-| **渐变** | brand, warm, purple, green, sunset |
-| **圆角** | 小 10px, 中 14px, 大 20px |
-| **间距** | 8/12/16/20/24px |
-| **字号** | 12/14/16/20px |
-| **阴影** | card, frame, small, nav, fab |
+| **颜色** | Primary (蓝色系), Accent (桃色/薄荷色/薰衣草/天空色), Background (奶油色/纸张色) |
+| **渐变** | brand, warm, purple, green, sunset, peach |
+| **圆角** | comfy (14px), cozy (12px), compact (10px), pill (圆形) |
+| **间距** | xs/sm/md/lg/xl/2xl/3xl |
+| **字号** | xs/sm/md/lg/xl/2xl/3xl |
+| **阴影** | card, frame, small, nav, floating |
+| **图标尺寸** | xxs(16)/xs(20)/sm(24)/md(28)/lg(32)/xl(48)/xxl(64) |
+
+### 图标使用规范
+
+- **命名**: 使用 SF Symbol 风格名称（如 `sun.max`, `moon.stars`）
+- **映射**: 实际渲染 Ionicons，映射关系在 `components/ui/icon-symbol-map.ts`
+- **新增图标**: 先在映射表中添加 SF Symbol → Ionicons 的映射
+- **尺寸**: 统一使用 `organicTheme.iconSizes.*`，禁止硬编码数字
 
 ---
 
@@ -230,40 +254,37 @@ API_BASE_URL=            # 后端 API 地址（通过 app.config.ts 配置）
 - 统一响应格式: `{"status": "...", "message": "...", ...}`
 - 按蓝图组织路由
 
-### TypeScript (WA/)
+### TypeScript (app_end/)
 
-- 使用设计 Token（不要硬编码颜色、间距）
-- 优先复用 `components/ui/` 组件
+- 使用 Organic 主题 Token（`organicTheme.colors.*`, `organicTheme.spacing.*`, 等）
+- 优先复用 `components/ui/` 组件（OrganicCard, OrganicButton, Input, Modal）
 - API 调用使用 `services/api/` 封装
 - 状态管理使用 Zustand store
+- 图标使用 IconSymbol 组件，新增图标需更新 `icon-symbol-map.ts`
 
 ---
 
 ## 已知待办项
 
-基于 `docx/REFACTOR_PLAN.md`：
-
 **已完成**:
-- ✅ 基础框架（Expo Router, Theme Provider, 设计 Token）
-- ✅ UI 组件库（7 个组件）
+- ✅ 基础框架（Expo Router, Theme Provider, Organic 主题 Token）
+- ✅ UI 组件库（OrganicCard, OrganicButton, Input, Modal, IconSymbol 等）
 - ✅ API 客户端（含 token 管理和 401 处理）
 - ✅ 手机号登录流程
 - ✅ 宝宝管理 CRUD
 - ✅ 预约管理
 - ✅ 成长记录基础功能
+- ✅ 内容课堂模块（列表页、文章详情、视频详情）
+- ✅ 个人中心页面
+- ✅ Feedback 反馈上下文（统一 notify/confirm）
 
 **部分完成**:
-- ⚠️ 401 处理未触发全局登出/路由跳转
-- ⚠️ API baseURL 需环境化配置
 - ⚠️ 成长曲线图表渲染（WHO/Fenton 曲线）
-- ⚠️ 表单字段不完整（gestationalWeeks, note）
+- ⚠️ 推送通知（未集成）
 
 **未启动**:
-- ❌ 内容课堂模块
 - ❌ AI 聊天界面
-- ❌ 推送通知（Expo Notifications 或 FCM+APNs）
 - ❌ 离线同步引擎
-- ❌ 个人中心/设置页面
 - ❌ 单元测试和 E2E 测试
 
 ---

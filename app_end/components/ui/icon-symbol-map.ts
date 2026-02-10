@@ -35,6 +35,10 @@ export const ICON_SYMBOL_MAP = {
   'checkmark.circle.fill': 'checkmark-circle',
   'sun.max': 'sunny',
   sun: 'sunny-outline',
+  'sun.max.fill': 'sunny',
+  'cloud.sun': 'partly-sunny',
+  'moon.stars': 'moon',
+  'moon.fill': 'moon',
   'hand.wave.fill': 'hand-left',
 } as const satisfies Record<string, IoniconName>;
 

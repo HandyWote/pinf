@@ -44,6 +44,7 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showGrowthModal, setShowGrowthModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [greeting, setGreeting] = useState({ text: '', icon: '', subtext: '' });
 
   const {
     records,
@@ -58,6 +59,52 @@ export default function HomeScreen() {
     fetch: fetchAppointments,
     add: addAppointment,
   } = useAppointmentStore();
+
+  // 根据时间获取问候语
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return {
+        text: '早上好',
+        icon: 'sun.max',
+        subtext: '又是陪伴宝宝成长的一天'
+      };
+    } else if (hour >= 12 && hour < 14) {
+      return {
+        text: '中午好',
+        icon: 'sun.max.fill',
+        subtext: '记得宝宝该午休了哦'
+      };
+    } else if (hour >= 14 && hour < 18) {
+      return {
+        text: '下午好',
+        icon: 'cloud.sun',
+        subtext: '下午时光，陪伴宝宝玩耍'
+      };
+    } else if (hour >= 18 && hour < 22) {
+      return {
+        text: '晚上好',
+        icon: 'moon.stars',
+        subtext: '夜晚时光，给宝宝讲个故事'
+      };
+    } else {
+      return {
+        text: '夜深了',
+        icon: 'moon.fill',
+        subtext: '注意休息，宝宝也需要睡眠'
+      };
+    }
+  };
+
+  // 初始化问候语
+  useEffect(() => {
+    setGreeting(getGreeting());
+    // 每分钟更新一次问候语
+    const timer = setInterval(() => {
+      setGreeting(getGreeting());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (currentBaby?.id) {
@@ -167,11 +214,15 @@ export default function HomeScreen() {
         {/* 头部欢迎区域 */}
         <View style={styles.headerSection}>
           <View style={styles.greeting}>
-            <Text style={styles.greetingText}>早上好</Text>
-            <View style={styles.greetingIcon}>
-              <IconSymbol size={organicTheme.iconSizes.sm} name="sun.max" color={organicTheme.colors.accent.peach} />
+            {/* 背景装饰图标 */}
+            <View style={styles.greetingBackgroundIcon}>
+              <IconSymbol size={120} name={greeting.icon as any} color={organicTheme.colors.accent.peach} />
             </View>
-            <Text style={styles.greetingSubtext}>又是陪伴宝宝成长的一天</Text>
+            {/* 前景问候语 */}
+            <View style={styles.greetingContent}>
+              <Text style={styles.greetingText}>{greeting.text}</Text>
+              <Text style={styles.greetingSubtext}>{greeting.subtext}</Text>
+            </View>
           </View>
 
           <View style={styles.headerActions}>
@@ -267,7 +318,7 @@ export default function HomeScreen() {
               style={styles.actionCardGradient}
             >
               <View style={styles.actionIcon}>
-                <IconSymbol size={organicTheme.iconSizes.lg} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
+                <IconSymbol size={organicTheme.iconSizes.xl} name="chart.line.uptrend.xyaxis" color={organicTheme.colors.primary.main} />
               </View>
               <Text style={styles.actionCardTitle}>成长曲线</Text>
               <Text style={styles.actionCardSubtitle}>记录发育里程碑</Text>
@@ -362,7 +413,7 @@ export default function HomeScreen() {
         )}
 
         {/* 成长记录简览 */}
-        <View style={styles.sectionHeader}>
+        <View style={[styles.sectionHeader, styles.growthSectionHeader]}>
           <Text style={styles.sectionTitle}>成长记录</Text>
           <TouchableOpacity onPress={handleOpenGrowthModal}>
             <LinearGradient
@@ -499,6 +550,19 @@ const styles = StyleSheet.create({
   },
   greeting: {
     flex: 1,
+    position: 'relative',
+    minHeight: 80,
+  },
+  greetingBackgroundIcon: {
+    position: 'absolute',
+    top: -40,
+    left: 10,
+    opacity: 0.80,
+    zIndex: 0,
+  },
+  greetingContent: {
+    position: 'relative',
+    zIndex: 1,
   },
   greetingText: {
     fontSize: organicTheme.typography.fontSize['2xl'],
@@ -512,11 +576,6 @@ const styles = StyleSheet.create({
     marginBottom: organicTheme.spacing.xs,
     letterSpacing: organicTheme.typography.letterSpacing.tight,
     lineHeight: 36,
-  },
-  greetingIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: organicTheme.spacing.xs,
   },
   greetingSubtext: {
     fontSize: organicTheme.typography.fontSize.sm,
@@ -671,6 +730,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: organicTheme.spacing.md,
+  },
+  growthSectionHeader: {
+    marginTop: organicTheme.spacing.md,
   },
   sectionTitle: {
     fontSize: organicTheme.typography.fontSize.lg,

@@ -43,14 +43,16 @@ RUN uv sync --frozen --no-dev
 # 复制应用代码
 COPY . .
 
-# Debian slim 中 nobody 对应的组为 nogroup
-RUN chown -R nobody:nogroup /app
+# Debian slim 中 nobody 对应的组为 nogroup。
+# uv 在构建阶段(root)和运行阶段(nobody)都会触发缓存访问，这里统一修正归属。
+RUN mkdir -p /tmp/.cache/uv \
+    && chown -R nobody:nogroup /app /tmp/.cache
 
 # 切换到非 root 用户
 USER nobody
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 5010
 
 # 启动命令（使用 uv run）
 CMD ["uv", "run", "python", "app.py"]

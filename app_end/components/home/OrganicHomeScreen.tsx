@@ -31,12 +31,6 @@ import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
 import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const mockContent = [
-  { id: '1', title: '早产儿喂养指南', tag: '喂养', color: organicTheme.colors.accent.mint },
-  { id: '2', title: '0-12月发育里程碑', tag: '发育', color: organicTheme.colors.accent.lavender },
-  { id: '3', title: '复诊准备清单', tag: '复诊', color: organicTheme.colors.accent.sky },
-];
-
 export default function OrganicHomeScreen() {
   const { logout } = useAuthStore();
   const { confirm, notify } = useFeedback();
@@ -420,18 +414,12 @@ export default function OrganicHomeScreen() {
 
         <OrganicCard shadow>
           <View style={styles.contentStrip}>
-            {mockContent.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.contentItem}
-                onPress={() => router.push('/(tabs)/class')}
-              >
-                <View style={[styles.contentTag, { backgroundColor: item.color }]}>
-                  <Text style={styles.contentTagText}>{item.tag}</Text>
-                </View>
-                <Text style={styles.contentTitle}>{item.title}</Text>
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity style={styles.contentItem} onPress={() => router.push('/(tabs)/class')}>
+              <View style={[styles.contentTag, { backgroundColor: organicTheme.colors.primary.pale }]}>
+                <Text style={styles.contentTagText}>课堂</Text>
+              </View>
+              <Text style={styles.contentTitle}>查看最新课堂内容与文章</Text>
+            </TouchableOpacity>
           </View>
         </OrganicCard>
 

@@ -15,6 +15,41 @@ _MIGRATIONS = [
         "id": "2026_02_10_add_name_to_users",
         "sql": "ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(50)",
     },
+    {
+        "id": "2026_02_11_add_source_url_to_videos",
+        "sql": "ALTER TABLE videos ADD COLUMN IF NOT EXISTS source_url VARCHAR(1000)",
+    },
+    {
+        "id": "2026_02_11_add_source_url_to_articles",
+        "sql": "ALTER TABLE articles ADD COLUMN IF NOT EXISTS source_url VARCHAR(1000)",
+    },
+    {
+        "id": "2026_02_11_cleanup_seed_videos",
+        "sql": (
+            "DELETE FROM videos WHERE video_url IN ("
+            "'https://example.com/videos/feeding',"
+            "'https://example.com/videos/sleep'"
+            ")"
+        ),
+    },
+    {
+        "id": "2026_02_11_cleanup_seed_articles",
+        "sql": (
+            "DELETE FROM articles WHERE cover_url IN ("
+            "'https://images.unsplash.com/photo-1484980972926-edee96e0960d?auto=format&fit=crop&w=800&q=80',"
+            "'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80',"
+            "'https://images.unsplash.com/photo-1504151932400-72d4384f04b3?auto=format&fit=crop&w=800&q=80'"
+            ") AND ("
+            "title LIKE '%Fenton%' OR "
+            "title LIKE '%WHO%' OR "
+            "title LIKE '%喂养%' OR "
+            "title LIKE '%复诊%' OR "
+            "title LIKE '%鍠傚吇%' OR "
+            "title LIKE '%澶嶈瘖%' OR "
+            "author IN ('张医生', '李医生', '护理团队', '寮犲尰鐢?', '鏉庡尰鐢?', '鎶ょ悊鍥㈤槦')"
+            ")"
+        ),
+    },
 ]
 
 

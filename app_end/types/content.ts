@@ -12,6 +12,7 @@ export interface ContentVideo {
   title: string;
   description?: string | null;
   videoUrl: string;
+  sourceUrl?: string | null;
   coverUrl?: string | null;
   category?: string | null;
   views: number;
@@ -23,6 +24,7 @@ export interface ContentArticle {
   id: number;
   title: string;
   content: string;
+  sourceUrl?: string | null;
   coverUrl?: string | null;
   author?: string | null;
   category?: string | null;

@@ -1,20 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Card, Tag } from '@/components/ui';
-import { theme } from '@/constants/theme';
+import { OrganicBackground, OrganicCard, OrganicChipButton } from '@/components/ui';
+import { organicTheme } from '@/constants/theme';
 import * as contentApi from '@/services/api/content';
 import type { ContentArticle } from '@/types/content';
+import { buildWebviewRoute } from '@/utils/open-external-url';
 
 const formatDate = (value?: string | null) => {
   if (!value) return '';
@@ -55,33 +48,46 @@ export default function ArticleDetailScreen() {
     fetchDetail();
   }, [fetchDetail]);
 
+  const handleOpenSource = useCallback(() => {
+    if (!article?.sourceUrl) {
+      setError('暂无可用链接');
+      return;
+    }
+    try {
+      router.push(buildWebviewRoute(article.sourceUrl, article.title));
+    } catch (openError) {
+      const message = openError instanceof Error ? openError.message : '链接无效';
+      setError(message);
+    }
+  }, [article]);
+
   return (
-    <View style={styles.screen}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+    <OrganicBackground variant="morning">
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.statusSpacer} />
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <IconSymbol name="chevron.left" size={18} color={theme.colors.textMain} />
+            <IconSymbol
+              name="chevron.left"
+              size={organicTheme.iconSizes.xs}
+              color={organicTheme.colors.text.secondary}
+            />
             <Text style={styles.backText}>返回</Text>
           </TouchableOpacity>
         </View>
 
         {loading ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
             <Text style={styles.loadingText}>加载文章中...</Text>
           </View>
         ) : error ? (
-          <Card style={styles.errorCard} padding="md">
+          <OrganicCard variant="soft" shadow={false} style={styles.errorCard}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity onPress={fetchDetail}>
               <Text style={styles.errorRetry}>重试</Text>
             </TouchableOpacity>
-          </Card>
+          </OrganicCard>
         ) : article ? (
           <View style={styles.detail}>
             {article.coverUrl ? (
@@ -92,112 +98,131 @@ export default function ArticleDetailScreen() {
             <Text style={styles.title}>{article.title}</Text>
             <View style={styles.metaRow}>
               <Text style={styles.metaText}>{article.author || '匿名作者'}</Text>
-              {article.publishDate && (
-                <Text style={styles.metaText}>{formatDate(article.publishDate)}</Text>
-              )}
+              {article.publishDate && <Text style={styles.metaText}>{formatDate(article.publishDate)}</Text>}
             </View>
-            {article.category && (
-              <Tag label={article.category} variant="primary" size="small" style={styles.tag} />
+            {article.category && <OrganicChipButton label={article.category} active onPress={() => undefined} />}
+            {article.sourceUrl && (
+              <OrganicCard variant="ghost" shadow={false} style={styles.linkCard}>
+                <Text style={styles.linkLabel}>文章链接</Text>
+                <TouchableOpacity onPress={handleOpenSource}>
+                  <Text style={styles.linkValue} numberOfLines={2}>
+                    {article.sourceUrl}
+                  </Text>
+                </TouchableOpacity>
+              </OrganicCard>
             )}
             <Text style={styles.contentText}>{article.content}</Text>
           </View>
         ) : (
-          <Card style={styles.errorCard} padding="md">
+          <OrganicCard variant="soft" shadow={false} style={styles.errorCard}>
             <Text style={styles.errorText}>文章不存在</Text>
-          </Card>
+          </OrganicCard>
         )}
       </ScrollView>
-    </View>
+    </OrganicBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: theme.colors.bgBody,
-  },
   container: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: theme.layout.pagePadding,
-    paddingBottom: theme.layout.safeBottom,
+    paddingHorizontal: organicTheme.spacing.lg,
+    paddingBottom: 100,
   },
   statusSpacer: {
-    height: theme.layout.safeTop,
+    height: 44,
   },
   headerRow: {
-    marginBottom: theme.spacing.md,
+    marginBottom: organicTheme.spacing.md,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
+    gap: organicTheme.spacing.xs,
+    alignSelf: 'flex-start',
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.xs,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.light,
   },
   backText: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
+    fontWeight: organicTheme.typography.fontWeight.medium,
   },
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginTop: theme.spacing.md,
+    gap: organicTheme.spacing.sm,
+    marginTop: organicTheme.spacing.md,
   },
   loadingText: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
   },
   errorCard: {
-    marginTop: theme.spacing.md,
+    marginTop: organicTheme.spacing.md,
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    gap: organicTheme.spacing.sm,
   },
   errorText: {
-    fontSize: theme.fontSizes.sm,
-    color: '#D64545',
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.primary,
   },
   errorRetry: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.primary,
-    fontWeight: '700',
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.primary.main,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   detail: {
-    gap: theme.spacing.md,
+    gap: organicTheme.spacing.md,
   },
   cover: {
     width: '100%',
     height: 200,
-    borderRadius: theme.borderRadius.large,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
   },
   coverPlaceholder: {
     width: '100%',
     height: 200,
-    borderRadius: theme.borderRadius.large,
-    backgroundColor: theme.colors.primaryLight,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
+    backgroundColor: organicTheme.colors.primary.soft,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.light,
   },
   title: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '800',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.bold,
+    color: organicTheme.colors.text.primary,
     lineHeight: 28,
   },
   metaRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: organicTheme.spacing.sm,
   },
   metaText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
   },
-  tag: {
-    alignSelf: 'flex-start',
+  linkCard: {
+    gap: organicTheme.spacing.xs,
+  },
+  linkLabel: {
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
+  },
+  linkValue: {
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.primary.main,
+    textDecorationLine: 'underline',
   },
   contentText: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.primary,
     lineHeight: 22,
   },
 });
-

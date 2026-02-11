@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   ImageBackground,
   RefreshControl,
   ScrollView,
@@ -13,11 +14,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Button, Card, Input, ListItem, Tag } from '@/components/ui';
-import { organicTheme, theme } from '@/constants/theme';
+import { Input, OrganicBackground, OrganicButton, OrganicCard, OrganicChipButton } from '@/components/ui';
+import { organicTheme } from '@/constants/theme';
 import { STORAGE_KEYS } from '@/services/api/client';
 import * as contentApi from '@/services/api/content';
 import type { ContentArticle, ContentPagination, ContentVideo } from '@/types/content';
+import { buildWebviewRoute } from '@/utils/open-external-url';
 
 const CATEGORY_OPTIONS = [
   { label: '全部', value: '' },
@@ -92,16 +94,13 @@ export default function ClassScreen() {
     }
   }, [cacheKey]);
 
-  const saveCache = useCallback(
-    async (payload: ContentCache) => {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEYS.CONTENT_CACHE, JSON.stringify(payload));
-      } catch (cacheError) {
-        console.warn('Failed to save content cache:', cacheError);
-      }
-    },
-    []
-  );
+  const saveCache = useCallback(async (payload: ContentCache) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.CONTENT_CACHE, JSON.stringify(payload));
+    } catch (cacheError) {
+      console.warn('Failed to save content cache:', cacheError);
+    }
+  }, []);
 
   const fetchContent = useCallback(
     async (options?: { force?: boolean; showLoading?: boolean }) => {
@@ -161,13 +160,45 @@ export default function ClassScreen() {
     setRefreshing(false);
   }, [fetchContent]);
 
-  const handleSearchSubmit = () => {
+  const handleSearchSubmit = useCallback(() => {
     setSearchQuery(searchText.trim());
-  };
+  }, [searchText]);
+
+  const handleOpenSourceUrl = useCallback((url?: string | null, title?: string) => {
+    if (!url?.trim()) return false;
+    try {
+      router.push(buildWebviewRoute(url, title));
+      return true;
+    } catch (openError) {
+      const message = openError instanceof Error ? openError.message : '链接无效';
+      setError(message);
+      return false;
+    }
+  }, []);
+
+  const handleVideoPress = useCallback(
+    (video: ContentVideo) => {
+      const opened = handleOpenSourceUrl(video.sourceUrl, video.title);
+      if (!opened) {
+        router.push(`/class-video/${video.id}`);
+      }
+    },
+    [handleOpenSourceUrl]
+  );
+
+  const handleArticlePress = useCallback(
+    (article: ContentArticle) => {
+      const opened = handleOpenSourceUrl(article.sourceUrl, article.title);
+      if (!opened) {
+        router.push(`/class-article/${article.id}`);
+      }
+    },
+    [handleOpenSourceUrl]
+  );
 
   const handleLoadMore = useCallback(async () => {
     if (!articlePagination?.hasNext || loadingMore) return;
-    const nextPage = (articlePagination?.page || 1) + 1;
+    const nextPage = (articlePagination.page || 1) + 1;
     setLoadingMore(true);
     try {
       const articleRes = await contentApi.listArticles({
@@ -207,94 +238,93 @@ export default function ClassScreen() {
 
   useEffect(() => {
     fetchContent({ force: false });
-  }, [activeCategory, fetchContent, searchQuery]);
+  }, [fetchContent]);
 
   const videoEmpty = !loading && videos.length === 0;
   const articleEmpty = !loading && articles.length === 0;
 
   return (
-    <View style={styles.screen}>
+    <OrganicBackground variant="morning">
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={organicTheme.colors.primary.main}
+            colors={[organicTheme.colors.primary.main]}
+          />
+        }
       >
         <View style={styles.statusSpacer} />
 
         <View style={styles.titleRow}>
           <Text style={styles.title}>在线课堂</Text>
           <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-            <IconSymbol name="arrow.clockwise" size={16} color={theme.colors.textMain} />
+            <IconSymbol
+              name="arrow.clockwise"
+              size={organicTheme.iconSizes.xs}
+              color={organicTheme.colors.text.secondary}
+            />
             <Text style={styles.refreshText}>刷新</Text>
           </TouchableOpacity>
         </View>
 
         <Input
-          placeholder="搜索育儿视频、文章"
+          placeholder="搜索视频或文章"
           containerStyle={styles.searchContainer}
           value={searchText}
           onChangeText={setSearchText}
           onSubmitEditing={handleSearchSubmit}
           returnKeyType="search"
-          leftIcon={<IconSymbol name="magnifyingglass" size={organicTheme.iconSizes.xs} color={theme.colors.textSub} />}
+          leftIcon={(
+            <IconSymbol
+              name="magnifyingglass"
+              size={organicTheme.iconSizes.xs}
+              color={organicTheme.colors.text.secondary}
+            />
+          )}
         />
 
         <View style={styles.categoryRow}>
-          {CATEGORY_OPTIONS.map((item) => {
-            const active = item.value === activeCategory;
-            return (
-              <TouchableOpacity
-                key={item.value || 'all'}
-                onPress={() => setActiveCategory(item.value)}
-                style={styles.categoryButton}
-              >
-                <Tag
-                  label={item.label}
-                  variant={active ? 'primary' : 'default'}
-                  size="medium"
-                />
-              </TouchableOpacity>
-            );
-          })}
+          {CATEGORY_OPTIONS.map((item) => (
+            <OrganicChipButton
+              key={item.value || 'all'}
+              label={item.label}
+              active={item.value === activeCategory}
+              onPress={() => setActiveCategory(item.value)}
+            />
+          ))}
         </View>
 
         {error && (
-          <View style={styles.errorBanner}>
+          <OrganicCard variant="soft" shadow={false} style={styles.errorBanner}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity onPress={() => fetchContent({ force: true })}>
               <Text style={styles.errorRetry}>重试</Text>
             </TouchableOpacity>
-          </View>
+          </OrganicCard>
         )}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>推荐视频</Text>
-          {videoPagination?.total ? (
-            <Text style={styles.sectionMeta}>共 {videoPagination.total} 条</Text>
-          ) : null}
+          {videoPagination?.total ? <Text style={styles.sectionMeta}>共 {videoPagination.total} 条</Text> : null}
         </View>
         {loading && videos.length === 0 ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
             <Text style={styles.loadingText}>加载视频中...</Text>
           </View>
         ) : videoEmpty ? (
-          <Card style={styles.emptyCard} padding="md">
+          <OrganicCard variant="ghost" shadow={false} style={styles.emptyCard}>
             <Text style={styles.emptyText}>暂无视频内容</Text>
-          </Card>
+          </OrganicCard>
         ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.videoRow}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.videoRow}>
             {videos.map((video) => (
-              <TouchableOpacity
-                key={video.id}
-                activeOpacity={0.8}
-                onPress={() => router.push(`/class-video/${video.id}`)}
-              >
+              <TouchableOpacity key={video.id} activeOpacity={0.8} onPress={() => handleVideoPress(video)}>
                 <ImageBackground
                   source={video.coverUrl ? { uri: video.coverUrl } : undefined}
                   style={styles.videoCard}
@@ -303,18 +333,14 @@ export default function ClassScreen() {
                   {!video.coverUrl && <View style={styles.videoPlaceholder} />}
                   <View style={styles.videoOverlay} />
                   <View style={styles.playIcon}>
-                    <IconSymbol name="play.circle.fill" size={organicTheme.iconSizes.xl} color={theme.colors.surface} />
+                    <IconSymbol name="play.circle.fill" size={organicTheme.iconSizes.xl} color="#FFFFFF" />
                   </View>
                   <Text style={styles.videoTitle} numberOfLines={2}>
                     {video.title}
                   </Text>
                   <View style={styles.videoMeta}>
-                    <Text style={styles.videoMetaText}>
-                      {video.views || 0} 次播放
-                    </Text>
-                    {video.publishDate && (
-                      <Text style={styles.videoMetaText}>{formatDate(video.publishDate)}</Text>
-                    )}
+                    <Text style={styles.videoMetaText}>{video.views || 0} 次播放</Text>
+                    {video.publishDate && <Text style={styles.videoMetaText}>{formatDate(video.publishDate)}</Text>}
                   </View>
                 </ImageBackground>
               </TouchableOpacity>
@@ -330,62 +356,72 @@ export default function ClassScreen() {
         </View>
         {loading && articles.length === 0 ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
             <Text style={styles.loadingText}>加载文章中...</Text>
           </View>
         ) : articleEmpty ? (
-          <Card style={styles.emptyCard} padding="md">
+          <OrganicCard variant="ghost" shadow={false} style={styles.emptyCard}>
             <Text style={styles.emptyText}>暂无文章内容</Text>
-          </Card>
+          </OrganicCard>
         ) : (
           <View style={styles.articleList}>
             {articles.map((article) => (
-              <Card key={article.id} style={styles.articleCard} padding="md">
+              <OrganicCard key={article.id} shadow={false} style={styles.articleCard}>
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => router.push(`/class-article/${article.id}`)}
+                  onPress={() => handleArticlePress(article)}
+                  style={styles.articlePressable}
                 >
-                  <ListItem
-                    title={article.title}
-                    subtitle={buildArticleMeta(article)}
-                    leftContent={<View style={styles.articleThumb} />}
-                    style={styles.articleItem}
+                  {article.coverUrl ? (
+                    <Image source={{ uri: article.coverUrl }} style={styles.articleThumb} />
+                  ) : (
+                    <View style={styles.articleThumb} />
+                  )}
+                  <View style={styles.articleBody}>
+                    <Text style={styles.articleTitle} numberOfLines={2}>
+                      {article.title}
+                    </Text>
+                    <Text style={styles.articleMeta} numberOfLines={1}>
+                      {buildArticleMeta(article)}
+                    </Text>
+                  </View>
+                  <IconSymbol
+                    name="chevron.right"
+                    size={organicTheme.iconSizes.xs}
+                    color={organicTheme.colors.text.tertiary}
                   />
                 </TouchableOpacity>
-              </Card>
+              </OrganicCard>
             ))}
           </View>
         )}
 
         {articlePagination?.hasNext && (
           <View style={styles.loadMore}>
-            <Button
+            <OrganicButton
               title={loadingMore ? '加载中...' : '加载更多'}
               onPress={handleLoadMore}
               variant="secondary"
               disabled={loadingMore}
+              style={styles.loadMoreButton}
             />
           </View>
         )}
       </ScrollView>
-    </View>
+    </OrganicBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: theme.colors.bgBody,
-  },
   container: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: theme.layout.pagePadding,
-    paddingBottom: theme.layout.safeBottom,
+    paddingHorizontal: organicTheme.spacing.lg,
+    paddingBottom: 100,
   },
   statusSpacer: {
-    height: theme.layout.safeTop,
+    height: 44,
   },
   titleRow: {
     flexDirection: 'row',
@@ -393,157 +429,173 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '800',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    color: organicTheme.colors.text.primary,
   },
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 18,
-    backgroundColor: theme.colors.surface,
-    ...theme.shadows.small,
+    gap: organicTheme.spacing.xs,
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.xs,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.light,
   },
   refreshText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textMain,
-    fontWeight: '600',
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
+    fontWeight: organicTheme.typography.fontWeight.medium,
   },
   searchContainer: {
-    marginTop: theme.spacing.md,
+    marginTop: organicTheme.spacing.md,
+    marginBottom: organicTheme.spacing.xs,
   },
   categoryRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
-  },
-  categoryButton: {
-    marginRight: 4,
+    gap: organicTheme.spacing.sm,
+    marginBottom: organicTheme.spacing.md,
   },
   sectionHeader: {
-    marginTop: theme.layout.sectionGap,
-    marginBottom: theme.spacing.md,
+    marginTop: organicTheme.spacing.lg,
+    marginBottom: organicTheme.spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.md,
-    fontWeight: '700',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    color: organicTheme.colors.text.primary,
   },
   sectionMeta: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
   },
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    gap: organicTheme.spacing.sm,
+    paddingVertical: organicTheme.spacing.sm,
   },
   loadingText: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
   },
   errorBanner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.sm,
-    borderRadius: theme.borderRadius.medium,
-    backgroundColor: '#FDECEA',
-    borderWidth: 1,
-    borderColor: '#F5C6CB',
-    marginTop: theme.spacing.md,
+    marginTop: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.sm,
   },
   errorText: {
     flex: 1,
-    fontSize: theme.fontSizes.sm,
-    color: '#D64545',
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.primary,
   },
   errorRetry: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.primary,
-    fontWeight: '700',
-    paddingLeft: theme.spacing.sm,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.primary.main,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    paddingLeft: organicTheme.spacing.sm,
   },
   videoRow: {
-    gap: theme.spacing.sm,
-    paddingRight: theme.spacing.sm,
+    gap: organicTheme.spacing.md,
+    paddingRight: organicTheme.spacing.md,
   },
   videoCard: {
-    width: 260,
-    height: 160,
-    borderRadius: theme.borderRadius.medium,
+    width: 264,
+    height: 164,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
     overflow: 'hidden',
     justifyContent: 'flex-end',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.primaryLight,
+    padding: organicTheme.spacing.md,
+    backgroundColor: organicTheme.colors.primary.soft,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.light,
   },
   videoImage: {
-    borderRadius: theme.borderRadius.medium,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
   },
   videoPlaceholder: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: theme.colors.primaryLight,
+    backgroundColor: organicTheme.colors.primary.soft,
   },
   videoOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(74, 74, 74, 0.4)',
   },
   playIcon: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -18 }, { translateY: -18 }],
+    transform: [{ translateX: -20 }, { translateY: -20 }],
   },
   videoTitle: {
-    color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
-    fontWeight: '700',
-    lineHeight: 22,
+    color: '#FFFFFF',
+    fontSize: organicTheme.typography.fontSize.md,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    lineHeight: 24,
   },
   videoMeta: {
     flexDirection: 'row',
-    marginTop: 6,
+    marginTop: organicTheme.spacing.xs,
     alignItems: 'center',
-    gap: 8,
+    gap: organicTheme.spacing.sm,
   },
   videoMetaText: {
-    color: theme.colors.surface,
-    fontSize: theme.fontSizes.xs,
+    color: '#FFFFFF',
+    fontSize: organicTheme.typography.fontSize.xs,
     opacity: 0.9,
   },
   articleList: {
-    gap: theme.spacing.sm,
+    gap: organicTheme.spacing.sm,
   },
   articleCard: {
-    padding: 0,
+    paddingVertical: organicTheme.spacing.sm,
   },
-  articleItem: {
-    backgroundColor: theme.colors.surface,
-    shadowColor: '#000000',
+  articlePressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   articleThumb: {
     width: 64,
     height: 64,
-    borderRadius: theme.borderRadius.small,
-    backgroundColor: theme.colors.primaryLight,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    backgroundColor: organicTheme.colors.primary.pale,
+    marginRight: organicTheme.spacing.md,
+  },
+  articleBody: {
+    flex: 1,
+    marginRight: organicTheme.spacing.sm,
+  },
+  articleTitle: {
+    fontSize: organicTheme.typography.fontSize.md,
+    color: organicTheme.colors.text.primary,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    marginBottom: 2,
+  },
+  articleMeta: {
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
   },
   emptyCard: {
-    marginTop: theme.spacing.sm,
+    marginTop: organicTheme.spacing.sm,
   },
   emptyText: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.sm,
+    color: organicTheme.colors.text.secondary,
     textAlign: 'center',
   },
   loadMore: {
-    marginTop: theme.spacing.md,
+    marginTop: organicTheme.spacing.lg,
     alignItems: 'center',
+  },
+  loadMoreButton: {
+    minWidth: 140,
   },
 });

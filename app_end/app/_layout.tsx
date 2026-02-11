@@ -97,6 +97,7 @@ export default function RootLayout() {
             <Stack.Screen name="appointments/index" options={{ headerShown: false }} />
             <Stack.Screen name="class-video/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="class-article/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="webview" options={{ headerShown: false }} />
             <Stack.Screen name="set-password" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
           </Stack>

@@ -19,6 +19,7 @@ class Video(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     video_url = db.Column(db.String(500), nullable=False)
+    source_url = db.Column(db.String(1000))
     cover_url = db.Column(db.String(500))
     category = db.Column(db.String(50), index=True)
     views = db.Column(db.Integer, default=0)
@@ -32,6 +33,7 @@ class Video(db.Model):
             "title": self.title,
             "description": self.description,
             "videoUrl": self.video_url,
+            "sourceUrl": self.source_url,
             "coverUrl": self.cover_url,
             "category": self.category,
             "views": self.views,
@@ -46,6 +48,7 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    source_url = db.Column(db.String(1000))
     cover_url = db.Column(db.String(500))
     author = db.Column(db.String(100))
     category = db.Column(db.String(50), index=True)
@@ -58,6 +61,7 @@ class Article(db.Model):
             "id": self.id,
             "title": self.title,
             "content": self.content,
+            "sourceUrl": self.source_url,
             "coverUrl": self.cover_url,
             "author": self.author,
             "category": self.category,

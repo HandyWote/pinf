@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: appJson.expo.plugins as ExpoConfig['plugins'],
     experiments: appJson.expo.experiments,
     extra: {
-      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:5010/api',
+      apiBaseUrl: process.env.API_BASE_URL,
     },
   };
 };

@@ -1,107 +1,328 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { OrganicBackground, OrganicCard } from '@/components/ui';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
+import { useFeedback } from '@/contexts/FeedbackContext';
+import { clearChatHistory, getChatHistory, sendChatMessage } from '@/services/api/chat';
+import { useBabyStore } from '@/store/babyStore';
+import type { ChatHistoryItem, ChatMessage } from '@/types/chat';
 
-const messages = [
-  {
-    id: '1',
-    role: 'assistant',
-    text: '您好！我是您的专属育儿助手。有关宝宝的喂养、睡眠或生长发育问题，都可以问我哦！',
-  },
-  {
-    id: '2',
-    role: 'user',
-    text: '宝宝矫正月龄怎么算的？',
-  },
-  {
-    id: '3',
-    role: 'assistant',
-    text: '矫正月龄是根据预产期来计算的年龄，主要用于评估早产宝宝的生长发育情况。计算公式是：实际月龄 - (40周 - 出生孕周)/4。',
-  },
-];
+const HISTORY_PAGE_SIZE = 100;
+const LOCAL_GREETING_ID = -1;
 
-type Role = 'assistant' | 'user';
+interface UiMessage extends ChatMessage {
+  pending?: boolean;
+  localOnly?: boolean;
+}
+
+const createGreetingMessage = (): UiMessage => ({
+  id: LOCAL_GREETING_ID,
+  messageId: 'local-greeting',
+  role: 'ai',
+  content: '你好，我是育儿问答助手。你可以直接输入问题，我会尽快回复。',
+  timestamp: Date.now(),
+  status: 'sent',
+  localOnly: true,
+});
+
+const createOptimisticMessage = (content: string): UiMessage => ({
+  id: -Date.now(),
+  messageId: `local-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+  role: 'user',
+  content,
+  timestamp: Date.now(),
+  status: 'sent',
+  pending: true,
+  localOnly: true,
+});
+
+const toHistoryPayload = (messages: UiMessage[]): ChatHistoryItem[] =>
+  messages
+    .filter(item => !item.localOnly && !item.pending)
+    .slice(-20)
+    .map(item => ({
+      role: item.role,
+      content: item.content,
+      timestamp: item.timestamp,
+      messageId: item.messageId,
+    }));
+
+const sortByTimestamp = (messages: UiMessage[]) =>
+  [...messages].sort((a, b) => {
+    if (a.timestamp === b.timestamp) {
+      return a.id - b.id;
+    }
+    return a.timestamp - b.timestamp;
+  });
+
+const formatTime = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  return `${hour}:${minute}`;
+};
 
 export default function QAScreen() {
-  const renderAvatar = (role: Role) => (
-    <View
-      style={[
-        styles.avatar,
-        role === 'assistant' ? styles.avatarAssistant : styles.avatarUser,
-      ]}
-    >
-      <IconSymbol
-        name={role === 'assistant' ? 'message.fill' : 'person.circle.fill'}
-        size={18}
-        color="#FFFFFF"
-      />
-    </View>
+  const { currentBaby } = useBabyStore();
+  const { notify, confirm } = useFeedback();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const [messages, setMessages] = useState<UiMessage[]>([createGreetingMessage()]);
+  const [draft, setDraft] = useState('');
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const babyId = currentBaby?.id;
+  const headerSubtitle = useMemo(
+    () => (currentBaby ? `${currentBaby.name} 的会话` : '通用会话'),
+    [currentBaby]
   );
+
+  const loadHistory = useCallback(async () => {
+    setIsLoadingHistory(true);
+    setFormError('');
+    try {
+      const { messages: history } = await getChatHistory({
+        page: 1,
+        per_page: HISTORY_PAGE_SIZE,
+        babyId,
+      });
+
+      if (history.length === 0) {
+        setMessages([createGreetingMessage()]);
+      } else {
+        setMessages(sortByTimestamp(history as UiMessage[]));
+      }
+    } catch (error: any) {
+      const message = error?.response?.data?.message || '加载聊天记录失败，请稍后重试';
+      setFormError(message);
+      setMessages([createGreetingMessage()]);
+      notify(message, 'error');
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [babyId, notify]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const handleSend = async () => {
+    if (isSending) {
+      return;
+    }
+
+    const content = draft.trim();
+    if (!content) {
+      setFormError('请输入问题后再发送');
+      return;
+    }
+
+    setFormError('');
+    setDraft('');
+
+    const optimisticMessage = createOptimisticMessage(content);
+    setMessages(prev => sortByTimestamp([...prev, optimisticMessage]));
+    setIsSending(true);
+
+    try {
+      const data = await sendChatMessage({
+        content,
+        babyId,
+        messageId: optimisticMessage.messageId,
+        history: toHistoryPayload(messages),
+      });
+
+      setMessages(prev => {
+        const next = prev.filter(item => item.messageId !== optimisticMessage.messageId);
+        next.push(data.userMessage as UiMessage);
+        next.push(data.aiMessage as UiMessage);
+        return sortByTimestamp(next);
+      });
+    } catch (error: any) {
+      const message = error?.response?.data?.message || '发送失败，请稍后重试';
+      setMessages(prev =>
+        prev.map(item =>
+          item.messageId === optimisticMessage.messageId
+            ? {
+                ...item,
+                pending: false,
+                status: 'failed',
+              }
+            : item
+        )
+      );
+      setFormError(message);
+      notify(message, 'error');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (isSending || isLoadingHistory) {
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: '清空当前会话？',
+      message: '清空后将无法恢复该会话内容。',
+      confirmText: '清空',
+      cancelText: '取消',
+      destructive: true,
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await clearChatHistory({ babyId });
+      setMessages([createGreetingMessage()]);
+      setFormError('');
+      notify('会话已清空', 'success');
+    } catch (error: any) {
+      const message = error?.response?.data?.message || '清空失败，请稍后重试';
+      setFormError(message);
+      notify(message, 'error');
+    }
+  };
+
+  const canSend = draft.trim().length > 0 && !isSending && !isLoadingHistory;
 
   return (
     <OrganicBackground variant="morning">
-      <View style={styles.screen}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.statusSpacer} />
-
-          <Text style={styles.title}>智能育儿助手</Text>
-          <Text style={styles.subtitle}>基于 PINF.TOP AI 模型</Text>
+      <KeyboardAvoidingView
+        style={styles.screen}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.page}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>智能育儿问答</Text>
+              <Text style={styles.subtitle}>{headerSubtitle}</Text>
+            </View>
+            <Pressable
+              style={[styles.clearButton, (isSending || isLoadingHistory) && styles.clearButtonDisabled]}
+              onPress={handleClearHistory}
+              disabled={isSending || isLoadingHistory}
+            >
+              <IconSymbol
+                name="xmark.circle.fill"
+                size={organicTheme.iconSizes.xs}
+                color={organicTheme.colors.text.secondary}
+              />
+              <Text style={styles.clearButtonText}>清空</Text>
+            </Pressable>
+          </View>
 
           <OrganicCard shadow style={styles.chatCard}>
-            <View style={styles.chatList}>
-              {messages.map((message) => {
-                const isUser = message.role === 'user';
-                return (
-                  <View
-                    key={message.id}
-                    style={[
-                      styles.messageRow,
-                      isUser && styles.messageRowUser,
-                    ]}
-                  >
-                    {renderAvatar(message.role as Role)}
-                    <View
-                      style={[
-                        styles.bubble,
-                        isUser ? styles.bubbleUser : styles.bubbleAssistant,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.bubbleText,
-                          isUser && styles.bubbleTextUser,
-                        ]}
-                      >
-                        {message.text}
-                      </Text>
+            {isLoadingHistory ? (
+              <View style={styles.centerState}>
+                <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
+                <Text style={styles.stateText}>正在加载会话...</Text>
+              </View>
+            ) : (
+              <ScrollView
+                ref={scrollRef}
+                style={styles.chatScroll}
+                contentContainerStyle={styles.chatContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+              >
+                {messages.map(message => {
+                  const isUser = message.role === 'user';
+                  const isFailed = message.status === 'failed';
+                  return (
+                    <View key={`${message.messageId}-${message.id}`} style={[styles.messageRow, isUser && styles.messageRowUser]}>
+                      <View style={[styles.avatar, isUser ? styles.avatarUser : styles.avatarAssistant]}>
+                        <IconSymbol
+                          name={isUser ? 'person.circle.fill' : 'message.fill'}
+                          size={organicTheme.iconSizes.xs}
+                          color={organicTheme.colors.background.paper}
+                        />
+                      </View>
+                      <View style={[styles.messageMain, isUser && styles.messageMainUser]}>
+                        <View
+                          style={[
+                            styles.bubble,
+                            isUser ? styles.bubbleUser : styles.bubbleAssistant,
+                            isFailed && styles.bubbleFailed,
+                          ]}
+                        >
+                          <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>
+                            {message.content}
+                          </Text>
+                        </View>
+                        <View style={[styles.metaRow, isUser && styles.metaRowUser]}>
+                          <Text style={styles.timeText}>{formatTime(message.timestamp)}</Text>
+                          {message.pending ? <Text style={styles.pendingText}>发送中</Text> : null}
+                          {isFailed ? <Text style={styles.failedText}>发送失败</Text> : null}
+                        </View>
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
-            </View>
+                  );
+                })}
+              </ScrollView>
+            )}
           </OrganicCard>
-        </ScrollView>
 
-        <View style={styles.inputBar}>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputPlaceholder}>输入您的问题...</Text>
-            <View style={styles.sendIconButton}>
-              <IconSymbol
-                name="paperplane.fill"
-                size={18}
-                color="#FFFFFF"
+          <View style={styles.composerWrap}>
+            <View style={styles.inputRow}>
+              <TextInput
+                value={draft}
+                onChangeText={text => {
+                  setDraft(text);
+                  if (formError) {
+                    setFormError('');
+                  }
+                }}
+                placeholder="输入你的问题..."
+                placeholderTextColor={organicTheme.colors.text.tertiary}
+                multiline
+                maxLength={300}
+                style={styles.input}
+                textAlignVertical="top"
               />
+              <Pressable
+                onPress={handleSend}
+                disabled={!canSend}
+                style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+              >
+                {isSending ? (
+                  <ActivityIndicator size="small" color={organicTheme.colors.background.paper} />
+                ) : (
+                  <IconSymbol
+                    name="paperplane.fill"
+                    size={organicTheme.iconSizes.xs}
+                    color={organicTheme.colors.background.paper}
+                  />
+                )}
+              </Pressable>
+            </View>
+            <View style={styles.composerFooter}>
+              <Text style={[styles.helperText, formError && styles.errorText]}>
+                {formError || '请输入具体问题以获得更准确的建议'}
+              </Text>
+              <Text style={styles.counterText}>{draft.length}/300</Text>
             </View>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </OrganicBackground>
   );
 }
@@ -110,30 +331,67 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  container: {
+  page: {
     flex: 1,
-  },
-  content: {
+    paddingTop: 48,
     paddingHorizontal: organicTheme.spacing.lg,
-    paddingBottom: 100,
+    paddingBottom: 92,
   },
-  statusSpacer: {
-    height: 44,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: organicTheme.spacing.md,
   },
   title: {
-    fontSize: organicTheme.typography.fontSize.xl,
-    fontWeight: organicTheme.typography.fontWeight.bold,
     color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.bold,
   },
   subtitle: {
-    marginTop: 6,
-    fontSize: organicTheme.typography.fontSize.sm,
+    marginTop: organicTheme.spacing.xs,
     color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  clearButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: organicTheme.spacing.xs,
+    paddingHorizontal: organicTheme.spacing.sm,
+    paddingVertical: organicTheme.spacing.xs,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    backgroundColor: organicTheme.colors.background.paper,
+  },
+  clearButtonText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+    fontWeight: organicTheme.typography.fontWeight.medium,
+  },
+  clearButtonDisabled: {
+    opacity: 0.45,
   },
   chatCard: {
-    marginTop: organicTheme.spacing.lg,
+    flex: 1,
+    marginBottom: organicTheme.spacing.md,
   },
-  chatList: {
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: organicTheme.spacing.sm,
+    minHeight: 220,
+  },
+  stateText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.sm,
+  },
+  chatScroll: {
+    flex: 1,
+  },
+  chatContent: {
+    padding: organicTheme.spacing.md,
     gap: organicTheme.spacing.md,
   },
   messageRow: {
@@ -145,9 +403,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -157,61 +415,108 @@ const styles = StyleSheet.create({
   avatarUser: {
     backgroundColor: organicTheme.colors.accent.peach,
   },
+  messageMain: {
+    maxWidth: '84%',
+    gap: organicTheme.spacing.xs,
+  },
+  messageMainUser: {
+    alignItems: 'flex-end',
+  },
   bubble: {
-    flex: 1,
-    padding: organicTheme.spacing.md,
-    borderRadius: organicTheme.shapes.borderRadius.soft,
-    maxWidth: '82%',
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.sm,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    borderWidth: 1,
   },
   bubbleAssistant: {
     backgroundColor: organicTheme.colors.background.paper,
-    ...organicTheme.shadows.soft[0],
+    borderColor: organicTheme.colors.border.light,
   },
   bubbleUser: {
     backgroundColor: organicTheme.colors.primary.main,
-    borderTopRightRadius: 6,
+    borderColor: organicTheme.colors.border.accent,
+  },
+  bubbleFailed: {
+    borderColor: organicTheme.colors.border.danger,
   },
   bubbleText: {
-    fontSize: organicTheme.typography.fontSize.sm,
     color: organicTheme.colors.text.primary,
-    lineHeight: 20,
+    fontSize: organicTheme.typography.fontSize.sm,
+    lineHeight: organicTheme.typography.fontSize.sm * organicTheme.typography.lineHeight.normal,
   },
   bubbleTextUser: {
-    color: '#FFFFFF',
+    color: organicTheme.colors.background.paper,
   },
-  inputBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: organicTheme.spacing.lg,
-    paddingBottom: 20,
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: organicTheme.spacing.xs,
   },
-  inputWrapper: {
-    flex: 1,
+  metaRowUser: {
+    justifyContent: 'flex-end',
+  },
+  timeText: {
+    color: organicTheme.colors.text.tertiary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  pendingText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  failedText: {
+    color: '#C54A4A',
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  composerWrap: {
+    gap: organicTheme.spacing.xs,
+  },
+  inputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    gap: organicTheme.spacing.sm,
     backgroundColor: organicTheme.colors.background.paper,
-    borderRadius: organicTheme.shapes.borderRadius.pill,
-    paddingHorizontal: organicTheme.spacing.md,
-    paddingVertical: organicTheme.spacing.sm,
     borderWidth: 1,
     borderColor: organicTheme.colors.border.default,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
+    padding: organicTheme.spacing.sm,
     ...organicTheme.shadows.soft[0],
   },
-  inputPlaceholder: {
+  input: {
     flex: 1,
+    minHeight: 42,
+    maxHeight: 112,
+    color: organicTheme.colors.text.primary,
     fontSize: organicTheme.typography.fontSize.sm,
-    color: organicTheme.colors.text.secondary,
+    paddingHorizontal: organicTheme.spacing.sm,
+    paddingVertical: organicTheme.spacing.sm,
   },
-  sendIconButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: organicTheme.colors.primary.main,
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: organicTheme.colors.primary.main,
+  },
+  sendButtonDisabled: {
+    opacity: 0.45,
+  },
+  composerFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: organicTheme.spacing.sm,
+  },
+  helperText: {
+    flex: 1,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  errorText: {
+    color: '#C54A4A',
+  },
+  counterText: {
+    color: organicTheme.colors.text.tertiary,
+    fontSize: organicTheme.typography.fontSize.xs,
   },
 });

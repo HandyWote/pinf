@@ -8,7 +8,10 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=app.py \
-    FLASK_ENV=production
+    FLASK_ENV=production \
+    HOME=/tmp \
+    XDG_CACHE_HOME=/tmp/.cache \
+    UV_CACHE_DIR=/tmp/.cache/uv
 
 # 可按需在构建时覆盖：
 # docker build --build-arg APT_MIRROR=https://mirrors.ustc.edu.cn/debian \

@@ -15,20 +15,24 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # 数据库连接池配置（防止长时间空闲后连接断开）
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
-        "pool_recycle": int(os.environ.get("DB_POOL_RECYCLE", "600")),
-        "pool_pre_ping": True,
-        "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
-        "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "20")),
-        "connect_args": {
-            "keepalives": int(os.environ.get("DB_KEEPALIVES", "1")),
-            "keepalives_idle": int(os.environ.get("DB_KEEPALIVES_IDLE", "30")),
-            "keepalives_interval": int(os.environ.get("DB_KEEPALIVES_INTERVAL", "10")),
-            "keepalives_count": int(os.environ.get("DB_KEEPALIVES_COUNT", "5")),
-        },
-    }
+    # 数据库连接池配置（仅 PostgreSQL 使用 keepalive 相关参数）
+    _db_uri = SQLALCHEMY_DATABASE_URI.lower()
+    if not _db_uri.startswith(("postgresql://", "postgresql+", "postgres://")):
+        raise RuntimeError("DATABASE_URL 必须使用 PostgreSQL 连接串（postgresql://...）")
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
+    if _db_uri.startswith(("postgresql://", "postgresql+", "postgres://")):
+        SQLALCHEMY_ENGINE_OPTIONS.update({
+            "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
+            "pool_recycle": int(os.environ.get("DB_POOL_RECYCLE", "600")),
+            "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
+            "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "20")),
+            "connect_args": {
+                "keepalives": int(os.environ.get("DB_KEEPALIVES", "1")),
+                "keepalives_idle": int(os.environ.get("DB_KEEPALIVES_IDLE", "30")),
+                "keepalives_interval": int(os.environ.get("DB_KEEPALIVES_INTERVAL", "10")),
+                "keepalives_count": int(os.environ.get("DB_KEEPALIVES_COUNT", "5")),
+            },
+        })
 
     # JWT 配置
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")

@@ -5,11 +5,6 @@ services:
       - ./backend/.env
     ports:
       - "5010:5010"
-    environment:
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key}
-      - FLASK_ENV=${FLASK_ENV:-production}
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///database.db}
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5010/api/health"]
@@ -43,12 +38,12 @@ services:
     restart: always
     environment:
       - POSTGRES_PASSWORD=pinf
-      - POSTGRES_DB=postgres_db
+      - POSTGRES_DB=pinf
       - POSTGRES_USER=pinf
       - LANG=en_US.utf8
       - PGDATA=/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pinf -d postgres_db"]
+      test: ["CMD-SHELL", "pg_isready -U pinf -d pinf"]
       interval: 5s
       timeout: 5s
       retries: 5

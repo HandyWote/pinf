@@ -50,6 +50,14 @@ _MIGRATIONS = [
             ")"
         ),
     },
+    {
+        "id": "2026_02_11_add_wechat_article_id_to_articles",
+        "sql": "ALTER TABLE articles ADD COLUMN IF NOT EXISTS wechat_article_id VARCHAR(128)",
+    },
+    {
+        "id": "2026_02_11_add_index_for_wechat_article_id",
+        "sql": "CREATE INDEX IF NOT EXISTS idx_articles_wechat_article_id ON articles(wechat_article_id)",
+    },
 ]
 
 

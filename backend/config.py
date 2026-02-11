@@ -37,5 +37,15 @@ class Config:
     # n8n 转发配置
     N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")
 
+    # 微信公众号配置
+    WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")
+    WECHAT_APP_SECRET = os.environ.get("WECHAT_APP_SECRET", "")
+    WECHAT_API_TIMEOUT = int(os.environ.get("WECHAT_API_TIMEOUT", "10"))
+    WECHAT_SYNC_ENABLED = os.environ.get("WECHAT_SYNC_ENABLED", "false").lower() in ("1", "true", "yes")
+    WECHAT_SYNC_INTERVAL_MINUTES = int(os.environ.get("WECHAT_SYNC_INTERVAL_MINUTES", "60"))
+    WECHAT_SYNC_MAX_PAGES = int(os.environ.get("WECHAT_SYNC_MAX_PAGES", "5"))
+    WECHAT_SYNC_PAGE_SIZE = int(os.environ.get("WECHAT_SYNC_PAGE_SIZE", "20"))
+    WECHAT_SYNC_RETRY = int(os.environ.get("WECHAT_SYNC_RETRY", "3"))
+
     # CORS 配置
     CORS_ORIGINS = ["*"]  # 生产环境需收紧

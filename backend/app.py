@@ -8,9 +8,21 @@ from sqlalchemy import text
 from config import Config
 from models import db
 from utils.db_migrations import run_migrations
+from utils.wechat_sync_scheduler import start_wechat_sync_scheduler
 
 jwt = JWTManager()
 cors = CORS()
+
+
+def _configure_logging():
+    root_logger = logging.getLogger()
+    if not root_logger.handlers:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+        )
+    else:
+        root_logger.setLevel(logging.INFO)
 
 
 def _ensure_required_config(app: Flask):
@@ -26,6 +38,7 @@ def _ensure_required_config(app: Flask):
 
 
 def create_app(config_class=Config):
+    _configure_logging()
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -53,6 +66,8 @@ def create_app(config_class=Config):
     with app.app_context():
         db.create_all()
         run_migrations(db)
+
+    start_wechat_sync_scheduler(app)
 
     @app.route("/")
     def index():

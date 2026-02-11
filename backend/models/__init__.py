@@ -10,3 +10,4 @@ from .content import Video, Article
 from .appointment import Appointment
 from .chat import ChatMessage
 from .verification_code import VerificationCode
+from .sync_state import SyncState

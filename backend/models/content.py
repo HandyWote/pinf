@@ -48,6 +48,7 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    wechat_article_id = db.Column(db.String(128), index=True)
     source_url = db.Column(db.String(1000))
     cover_url = db.Column(db.String(500))
     author = db.Column(db.String(100))
@@ -61,6 +62,7 @@ class Article(db.Model):
             "id": self.id,
             "title": self.title,
             "content": self.content,
+            "wechatArticleId": self.wechat_article_id,
             "sourceUrl": self.source_url,
             "coverUrl": self.cover_url,
             "author": self.author,

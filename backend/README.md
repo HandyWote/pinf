@@ -323,11 +323,33 @@ sudo certbot --nginx -d your-domain.com
 | 成长 | `/api/growth/<id>` | PUT/DELETE | 更新、删除成长记录 |
 | 内容 | `/api/content/videos` | GET | 视频列表（支持搜索/分类） |
 | 内容 | `/api/content/articles` | GET | 文章列表（支持搜索/分类） |
+| 内容 | `/api/content/wechat/publications` | GET | 调试：获取公众号发布记录 |
+| 内容 | `/api/content/wechat/article` | GET | 调试：按 article_id 获取公众号文章 |
+| 内容 | `/api/content/wechat/sync` | POST | 调试：同步公众号文章到数据库 |
 | 预约 | `/api/appointments` | GET/POST | 预约列表、创建 |
 | 预约 | `/api/appointments/<id>` | PUT/DELETE | 更新、删除预约 |
 | 预约 | `/api/appointments/<id>/status` | PATCH | 更新预约状态 |
 | 聊天 | `/api/chat/send` | POST | 发送消息并转发 n8n |
 | 聊天 | `/api/chat/history` | GET/DELETE | 历史分页、清空 |
+
+公众号同步调试示例：
+
+```bash
+curl -X POST "http://localhost:5010/api/content/wechat/sync" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"max_pages": 10, "count": 20, "retry": 3, "force_full": 0}'
+```
+
+自动同步配置（每小时）：
+
+```env
+WECHAT_SYNC_ENABLED=true
+WECHAT_SYNC_INTERVAL_MINUTES=60
+WECHAT_SYNC_MAX_PAGES=5
+WECHAT_SYNC_PAGE_SIZE=20
+WECHAT_SYNC_RETRY=3
+```
 
 ## ⚙️ 环境配置
 

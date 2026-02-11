@@ -19,15 +19,15 @@ def send_to_n8n(payload, timeout=15, retry=1):
         try:
             response = requests.post(webhook_url, json=payload, timeout=timeout)
             if response.status_code >= 400:
-                return None, f"n8n 返回错误状态码: {response.status_code}"
+                return None, f"AI 返回错误状态码: {response.status_code}"
             try:
                 return response.json(), None
             except ValueError:
-                return None, "n8n 响应格式错误"
+                return None, "AI 响应格式错误"
         except requests.RequestException as exc:
             last_exc = exc
             if attempt < retry:
                 time.sleep(0.5)
             else:
-                return None, f"调用 n8n 失败: {exc}"
-    return None, f"调用 n8n 失败: {last_exc}"  # 理论上不会到达
+                return None, f"调用AI失败: {exc}"
+    return None, f"调用AI失败: {last_exc}"  # 理论上不会到达

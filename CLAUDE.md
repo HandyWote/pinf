@@ -131,3 +131,9 @@
 - 文档形态偏好：保留“完整基线信息”（全局约束、架构、配置、测试、命令），不做过度精简。
 - 会话收尾偏好：对话结束时自动将可复用结论简短沉淀到 `AGENTS.md` 与 `CLAUDE.md`。
 - 方案偏好：默认优先技术债最少方案，同时提供最小侵入备选以便快速决策。
+- Docker Compose 内网直连时，后端数据库主机应使用服务名 `pgvector` 而非 `localhost`。
+- `backend/.env.example` 的 PostgreSQL 示例连接应与 compose 凭据保持一致（`pinf/pinf/postgres_db`）。
+- `N8N_WEBHOOK_URL` 在容器网络内应优先使用 `http://n8n:5678/...` 形式。
+- Debian 基础镜像构建慢时，优先在 Dockerfile 中切换 APT 国内镜像（默认清华，可通过 build-arg 覆盖）。
+- APT 源替换需同时兼容 `/etc/apt/sources.list.d/debian.sources` 与 `/etc/apt/sources.list` 两种格式。
+- 镜像源应暴露为 `ARG`（`APT_MIRROR`/`APT_SECURITY_MIRROR`），便于不同服务器快速切换。

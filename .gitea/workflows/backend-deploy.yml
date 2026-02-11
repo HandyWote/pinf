@@ -49,9 +49,9 @@ jobs:
           sudo apt-get update && sudo apt-get install -y sshpass
 
           # SSH 登录并执行部署命令
-          sshpass -p '${{ vars.DEPLOY_PASSWORD }}' ssh -o StrictHostKeyChecking=no \
+          sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' ssh -o StrictHostKeyChecking=no \
             -p ${{ env.DEPLOY_PORT }} \
-            ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "cd ${{ vars.BACKEND_PATH }} && \
              git pull && \
              docker compose -f docker-compose.yml up -d --build"
@@ -61,4 +61,4 @@ jobs:
         if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           echo "部署完成！"
-          echo "后端服务已在 ${{ vars.DEPLOY_HOST }} 上重新构建并启动"
+          echo "后端服务已在 ${{ secrets.DEPLOY_HOST }} 上重新构建并启动"

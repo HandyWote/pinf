@@ -40,8 +40,8 @@ RUN uv sync --frozen --no-dev
 # 复制应用代码
 COPY . .
 
-# 确保应用目录对非 root 用户可写
-RUN chown -R nobody:nobody /app
+# Debian slim 中 nobody 对应的组为 nogroup
+RUN chown -R nobody:nogroup /app
 
 # 切换到非 root 用户
 USER nobody

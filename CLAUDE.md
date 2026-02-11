@@ -137,3 +137,5 @@
 - Debian 基础镜像构建慢时，优先在 Dockerfile 中切换 APT 国内镜像（默认清华，可通过 build-arg 覆盖）。
 - APT 源替换需同时兼容 `/etc/apt/sources.list.d/debian.sources` 与 `/etc/apt/sources.list` 两种格式。
 - 镜像源应暴露为 `ARG`（`APT_MIRROR`/`APT_SECURITY_MIRROR`），便于不同服务器快速切换。
+- `python:3.11-slim`（Debian）中 `nobody` 的默认组通常是 `nogroup`，`chown nobody:nobody` 会失败。
+- 非 root 权限场景下优先使用 `nobody:nogroup` 或 `65534:65534` 避免跨环境差异。

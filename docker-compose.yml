@@ -1,0 +1,64 @@
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5010:5010"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key}
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///database.db}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5010/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - pinf_net
+
+  n8n:
+    image: docker.1ms.run/n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=Asia/Shanghai
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=pinf
+      - N8N_BASIC_AUTH_PASSWORD=pinf123
+      - N8N_HOST=https://flows.pinf.top
+    volumes:
+      - ./docker/n8n:/home/node/.n8n
+    networks:
+      - pinf_net
+
+  pgvector:
+    image: docker.1ms.run/ankane/pgvector:latest
+    container_name: pgvector
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=pinf
+      - POSTGRES_DB=postgres_db
+      - POSTGRES_USER=pinf
+      - LANG=en_US.utf8
+      - PGDATA=/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pinf -d postgres_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/pgvector:/var/lib/postgresql/data
+    networks:
+      - pinf_net
+
+networks:
+  pinf_net:
+    driver: bridge

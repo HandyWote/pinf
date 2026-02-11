@@ -27,8 +27,8 @@ RUN uv sync --frozen --no-dev
 # 复制应用代码
 COPY . .
 
-# 创建 instance 目录
-RUN mkdir -p instance && chown -R nobody:nobody /app
+# 确保应用目录对非 root 用户可写
+RUN chown -R nobody:nobody /app
 
 # 切换到非 root 用户
 USER nobody

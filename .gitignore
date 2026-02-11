@@ -141,3 +141,5 @@ logs/
 
 .claude/
 .codex/
+
+docker/

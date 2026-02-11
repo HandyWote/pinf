@@ -50,73 +50,82 @@
 *   **防回流原则**：若发现旧写法回流（如裸 `borderColor` 或随意图标尺寸），修复时优先替换为 token 引用，不做临时补丁。
 *   **图标映射管理**：新增图标时需在 `app_end/components/ui/icon-symbol-map.ts` 中添加 SF Symbol → Ionicons 映射，确保类型安全。
 
-## Git 最佳实践
 
-### Git 操作约束
-- **禁止擅自操作**: 除非用户**明确要求**，否则不得执行 `git add`、`git commit`、`git push` 等 Git 操作
-- **代码修改与提交分离**: 代码编辑完成后，等待用户确认后再执行提交操作
-- **变基等危险操作**: 涉及历史重写的操作（rebase、reset --hard、force push）必须先征得用户同意
 
-### 分支变基与历史整理
-- **变基场景**: 当需要将功能分支插入到历史特定位置时，使用 `git rebase --onto <新基准> <旧基准>`
-- **历史重写警告**: 变基会改变提交 hash，已推送的分支需要 `git push --force`，需谨慎操作
-- **目录重命名处理**: 变基过程中的目录重命名（如 `WA/` → `app_end/`）会自动处理，但新增文件需手动移动
-- **备份习惯**: 重大变基前创建备份分支 `git branch backup-$(date +%Y%m%d)`
+## 全局强约束（Baseline）
+- 默认技术决策：优先“未来技术债最少”方案；若成本或风险明显过高，再给最小侵入备选。
+- 会话收尾约定：每次对话结束，将可复用结论以 3-8 条短句同步写入 `AGENTS.md` 与 `CLAUDE.md`。
+- 语言：全程中文。
+- Git：未获明确指令，不执行 `git add/commit/push`。
 
-### 图标管理规范
-- **命名规范**: 使用 SF Symbol 风格（如 `sun.max.fill`, `moon.stars`），保持跨平台一致性
-- **映射维护**: 所有图标必须在 `icon-symbol-map.ts` 中声明映射，类型系统会自动检查
-- **尺寸规范**: 统一使用 `organicTheme.iconSizes.*` token，禁止硬编码数字
-- **新增流程**:
-  1. 确认 Ionicons 支持该图标
-  2. 在映射表中添加 SF Symbol 名称 → Ionicons 名称
-  3. 使用 `IconSymbol name="your.icon" />`
+## Frontend 全局规范
+- UI 设计语言必须遵循 Organic 体系：颜色、间距、字号、圆角、阴影均优先使用 token。
+- 禁止在业务页散落硬编码视觉值（尤其 `borderColor`、图标尺寸、标题字重/行高）。
+- 描边语义只允许 `organicTheme.colors.border.*`；禁止用 `primary.*` 直接替代描边语义。
+- 图标必须使用 `IconSymbol` 与 SF Symbol 命名；新增图标必须更新 `app_end/components/ui/icon-symbol-map.ts` 映射。
+- 图标尺寸必须走 `organicTheme.iconSizes.*`，禁止 `size={数字}` 回流。
+- 交互反馈统一走 `Feedback`（`notify/confirm`），禁止直接调用 `Alert.alert`。
+- 关键表单（登录/密码/资料）必须提供页面内可见错误文案（如 `formError`），Toast 仅补充。
+- 密码流程必须区分 `init/change`；`needSetPassword=true` 时必须留在设置密码流程。
+- 资料修改必须先后端落库，再同步本地 store，不允许仅本地伪成功。
+- 前端最小验收：`npm run lint`；涉及类型/图标/API 字段变化时必须追加 `npx tsc --noEmit`。
 
-## Project Structure & Modules
-- `backend/`: Flask API service. Business logic split across `routes/` (blueprints by domain), `models/` (SQLAlchemy models), `utils/`, and `instance/` for local data/config. `app.py` bootstraps the service.
-- `app_end/`: React Native Expo 移动应用。使用 Expo Router 文件路由，Zustand 状态管理，Organic 主题设计系统。
-- `wechat_end/`: **已弃用**的微信小程序代码，仅供参考/存档，不再维护。
-- `mobile_end/`, `web_end/`: 当前为空壳或占位目录。
+## Backend 全局规范
+- 后端字段新增/调整必须同步三件套：`model` + `db_migrations` + `to_dict`。
+- 配置与密钥只走环境变量，禁止硬编码到代码。
+- 路由按领域蓝图组织，响应结构保持一致（`status/message/data` 风格）。
+- 数据库默认 PostgreSQL 方案，避免隐式回退到本地 SQLite 习惯。
+- 与前端联动的接口字段变更后，必须提醒并推动前端类型同步。
+- 后端改动至少做目标模块语法检查；涉及关键链路需补充最小可运行验证。
 
-## Build, Test, and Development Commands
-- Backend setup (from repo root):
-  ```bash
-  cd backend
-  python3 -m venv venv && source venv/bin/activate
-  pip install -r requirements.txt
-  python app.py  # starts on http://localhost:5010
-  ```
-- Quick smoke check: `curl http://localhost:5010/api/health` should return a healthy status.
-- Docker (backend): `docker build -t babysitting-backend ./backend` then `docker run -p 5010:5000 babysitting-backend`. For compose, use `docker-compose -f backend/docker-compose.yml up -d`.
-- React Native (app_end/):
-  ```bash
-  cd app_end
-  npm install
-  npm start        # 启动开发服务器
-  npm run lint     # 代码检查
-  npm run ios      # iOS 模拟器
-  npm run android  # Android 模拟器/真机
-  npm run web      # Web 浏览器
-  ```
+## Docker/部署基线
+- Compose 统一使用根目录 `docker-compose.yml`。
+- 服务编排：`backend`、`n8n`、`pgvector` 位于同一网络，服务名可互访。
+- `backend` 必须显式读取 `env_file: ./backend/.env`。
+- 持久化卷统一挂载到根目录 `docker/`（如 `docker/n8n`、`docker/pgvector`）。
+- PostgreSQL 场景下不保留 `instance` 挂载与相关镜像创建步骤。
 
-## Coding Style & Naming Conventions
-- Python: follow PEP 8, 4-space indents, `snake_case` functions/variables, `PascalCase` models. Keep responses consistent (`{"status": "...", "message": "...", ...}`) and group routes per blueprint in `routes/`.
-- React Native (app_end/):
-  - TypeScript: 使用 Organic 主题 Token，优先复用 `components/ui/` 组件
-  - 图标: 使用 IconSymbol 组件，SF Symbol 风格命名，映射到 Ionicons
-  - 状态管理: Zustand stores (authStore, babyStore, growthStore, appointmentStore)
-  - API: 统一使用 `services/api/` 封装的客户端
-  - 反馈: 使用 FeedbackContext 的 notify/confirm，不直接调用 Alert.alert
-- Configuration: prefer environment variables over hard-coded defaults; add docstrings for non-trivial functions and keep module boundaries clear.
+## 项目架构与模块职责
+- 架构：`app_end`（Expo RN）通过 HTTP/HTTPS 调用 `backend`（Flask API），认证采用 JWT。
+- `backend/app.py`：应用入口，注册蓝图与健康检查。
+- `backend/routes/`：按领域拆分（auth/baby/growth/appointment/content/chat）。
+- `backend/models/`：SQLAlchemy 模型层；字段变更遵循三件套。
+- `backend/utils/`：迁移、同步调度、通用工具。
+- `app_end/app/`：Expo Router 页面与流程编排。
+- `app_end/components/ui/`：可复用 UI 组件（优先复用，不在业务页重复实现）。
+- `app_end/services/api/`：API 客户端封装；`app_end/store/`：Zustand 状态管理。
+- `wechat_end/`：已弃用，仅参考。
 
-## Testing Guidelines
-- No shared suite exists yet; add backend tests alongside features using `pytest` and Flask's test client. Organize under `backend/tests/` with `test_<module>.py`. Example run (after adding pytest to dev deps): `pytest backend/tests -q`.
-- React Native: 在 Expo 中手动测试关键流程，使用 `npm run lint` 检查代码规范。包含 UI 变更的 PR 应附上截图或录屏。
+## 环境与配置基线
+- 后端必需：`SECRET_KEY`、`JWT_SECRET_KEY`、`DATABASE_URL`。
+- 联动配置：`N8N_WEBHOOK_URL`、微信公众号相关 `WECHAT_*`。
+- 环境变量优先级：运行时环境 > `backend/.env` > 代码默认值。
+- 生产环境禁止提交密钥与真实凭证，使用环境注入。
 
-## Commit & Pull Request Guidelines
-- Git history currently uses short, descriptive Chinese summaries (e.g., “整合先前代码，准备进一步开发”); keep one-line summaries under ~72 chars. If helpful, prefix with feature area (e.g., `auth: ...`).
-- PRs should list scope, endpoints or pages touched, env/config notes, and test evidence (commands run or manual checks). Attach screenshots/gif for client-facing changes. Link issues or tasks when available and flag breaking DB or API changes explicitly.
+## 测试与验收基线
+- 前端最小验收：`npm run lint`；类型/图标/API 字段变化追加 `npx tsc --noEmit`。
+- 后端最小验收：目标模块语法检查 + 关键链路最小可运行验证（如健康检查/关键接口）。
+- 涉及 UI 的改动应至少做一轮关键流程手测（登录、资料、核心业务路径）。
 
-## Security & Configuration Tips
-- Do not commit secrets. Override `SECRET_KEY`, `JWT_SECRET_KEY`, database URLs, and WeChat credentials via environment variables or a local `.env` ignored from VCS. Replace placeholder secrets before deploying.
-- Be cautious with sample data created in `create_test_data()`; disable or gate it for production deployments and avoid logging sensitive payloads.
+## Git 与交付基线
+- 未获明确要求，不做 `git add/commit/push`。
+- 提交信息使用简短中文摘要，可加功能前缀（如 `auth:`、`content:`）。
+- 涉及接口或字段变更，交付说明中必须写明前后端同步点与迁移影响。
+
+## 常用命令
+- 后端本地：`cd backend && uv run app.py`
+- 健康检查：`curl http://localhost:5010/api/health`
+- 根目录编排：`docker compose up -d`
+- 前端检查：`cd app_end && npm run lint`
+- 类型检查：`cd app_end && npx tsc --noEmit`
+
+## 近期关键沉淀（2026-02-11）
+- 公众号同步链路：`access_token` + `freepublish/batchget` + `freepublish/getarticle`，按 `wechat_article_id/source_url` 幂等写入。
+- 自动同步：启动立即执行一次 + 按 `WECHAT_SYNC_INTERVAL_MINUTES` 周期执行，受 `WECHAT_SYNC_ENABLED` 控制。
+- 微信 `40164 invalid ip`：需在公众号后台配置服务出口公网 IP 白名单。
+- Compose 已迁移到根目录并完成三服务互联；`backend` 显式读取 `./backend/.env`。
+- 卷目录统一到 `docker/`；`instance` 相关挂载与创建已清理。
+- 文档维护偏好：`TOP RULES` 为稳定区，后续更新默认不改动其原文与编号结构。
+- 文档形态偏好：采用“完整基线版”（全局约束 + 项目架构 + 配置 + 测试 + 命令），避免过度精简导致基础能力信息缺失。
+- 交互偏好：用户常在会话末尾要求“把有用结论简短写入 AGENTS/CLAUDE”，应默认主动执行该收尾动作。
+- 决策偏好：评审与方案默认优先技术债最少路径，同时保留最小侵入备选供权衡。

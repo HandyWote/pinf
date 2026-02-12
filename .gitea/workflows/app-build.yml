@@ -68,7 +68,17 @@ jobs:
             npm install
           fi
 
-          eas build --platform android --profile production --non-interactive --output "${{ github.workspace }}/pinf-${{ github.ref_name }}.apk"
+          BUILD_OUTPUT=$(eas build --platform android --profile production --non-interactive --wait --json)
+          echo "$BUILD_OUTPUT" > build_output.json
+
+          BUILD_URL=$(echo "$BUILD_OUTPUT" | jq -r 'if type=="array" then .[0].artifacts.buildUrl // .[0].artifacts.applicationArchiveUrl // empty else .artifacts.buildUrl // .artifacts.applicationArchiveUrl // empty end')
+          if [ -z "$BUILD_URL" ]; then
+            echo "Build artifact URL not found in EAS output"
+            cat build_output.json
+            exit 1
+          fi
+
+          curl -L "$BUILD_URL" -o "${{ github.workspace }}/pinf-${{ github.ref_name }}.apk"
         env:
           APP_VERSION: ${{ env.APP_VERSION }}
 

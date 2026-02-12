@@ -143,3 +143,6 @@
 - 若 CI runner 缺少 `yarn`，避免使用默认依赖 `yarn` 安装路径的 EAS action；可直接 `npm install -g eas-cli`。
 - `Skipped installing expo-cli: 'expo-version' not provided` 属信息提示，不是失败根因；关键失败信号是后续 executable not found。
 - `punycode` deprecation warning 通常不阻塞构建，可先聚焦致命错误处理。
+- 云构建模式下不要使用 `--output`；官方限制该参数仅用于本地构建（`--local`）。
+- 兼容官方 CI 的简化方案：`eas build --non-interactive --wait --json` 后从 JSON 提取 `artifacts.buildUrl` 下载产物。
+- 为兼容不同 CLI 返回结构，解析产物地址时应同时兼容数组与对象两种 JSON 形态。

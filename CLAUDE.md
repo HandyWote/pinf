@@ -132,3 +132,7 @@
 - 会话收尾偏好：对话结束时自动将可复用结论简短沉淀到 `AGENTS.md` 与 `CLAUDE.md`。
 - 方案偏好：默认优先技术债最少方案，同时提供最小侵入备选以便快速决策。
 - 文档沉淀范围偏好：`AGENTS.md`/`CLAUDE.md` 仅记录全局规则、长期有效架构决策与用户稳定偏好；单次排障与易解小问题默认不入库。
+- CI 脚本中多层 `if/else` 必须逐层补全 `fi`，避免 runner 出现 `unexpected end of file`。
+- Expo EAS 在 CI 里应优先用 `eas build --json --no-wait` 获取本次 `BUILD_ID`，再轮询 `eas build:view <id>`，避免 `build:list --limit=1` 取错并发任务。
+- APK 下载步骤需与构建步骤保持同一 `APP_PATH` 工作目录；Release 附件路径应显式指向该目录产物。
+- EAS 构建产物地址解析优先读取 `.artifacts.buildUrl`，并兼容 `.artifacts.applicationArchiveUrl` 作为回退。

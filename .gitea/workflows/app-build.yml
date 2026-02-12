@@ -10,7 +10,6 @@ env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
 jobs:
-  # Job 1: 检测 app_end 变更
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -27,18 +26,18 @@ jobs:
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             echo "changes_detected=true" >> $GITHUB_OUTPUT
-            echo "没有找到上一个 tag，将进行检测"
-            git diff --name-only origin/${{ github.default_branch }} | grep -q '^app_end/' && echo "app_end 有变更" || echo "app_end 无变更"
+            echo "No previous tag found, checking..."
+            git diff --name-only origin/${{ github.default_branch }} | grep -q '^app_end/' && echo "app_end has changes" || echo "app_end has no changes"
           else
             if git diff --name-only $PREV_TAG ${{ github.ref_name }} | grep -q '^app_end/'; then
               echo "changes_detected=true" >> $GITHUB_OUTPUT
-              echo "检测到 app_end 目录有变更"
+              echo "Detected app_end directory changes"
             else
               echo "changes_detected=false" >> $GITHUB_OUTPUT
-              echo "app_end 目录无变更，跳过构建"
+              echo "app_end directory has no changes"
             fi
+          fi
 
-  # Job 2: 构建 APK
   build-app:
     needs: detect-changes
     if: needs.detect-changes.outputs.app_changed == 'true'
@@ -61,45 +60,79 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Trigger build
+        working-directory: ${{ vars.APP_PATH }}
         run: |
-          cd ${{ vars.APP_PATH }} && \
-          npm install && \
-          eas build --platform android --non-interactive
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+          BUILD_OUTPUT=$(eas build --platform android --non-interactive --no-wait --json)
+          echo "$BUILD_OUTPUT" > build_output.json
+          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r 'if type=="array" then .[0].id else .id end')
+
+          if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
+            echo "Failed to get build id from EAS output"
+            cat build_output.json
+            exit 1
+          fi
+
+          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
         env:
           APP_VERSION: ${{ env.APP_VERSION }}
 
       - name: Download APK
+        working-directory: ${{ vars.APP_PATH }}
         run: |
-          # 等待构建完成并下载 APK（最多等待 30 分钟）
+          if [ -z "$BUILD_ID" ]; then
+            echo "BUILD_ID is empty"
+            exit 1
+          fi
+
           for i in {1..180}; do
-            BUILD_INFO=$(eas build:list --platform=android --limit=1 --json)
-            STATUS=$(echo "$BUILD_INFO" | jq -r '.[0].status')
-            BUILD_ID=$(echo "$BUILD_INFO" | jq -r '.[0].id')
+            BUILD_INFO=$(eas build:view "$BUILD_ID" --json)
+            STATUS=$(echo "$BUILD_INFO" | jq -r '.status')
 
             if [ "$STATUS" = "finished" ]; then
+              echo "Build finished: $BUILD_ID"
               break
+            fi
+            if [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
+              echo "Build failed with status: $STATUS"
+              echo "$BUILD_INFO"
+              exit 1
             fi
             sleep 10
           done
 
-          # 获取 artifact URL 并下载
-          BUILD_URL=$(eas build:view "$BUILD_ID" --json | jq -r '.artifacts[0].url')
+          FINAL_BUILD_INFO=$(eas build:view "$BUILD_ID" --json)
+          BUILD_URL=$(echo "$FINAL_BUILD_INFO" | jq -r '.artifacts.buildUrl // .artifacts.applicationArchiveUrl // empty')
+          if [ -z "$BUILD_URL" ]; then
+            echo "Build artifact URL not found"
+            echo "$FINAL_BUILD_INFO"
+            exit 1
+          fi
+
           curl -L -o "pinf-${{ github.ref_name }}.apk" "$BUILD_URL"
+        env:
+          BUILD_ID: ${{ env.BUILD_ID }}
 
       - name: Generate Release Notes
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
-            echo "## 更新内容" > release_notes.txt
+            echo "## Updates" > release_notes.txt
             git log $PREV_TAG..${{ github.ref_name }} --pretty=format:"- %s" >> release_notes.txt
           else
-            echo "## 首次发布" > release_notes.txt
+            echo "## Initial Release" > release_notes.txt
             git log --pretty=format:"- %s" -10 >> release_notes.txt
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "pinf-${{ github.ref_name }}.apk"
+          files: "${{ vars.APP_PATH }}/pinf-${{ github.ref_name }}.apk"
           body_path: release_notes.txt
           tag_name: ${{ github.ref_name }}
           name: App ${{ github.ref_name }}

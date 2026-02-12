@@ -7,36 +7,29 @@ on:
       - 'app-*'
 
 env:
-  DEPLOY_PORT: 22
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
 jobs:
-  detect-and-deploy:
+  # Job 1: 检测 app_end 变更
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      app_changed: ${{ steps.check_app.outputs.changes_detected }}
     steps:
-      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 提取版本号（v1.2.3 → 1.2.3）
-      - name: Extract version from tag
-        run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
-
-      # 检测 app_end 目录是否有变更
       - name: Check app_end changes
-        id: check_changes
+        id: check_app
         run: |
-          # 获取上一个 tag
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
-            # 如果没有上一个 tag，与初始 commit 比较
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             echo "没有找到上一个 tag，将进行检测"
             git diff --name-only origin/${{ github.default_branch }} | grep -q '^app_end/' && echo "app_end 有变更" || echo "app_end 无变更"
           else
-            # 比较当前 tag 与上一个 tag 的差异
             if git diff --name-only $PREV_TAG ${{ github.ref_name }} | grep -q '^app_end/'; then
               echo "changes_detected=true" >> $GITHUB_OUTPUT
               echo "检测到 app_end 目录有变更"
@@ -46,24 +39,48 @@ jobs:
             fi
           fi
 
-      # 安装 EAS CLI
+  # Job 2: 构建 APK
+  build-app:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.app_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Extract version from tag
+        run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
       - name: Setup EAS
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: npm install -g eas-cli
 
-      # 构建 APK
       - name: Build APK
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd ${{ vars.APP_PATH }} && \
           npm install && \
-          eas build --platform android --non-interactive --output ../app.apk
+          eas build --platform android --non-interactive --wait > build_result.txt
         env:
           APP_VERSION: ${{ env.APP_VERSION }}
 
-      # 生成 Release Notes
+      - name: Download APK
+        run: |
+          BUILD_URL=$(grep -oP 'https://expo.dev/artifacts/[^ ]+' app_end/build_result.txt | head -1 || grep -oP 'https://.*\.apk' app_end/build_result.txt | head -1)
+          if [ -n "$BUILD_URL" ]; then
+            curl -L -o "pinf-${{ github.ref_name }}.apk" "$BUILD_URL"
+          else
+            cd app_end
+            BUILD_ID=$(eas build:list --limit=1 --non-interactive --platform=android --json | jq -r '.[0].id')
+            eas build:view "$BUILD_ID --non-interactive --json | jq -r '.artifacts[0].url' | xargs curl -L -o "../pinf-${{ github.ref_name }}.apk"
+          fi
+
       - name: Generate Release Notes
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
@@ -74,12 +91,10 @@ jobs:
             git log --pretty=format:"- %s" -10 >> release_notes.txt
           fi
 
-      # 创建 Release 并上传 APK
       - name: Create Release
-        if: steps.check_changes.outputs.changes_detected == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: app.apk
+          files: "pinf-${{ github.ref_name }}.apk"
           body_path: release_notes.txt
           tag_name: ${{ github.ref_name }}
           name: App ${{ github.ref_name }}

@@ -10,28 +10,26 @@ env:
   DEPLOY_PORT: 22
 
 jobs:
-  detect-and-deploy:
+  # Job 1: 检测 backend 变更
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      backend_changed: ${{ steps.check_backend.outputs.changes_detected }}
     steps:
-      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 检测 backend 目录是否有变更
       - name: Check backend changes
-        id: check_changes
+        id: check_backend
         run: |
-          # 获取上一个 tag
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
-            # 如果没有上一个 tag，与初始 commit 比较
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             echo "没有找到上一个 tag，将进行检测"
             git diff --name-only origin/${{ github.default_branch }} | grep -q '^backend/' && echo "backend 有变更" || echo "backend 无变更"
           else
-            # 比较当前 tag 与上一个 tag 的差异
             if git diff --name-only $PREV_TAG ${{ github.ref_name }} | grep -q '^backend/'; then
               echo "changes_detected=true" >> $GITHUB_OUTPUT
               echo "检测到 backend 目录有变更"
@@ -41,14 +39,15 @@ jobs:
             fi
           fi
 
-      # 如果有变更，执行部署
+  # Job 2: 部署到服务器
+  deploy-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to server
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
-          # 安装 sshpass
           sudo apt-get update && sudo apt-get install -y sshpass
-
-          # SSH 登录并执行部署命令
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' ssh -o StrictHostKeyChecking=no \
             -p ${{ env.DEPLOY_PORT }} \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
@@ -56,8 +55,5 @@ jobs:
              git pull && \
              docker compose -f docker-compose.yml up -d --build"
 
-      # 输出部署结果
       - name: Deployment status
-        if: steps.check_changes.outputs.changes_detected == 'true'
-        run: |
-          echo "部署完成！"
+        run: echo "部署完成！"

@@ -140,3 +140,6 @@
 - 若目标是“最简单可用”的 APK 发布链路，优先使用 `eas build --non-interactive --output <apk-path>` 同步下载产物。
 - 异步 `BUILD_ID` 轮询方案更稳健但更复杂，可作为构建队列拥堵时的备选。
 - Release 附件路径应与 `--output` 实际落地路径保持一致，避免上传阶段找不到文件。
+- 若 CI runner 缺少 `yarn`，避免使用默认依赖 `yarn` 安装路径的 EAS action；可直接 `npm install -g eas-cli`。
+- `Skipped installing expo-cli: 'expo-version' not provided` 属信息提示，不是失败根因；关键失败信号是后续 executable not found。
+- `punycode` deprecation warning 通常不阻塞构建，可先聚焦致命错误处理。

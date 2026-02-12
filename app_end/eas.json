@@ -1,0 +1,10 @@
+{
+  "cli": {
+    "version": ">= 5.2.0"
+  },
+  "build": {
+    "android": {
+      "type": "apk"
+    }
+  }
+}

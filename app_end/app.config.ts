@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: appJson.expo.name,
     slug: appJson.expo.slug,
-    version: appJson.expo.version,
+    version: process.env.APP_VERSION || appJson.expo.version,
     orientation: appJson.expo.orientation as ExpoConfig['orientation'],
     icon: appJson.expo.icon,
     scheme: appJson.expo.scheme,

@@ -61,4 +61,3 @@ jobs:
         if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           echo "部署完成！"
-          echo "后端服务已在 ${{ secrets.DEPLOY_HOST }} 上重新构建并启动"

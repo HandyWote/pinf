@@ -37,7 +37,6 @@ jobs:
               echo "changes_detected=false" >> $GITHUB_OUTPUT
               echo "app_end 目录无变更，跳过构建"
             fi
-          fi
 
   # Job 2: 构建 APK
   build-app:
@@ -61,24 +60,31 @@ jobs:
       - name: Setup EAS
         run: npm install -g eas-cli
 
-      - name: Build APK
+      - name: Trigger build
         run: |
           cd ${{ vars.APP_PATH }} && \
           npm install && \
-          eas build --platform android --non-interactive --wait > build_result.txt
+          eas build --platform android --non-interactive
         env:
           APP_VERSION: ${{ env.APP_VERSION }}
 
       - name: Download APK
         run: |
-          BUILD_URL=$(grep -oP 'https://expo.dev/artifacts/[^ ]+' app_end/build_result.txt | head -1 || grep -oP 'https://.*\.apk' app_end/build_result.txt | head -1)
-          if [ -n "$BUILD_URL" ]; then
-            curl -L -o "pinf-${{ github.ref_name }}.apk" "$BUILD_URL"
-          else
-            cd app_end
-            BUILD_ID=$(eas build:list --limit=1 --non-interactive --platform=android --json | jq -r '.[0].id')
-            eas build:view "$BUILD_ID --non-interactive --json | jq -r '.artifacts[0].url' | xargs curl -L -o "../pinf-${{ github.ref_name }}.apk"
-          fi
+          # 等待构建完成并下载 APK（最多等待 30 分钟）
+          for i in {1..180}; do
+            BUILD_INFO=$(eas build:list --platform=android --limit=1 --json)
+            STATUS=$(echo "$BUILD_INFO" | jq -r '.[0].status')
+            BUILD_ID=$(echo "$BUILD_INFO" | jq -r '.[0].id')
+
+            if [ "$STATUS" = "finished" ]; then
+              break
+            fi
+            sleep 10
+          done
+
+          # 获取 artifact URL 并下载
+          BUILD_URL=$(eas build:view "$BUILD_ID" --json | jq -r '.artifacts[0].url')
+          curl -L -o "pinf-${{ github.ref_name }}.apk" "$BUILD_URL"
 
       - name: Generate Release Notes
         run: |
@@ -89,7 +95,6 @@ jobs:
           else
             echo "## 首次发布" > release_notes.txt
             git log --pretty=format:"- %s" -10 >> release_notes.txt
-          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

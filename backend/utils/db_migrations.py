@@ -16,21 +16,8 @@ _MIGRATIONS = [
         "sql": "ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(50)",
     },
     {
-        "id": "2026_02_11_add_source_url_to_videos",
-        "sql": "ALTER TABLE videos ADD COLUMN IF NOT EXISTS source_url VARCHAR(1000)",
-    },
-    {
         "id": "2026_02_11_add_source_url_to_articles",
         "sql": "ALTER TABLE articles ADD COLUMN IF NOT EXISTS source_url VARCHAR(1000)",
-    },
-    {
-        "id": "2026_02_11_cleanup_seed_videos",
-        "sql": (
-            "DELETE FROM videos WHERE video_url IN ("
-            "'https://example.com/videos/feeding',"
-            "'https://example.com/videos/sleep'"
-            ")"
-        ),
     },
     {
         "id": "2026_02_11_cleanup_seed_articles",
@@ -57,6 +44,10 @@ _MIGRATIONS = [
     {
         "id": "2026_02_11_add_index_for_wechat_article_id",
         "sql": "CREATE INDEX IF NOT EXISTS idx_articles_wechat_article_id ON articles(wechat_article_id)",
+    },
+    {
+        "id": "2026_02_12_drop_videos_table",
+        "sql": "DROP TABLE IF EXISTS videos",
     },
 ]
 

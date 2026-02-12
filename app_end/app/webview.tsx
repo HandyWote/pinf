@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 
@@ -63,6 +63,15 @@ export default function InAppWebviewScreen() {
     setReloadKey((prev) => prev + 1);
   }, []);
 
+  const isWeb = Platform.OS === 'web';
+  const [webAutoOpened, setWebAutoOpened] = useState(false);
+
+  React.useEffect(() => {
+    if (!isWeb || !pageUrl || webAutoOpened) return;
+    setWebAutoOpened(true);
+    void handleOpenExternal();
+  }, [handleOpenExternal, isWeb, pageUrl, webAutoOpened]);
+
   return (
     <OrganicBackground variant="morning">
       <View style={styles.container}>
@@ -91,6 +100,14 @@ export default function InAppWebviewScreen() {
               <Text style={styles.retryText}>返回上一页</Text>
             </TouchableOpacity>
           </OrganicCard>
+        ) : isWeb ? (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
+            <Text style={styles.loadingText}>正在外部打开...</Text>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.retryText}>返回上一页</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View style={styles.webviewShell}>
             <WebView

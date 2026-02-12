@@ -7,19 +7,6 @@ export interface ContentPagination {
   hasPrev: boolean;
 }
 
-export interface ContentVideo {
-  id: number;
-  title: string;
-  description?: string | null;
-  videoUrl: string;
-  sourceUrl?: string | null;
-  coverUrl?: string | null;
-  category?: string | null;
-  views: number;
-  publishDate?: string | null;
-  tags: string[];
-}
-
 export interface ContentArticle {
   id: number;
   title: string;
@@ -31,4 +18,3 @@ export interface ContentArticle {
   publishDate?: string | null;
   tags: string[];
 }
-

@@ -95,7 +95,6 @@ export default function RootLayout() {
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
             <Stack.Screen name="growth/index" options={{ headerShown: false }} />
             <Stack.Screen name="appointments/index" options={{ headerShown: false }} />
-            <Stack.Screen name="class-video/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="class-article/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="webview" options={{ headerShown: false }} />
             <Stack.Screen name="set-password" options={{ headerShown: false }} />

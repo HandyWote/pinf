@@ -321,7 +321,6 @@ sudo certbot --nginx -d your-domain.com
 | 宝宝 | `/api/babies/<id>` | GET/PUT/DELETE | 详情、更新、删除 |
 | 成长 | `/api/babies/<id>/growth` | GET/POST | 成长记录查询、创建 |
 | 成长 | `/api/growth/<id>` | PUT/DELETE | 更新、删除成长记录 |
-| 内容 | `/api/content/videos` | GET | 视频列表（支持搜索/分类） |
 | 内容 | `/api/content/articles` | GET | 文章列表（支持搜索/分类） |
 | 内容 | `/api/content/wechat/publications` | GET | 调试：获取公众号发布记录 |
 | 内容 | `/api/content/wechat/article` | GET | 调试：按 article_id 获取公众号文章 |

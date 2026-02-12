@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  ImageBackground,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -14,29 +13,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Input, OrganicBackground, OrganicButton, OrganicCard, OrganicChipButton } from '@/components/ui';
+import { Input, OrganicBackground, OrganicButton, OrganicCard } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
 import { STORAGE_KEYS } from '@/services/api/client';
 import * as contentApi from '@/services/api/content';
-import type { ContentArticle, ContentPagination, ContentVideo } from '@/types/content';
+import type { ContentArticle, ContentPagination } from '@/types/content';
 import { buildWebviewRoute } from '@/utils/open-external-url';
 
-const CATEGORY_OPTIONS = [
-  { label: '全部', value: '' },
-  { label: '喂养', value: '喂养' },
-  { label: '发育', value: '发育' },
-  { label: '复诊', value: '复诊' },
-];
 
-const VIDEO_PAGE_SIZE = 6;
 const ARTICLE_PAGE_SIZE = 8;
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 type ContentCache = {
   key: string;
   cachedAt: number;
-  videos: ContentVideo[];
-  videoPagination: ContentPagination | null;
   articles: ContentArticle[];
   articlePagination: ContentPagination | null;
 };
@@ -47,9 +37,7 @@ const formatDate = (value?: string | null) => {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-    date.getDate()
-  ).padStart(2, '0')}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
 const buildArticleMeta = (article: ContentArticle) => {
@@ -61,20 +49,15 @@ const buildArticleMeta = (article: ContentArticle) => {
 export default function ClassScreen() {
   const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('');
-  const [videos, setVideos] = useState<ContentVideo[]>([]);
+  const [activeCategory] = useState('');
   const [articles, setArticles] = useState<ContentArticle[]>([]);
-  const [videoPagination, setVideoPagination] = useState<ContentPagination | null>(null);
   const [articlePagination, setArticlePagination] = useState<ContentPagination | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const cacheKey = useMemo(
-    () => buildCacheKey(searchQuery, activeCategory),
-    [searchQuery, activeCategory]
-  );
+  const cacheKey = useMemo(() => buildCacheKey(searchQuery, activeCategory), [searchQuery, activeCategory]);
 
   const loadCache = useCallback(async () => {
     try {
@@ -83,9 +66,7 @@ export default function ClassScreen() {
       const cache: ContentCache = JSON.parse(raw);
       if (cache.key !== cacheKey) return false;
       if (Date.now() - cache.cachedAt > CACHE_TTL_MS) return false;
-      setVideos(cache.videos);
       setArticles(cache.articles);
-      setVideoPagination(cache.videoPagination);
       setArticlePagination(cache.articlePagination);
       return true;
     } catch (cacheError) {
@@ -116,31 +97,19 @@ export default function ClassScreen() {
       setError(null);
 
       try {
-        const [videoRes, articleRes] = await Promise.all([
-          contentApi.listVideos({
-            page: 1,
-            per_page: VIDEO_PAGE_SIZE,
-            search: searchQuery || undefined,
-            category: activeCategory || undefined,
-          }),
-          contentApi.listArticles({
-            page: 1,
-            per_page: ARTICLE_PAGE_SIZE,
-            search: searchQuery || undefined,
-            category: activeCategory || undefined,
-          }),
-        ]);
+        const articleRes = await contentApi.listArticles({
+          page: 1,
+          per_page: ARTICLE_PAGE_SIZE,
+          search: searchQuery || undefined,
+          category: activeCategory || undefined,
+        });
 
-        setVideos(videoRes.data);
-        setVideoPagination(videoRes.pagination);
         setArticles(articleRes.data);
         setArticlePagination(articleRes.pagination);
 
         await saveCache({
           key: cacheKey,
           cachedAt: Date.now(),
-          videos: videoRes.data,
-          videoPagination: videoRes.pagination,
           articles: articleRes.data,
           articlePagination: articleRes.pagination,
         });
@@ -176,16 +145,6 @@ export default function ClassScreen() {
     }
   }, []);
 
-  const handleVideoPress = useCallback(
-    (video: ContentVideo) => {
-      const opened = handleOpenSourceUrl(video.sourceUrl, video.title);
-      if (!opened) {
-        router.push(`/class-video/${video.id}`);
-      }
-    },
-    [handleOpenSourceUrl]
-  );
-
   const handleArticlePress = useCallback(
     (article: ContentArticle) => {
       const opened = handleOpenSourceUrl(article.sourceUrl, article.title);
@@ -213,8 +172,6 @@ export default function ClassScreen() {
       await saveCache({
         key: cacheKey,
         cachedAt: Date.now(),
-        videos,
-        videoPagination,
         articles: merged,
         articlePagination: articleRes.pagination,
       });
@@ -224,23 +181,12 @@ export default function ClassScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [
-    activeCategory,
-    articlePagination,
-    articles,
-    cacheKey,
-    loadingMore,
-    saveCache,
-    searchQuery,
-    videoPagination,
-    videos,
-  ]);
+  }, [activeCategory, articlePagination, articles, cacheKey, loadingMore, saveCache, searchQuery]);
 
   useEffect(() => {
     fetchContent({ force: false });
   }, [fetchContent]);
 
-  const videoEmpty = !loading && videos.length === 0;
   const articleEmpty = !loading && articles.length === 0;
 
   return (
@@ -263,41 +209,22 @@ export default function ClassScreen() {
         <View style={styles.titleRow}>
           <Text style={styles.title}>在线课堂</Text>
           <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-            <IconSymbol
-              name="arrow.clockwise"
-              size={organicTheme.iconSizes.xs}
-              color={organicTheme.colors.text.secondary}
-            />
+            <IconSymbol name="arrow.clockwise" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />
             <Text style={styles.refreshText}>刷新</Text>
           </TouchableOpacity>
         </View>
 
         <Input
-          placeholder="搜索视频或文章"
+          placeholder="搜索文章"
           containerStyle={styles.searchContainer}
           value={searchText}
           onChangeText={setSearchText}
           onSubmitEditing={handleSearchSubmit}
           returnKeyType="search"
           leftIcon={(
-            <IconSymbol
-              name="magnifyingglass"
-              size={organicTheme.iconSizes.xs}
-              color={organicTheme.colors.text.secondary}
-            />
+            <IconSymbol name="magnifyingglass" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.secondary} />
           )}
         />
-
-        <View style={styles.categoryRow}>
-          {CATEGORY_OPTIONS.map((item) => (
-            <OrganicChipButton
-              key={item.value || 'all'}
-              label={item.label}
-              active={item.value === activeCategory}
-              onPress={() => setActiveCategory(item.value)}
-            />
-          ))}
-        </View>
 
         {error && (
           <OrganicCard variant="soft" shadow={false} style={styles.errorBanner}>
@@ -309,51 +236,10 @@ export default function ClassScreen() {
         )}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>推荐视频</Text>
-          {videoPagination?.total ? <Text style={styles.sectionMeta}>共 {videoPagination.total} 条</Text> : null}
-        </View>
-        {loading && videos.length === 0 ? (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
-            <Text style={styles.loadingText}>加载视频中...</Text>
-          </View>
-        ) : videoEmpty ? (
-          <OrganicCard variant="ghost" shadow={false} style={styles.emptyCard}>
-            <Text style={styles.emptyText}>暂无视频内容</Text>
-          </OrganicCard>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.videoRow}>
-            {videos.map((video) => (
-              <TouchableOpacity key={video.id} activeOpacity={0.8} onPress={() => handleVideoPress(video)}>
-                <ImageBackground
-                  source={video.coverUrl ? { uri: video.coverUrl } : undefined}
-                  style={styles.videoCard}
-                  imageStyle={styles.videoImage}
-                >
-                  {!video.coverUrl && <View style={styles.videoPlaceholder} />}
-                  <View style={styles.videoOverlay} />
-                  <View style={styles.playIcon}>
-                    <IconSymbol name="play.circle.fill" size={organicTheme.iconSizes.xl} color="#FFFFFF" />
-                  </View>
-                  <Text style={styles.videoTitle} numberOfLines={2}>
-                    {video.title}
-                  </Text>
-                  <View style={styles.videoMeta}>
-                    <Text style={styles.videoMetaText}>{video.views || 0} 次播放</Text>
-                    {video.publishDate && <Text style={styles.videoMetaText}>{formatDate(video.publishDate)}</Text>}
-                  </View>
-                </ImageBackground>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-
-        <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>精选文章</Text>
-          {articlePagination?.total ? (
-            <Text style={styles.sectionMeta}>共 {articlePagination.total} 条</Text>
-          ) : null}
+          {articlePagination?.total ? <Text style={styles.sectionMeta}>共 {articlePagination.total} 条</Text> : null}
         </View>
+
         {loading && articles.length === 0 ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
@@ -367,16 +253,8 @@ export default function ClassScreen() {
           <View style={styles.articleList}>
             {articles.map((article) => (
               <OrganicCard key={article.id} shadow={false} style={styles.articleCard}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleArticlePress(article)}
-                  style={styles.articlePressable}
-                >
-                  {article.coverUrl ? (
-                    <Image source={{ uri: article.coverUrl }} style={styles.articleThumb} />
-                  ) : (
-                    <View style={styles.articleThumb} />
-                  )}
+                <TouchableOpacity activeOpacity={0.8} onPress={() => handleArticlePress(article)} style={styles.articlePressable}>
+                  {article.coverUrl}
                   <View style={styles.articleBody}>
                     <Text style={styles.articleTitle} numberOfLines={2}>
                       {article.title}
@@ -385,11 +263,7 @@ export default function ClassScreen() {
                       {buildArticleMeta(article)}
                     </Text>
                   </View>
-                  <IconSymbol
-                    name="chevron.right"
-                    size={organicTheme.iconSizes.xs}
-                    color={organicTheme.colors.text.tertiary}
-                  />
+                  <IconSymbol name="chevron.right" size={organicTheme.iconSizes.xs} color={organicTheme.colors.text.tertiary} />
                 </TouchableOpacity>
               </OrganicCard>
             ))}
@@ -502,55 +376,6 @@ const styles = StyleSheet.create({
     color: organicTheme.colors.primary.main,
     fontWeight: organicTheme.typography.fontWeight.semibold,
     paddingLeft: organicTheme.spacing.sm,
-  },
-  videoRow: {
-    gap: organicTheme.spacing.md,
-    paddingRight: organicTheme.spacing.md,
-  },
-  videoCard: {
-    width: 264,
-    height: 164,
-    borderRadius: organicTheme.shapes.borderRadius.soft,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-    padding: organicTheme.spacing.md,
-    backgroundColor: organicTheme.colors.primary.soft,
-    borderWidth: 1,
-    borderColor: organicTheme.colors.border.light,
-  },
-  videoImage: {
-    borderRadius: organicTheme.shapes.borderRadius.soft,
-  },
-  videoPlaceholder: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: organicTheme.colors.primary.soft,
-  },
-  videoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(74, 74, 74, 0.4)',
-  },
-  playIcon: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -20 }, { translateY: -20 }],
-  },
-  videoTitle: {
-    color: '#FFFFFF',
-    fontSize: organicTheme.typography.fontSize.md,
-    fontWeight: organicTheme.typography.fontWeight.semibold,
-    lineHeight: 24,
-  },
-  videoMeta: {
-    flexDirection: 'row',
-    marginTop: organicTheme.spacing.xs,
-    alignItems: 'center',
-    gap: organicTheme.spacing.sm,
-  },
-  videoMetaText: {
-    color: '#FFFFFF',
-    fontSize: organicTheme.typography.fontSize.xs,
-    opacity: 0.9,
   },
   articleList: {
     gap: organicTheme.spacing.sm,

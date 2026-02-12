@@ -4,8 +4,7 @@ import logging
 from flask import Blueprint, jsonify, request
 from sqlalchemy import or_
 
-from models import db
-from models.content import Article, Video
+from models.content import Article
 from utils.auth import token_required
 from utils.wechat_official import (
     WechatOfficialError,
@@ -71,48 +70,6 @@ def _paginate(query, page, per_page):
             "hasPrev": pager.has_prev,
         },
     }
-
-
-@content_bp.route("/content/videos", methods=["GET"])
-@token_required
-def get_videos(current_user):
-    page = _normalize_page(request.args.get("page"), 1)
-    per_page = _normalize_per_page(request.args.get("per_page"), 10)
-    search = (request.args.get("search") or "").strip()
-    category = (request.args.get("category") or "").strip() or None
-
-    cache_key = f"videos:{page}:{per_page}:{search}:{category}"
-    cached = _cache_get(cache_key)
-    if cached:
-        return jsonify(cached)
-
-    query = Video.query
-    if search:
-        query = query.filter(or_(Video.title.ilike(f"%{search}%"), Video.description.ilike(f"%{search}%")))
-    if category:
-        query = query.filter_by(category=category)
-    query = query.order_by(Video.publish_date.desc())
-
-    result = _paginate(query, page, per_page)
-    payload = {"status": "success", "data": result["items"], "pagination": result["pagination"]}
-    _cache_set(cache_key, payload)
-    return jsonify(payload)
-
-
-@content_bp.route("/content/videos/<int:video_id>", methods=["GET"])
-@token_required
-def get_video_detail(current_user, video_id):
-    video = Video.query.get(video_id)
-    if not video:
-        return jsonify({"status": "error", "message": "视频不存在"}), 404
-
-    video.views += 1
-    try:
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-
-    return jsonify({"status": "success", "data": video.to_dict()})
 
 
 @content_bp.route("/content/articles", methods=["GET"])

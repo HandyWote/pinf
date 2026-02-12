@@ -2,7 +2,7 @@
  * 内容课堂接口
  */
 import { api } from './client';
-import type { ContentArticle, ContentPagination, ContentVideo } from '@/types/content';
+import type { ContentArticle, ContentPagination } from '@/types/content';
 
 interface ApiListResponse<T> {
   status: string;
@@ -24,23 +24,12 @@ export interface ContentListParams {
   category?: string;
 }
 
-export const listVideos = async (params?: ContentListParams) => {
-  const res = await api.get<ApiListResponse<ContentVideo[]>>('/content/videos', params);
-  return res.data;
-};
-
 export const listArticles = async (params?: ContentListParams) => {
   const res = await api.get<ApiListResponse<ContentArticle[]>>('/content/articles', params);
   return res.data;
-};
-
-export const getVideoDetail = async (id: number) => {
-  const res = await api.get<ApiResponse<ContentVideo>>(`/content/videos/${id}`);
-  return res.data.data;
 };
 
 export const getArticleDetail = async (id: number) => {
   const res = await api.get<ApiResponse<ContentArticle>>(`/content/articles/${id}`);
   return res.data.data;
 };
-

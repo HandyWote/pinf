@@ -6,7 +6,7 @@ db = SQLAlchemy()
 from .user import User
 from .baby import Baby
 from .growth import GrowthRecord
-from .content import Video, Article
+from .content import Article
 from .appointment import Appointment
 from .chat import ChatMessage
 from .verification_code import VerificationCode

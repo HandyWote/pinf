@@ -57,7 +57,10 @@ jobs:
         run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
       - name: Setup EAS
-        run: npm install -g eas-cli
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Trigger build
         working-directory: ${{ vars.APP_PATH }}
@@ -68,55 +71,9 @@ jobs:
             npm install
           fi
 
-          BUILD_OUTPUT=$(eas build --platform android --non-interactive --no-wait --json)
-          echo "$BUILD_OUTPUT" > build_output.json
-          BUILD_ID=$(echo "$BUILD_OUTPUT" | jq -r 'if type=="array" then .[0].id else .id end')
-
-          if [ -z "$BUILD_ID" ] || [ "$BUILD_ID" = "null" ]; then
-            echo "Failed to get build id from EAS output"
-            cat build_output.json
-            exit 1
-          fi
-
-          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
+          eas build --platform android --profile production --non-interactive --output "${{ github.workspace }}/pinf-${{ github.ref_name }}.apk"
         env:
           APP_VERSION: ${{ env.APP_VERSION }}
-
-      - name: Download APK
-        working-directory: ${{ vars.APP_PATH }}
-        run: |
-          if [ -z "$BUILD_ID" ]; then
-            echo "BUILD_ID is empty"
-            exit 1
-          fi
-
-          for i in {1..180}; do
-            BUILD_INFO=$(eas build:view "$BUILD_ID" --json)
-            STATUS=$(echo "$BUILD_INFO" | jq -r '.status')
-
-            if [ "$STATUS" = "finished" ]; then
-              echo "Build finished: $BUILD_ID"
-              break
-            fi
-            if [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
-              echo "Build failed with status: $STATUS"
-              echo "$BUILD_INFO"
-              exit 1
-            fi
-            sleep 10
-          done
-
-          FINAL_BUILD_INFO=$(eas build:view "$BUILD_ID" --json)
-          BUILD_URL=$(echo "$FINAL_BUILD_INFO" | jq -r '.artifacts.buildUrl // .artifacts.applicationArchiveUrl // empty')
-          if [ -z "$BUILD_URL" ]; then
-            echo "Build artifact URL not found"
-            echo "$FINAL_BUILD_INFO"
-            exit 1
-          fi
-
-          curl -L -o "pinf-${{ github.ref_name }}.apk" "$BUILD_URL"
-        env:
-          BUILD_ID: ${{ env.BUILD_ID }}
 
       - name: Generate Release Notes
         run: |
@@ -132,7 +89,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "${{ vars.APP_PATH }}/pinf-${{ github.ref_name }}.apk"
+          files: "pinf-${{ github.ref_name }}.apk"
           body_path: release_notes.txt
           tag_name: ${{ github.ref_name }}
           name: App ${{ github.ref_name }}

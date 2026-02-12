@@ -136,3 +136,9 @@
 - Expo EAS 在 CI 里应优先用 `eas build --json --no-wait` 获取本次 `BUILD_ID`，再轮询 `eas build:view <id>`，避免 `build:list --limit=1` 取错并发任务。
 - APK 下载步骤需与构建步骤保持同一 `APP_PATH` 工作目录；Release 附件路径应显式指向该目录产物。
 - EAS 构建产物地址解析优先读取 `.artifacts.buildUrl`，并兼容 `.artifacts.applicationArchiveUrl` 作为回退。
+- Expo SDK 54 场景下，`eas.json` 需使用 profile 结构：`build.<profile>.android.buildType`，不能再用 `build.android.type`。
+- CI 中建议使用 `expo/expo-github-action@v8` 初始化 EAS，优先避免手动全局安装带来的版本漂移。
+- 构建命令应显式指定 profile（如 `--profile production`），避免默认 profile 变化导致配置解析失败。
+- 若目标是“最简单可用”的 APK 发布链路，优先使用 `eas build --non-interactive --output <apk-path>` 同步下载产物。
+- 异步 `BUILD_ID` 轮询方案更稳健但更复杂，可作为构建队列拥堵时的备选。
+- Release 附件路径应与 `--output` 实际落地路径保持一致，避免上传阶段找不到文件。

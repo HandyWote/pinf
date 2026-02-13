@@ -19,6 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     experiments: appJson.expo.experiments,
     extra: {
       apiBaseUrl: process.env.API_BASE_URL,
+      eas: { projectId: "adb22529-846e-4b53-a8ab-78ead7c804f4" },
     },
   };
 };

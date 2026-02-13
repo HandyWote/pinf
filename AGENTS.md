@@ -129,7 +129,7 @@
 - 文档形态偏好：采用“完整基线版”（全局约束 + 项目架构 + 配置 + 测试 + 命令），避免过度精简导致基础能力信息缺失。
 - 交互偏好：用户常在会话末尾要求“把有用结论简短写入 AGENTS/CLAUDE”，应默认主动执行该收尾动作。
 - 决策偏好：评审与方案默认优先技术债最少路径，同时保留最小侵入备选供权衡。
-- 文档沉淀范围偏好：`AGENTS.md`/`CLAUDE.md` 仅记录全局规则、长期有效架构决策与用户稳定偏好；单次排障与易解小问题默认不入库。
+- 文档沉淀范围偏好：`AGENTS.md`/`CLAUDE.md` 仅记录全局规则、长期有效架构决策与用户稳定偏好；单次排障与易解小问题默认不入库，每次加入记得要缩减一下沉淀内容增加信息熵。
 - CI 脚本中多层 `if/else` 必须逐层补全 `fi`，避免 runner 出现 `unexpected end of file`。
 - Expo EAS 在 CI 里应优先用 `eas build --json --no-wait` 获取本次 `BUILD_ID`，再轮询 `eas build:view <id>`，避免 `build:list --limit=1` 取错并发任务。
 - APK 下载步骤需与构建步骤保持同一 `APP_PATH` 工作目录；Release 附件路径应显式指向该目录产物。
@@ -146,3 +146,6 @@
 - 云构建模式下不要使用 `--output`；官方限制该参数仅用于本地构建（`--local`）。
 - 兼容官方 CI 的简化方案：`eas build --non-interactive --wait --json` 后从 JSON 提取 `artifacts.buildUrl` 下载产物。
 - 为兼容不同 CLI 返回结构，解析产物地址时应同时兼容数组与对象两种 JSON 形态。
+- Expo 构建显示的项目名来自 `app.json` 的 `expo.name/slug/scheme`，`app.config.ts` 若透传这些字段会以其为准。
+- Android 首次 EAS 构建前必须配置 `expo.android.package`，否则会在构建前置校验阶段直接失败。
+- 模板初始化后应优先完成 `name/slug/scheme/package` 品牌化收敛，避免后续 EAS 项目绑定混乱。

@@ -149,3 +149,6 @@
 - Expo 构建显示的项目名来自 `app.json` 的 `expo.name/slug/scheme`，`app.config.ts` 若透传这些字段会以其为准。
 - Android 首次 EAS 构建前必须配置 `expo.android.package`，否则会在构建前置校验阶段直接失败。
 - 模板初始化后应优先完成 `name/slug/scheme/package` 品牌化收敛，避免后续 EAS 项目绑定混乱。
+- 在 Gitea 环境下，发布步骤应优先调用 Gitea Release API，避免依赖 GitHub 专用 release action。
+- Release Token 优先使用 `secrets.GITEA_TOKEN`，可回退到兼容变量 `secrets.GITHUB_TOKEN`。
+- 发布链路建议支持“tag 已存在 release”场景：创建失败后按 tag 查询并复用 release 再上传附件。

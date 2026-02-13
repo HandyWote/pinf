@@ -154,3 +154,6 @@
 - EAS 云构建成功后若需减少噪音，可在 CI 环境变量设置 `EAS_BUILD_NO_EXPO_GO_WARNING=true`。
 - `cli.appVersionSource` 建议尽早设为 `remote`，避免 EAS 后续版本升级造成必填阻断。
 - 当前 APK 发布最简链路保持为：`eas build --wait --json` + 解析 URL + `curl` 下载。
+- 在 Gitea 环境下，发布步骤应优先调用 Gitea Release API，避免依赖 GitHub 专用 release action。
+- Release Token 优先使用 `secrets.GITEA_TOKEN`，可回退到兼容变量 `secrets.GITHUB_TOKEN`。
+- 发布链路建议支持“tag 已存在 release”场景：创建失败后按 tag 查询并复用 release 再上传附件。

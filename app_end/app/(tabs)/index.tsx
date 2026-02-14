@@ -470,16 +470,6 @@ export default function HomeScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* 浮动操作按钮 */}
-      <TouchableOpacity style={styles.fab} onPress={handleOpenGrowthModal}>
-        <LinearGradient
-          colors={[organicTheme.colors.primary.main, organicTheme.colors.primary.soft]}
-          style={styles.fabGradient}
-        >
-          <IconSymbol size={organicTheme.iconSizes.md} name="plus" color="#FFFFFF" />
-        </LinearGradient>
-      </TouchableOpacity>
-
       {/* 弹窗 */}
       <GrowthRecordModal
         visible={showGrowthModal}

@@ -1,6 +1,6 @@
 import { TREND_THRESHOLD } from './config';
 import type { GrowthMetric } from '@/types/growth';
-import type { Assessment, StandardPercentilePoint, TrendLabel, UserPoint, ZoneLabel } from './types';
+import type { Assessment, DiagnosticInfo, StandardPercentilePoint, TrendLabel, UserPoint, ZoneLabel } from './types';
 
 function interpolateStandardPoint(points: StandardPercentilePoint[], x: number): StandardPercentilePoint | null {
   if (points.length === 0) return null;
@@ -41,7 +41,7 @@ function zoneByPercentile(percentile: number): ZoneLabel {
 }
 
 function resolveTrend(metric: GrowthMetric, userPoints: UserPoint[]): TrendLabel {
-  if (userPoints.length < 3) return '数据不足';
+  if (userPoints.length < 3) return '记录较少';
   const latest3 = userPoints.slice(-3);
   const start = latest3[0].value;
   const end = latest3[2].value;
@@ -52,12 +52,28 @@ function resolveTrend(metric: GrowthMetric, userPoints: UserPoint[]): TrendLabel
   return '平稳';
 }
 
-export function buildAssessment(metric: GrowthMetric, standardPoints: StandardPercentilePoint[], userPoints: UserPoint[]): Assessment {
-  if (userPoints.length === 0) {
+export function buildAssessment(
+  metric: GrowthMetric,
+  standardPoints: StandardPercentilePoint[],
+  userPoints: UserPoint[],
+  rawRecordCount: number,
+  diagnostic?: DiagnosticInfo
+): Assessment {
+  if (rawRecordCount === 0) {
     return {
       latestPercentile: null,
       zone: null,
       trend: '数据不足',
+      diagnostic,
+    };
+  }
+
+  if (userPoints.length === 0) {
+    return {
+      latestPercentile: null,
+      zone: null,
+      trend: '当前标准下无有效点',
+      diagnostic,
     };
   }
 
@@ -68,6 +84,7 @@ export function buildAssessment(metric: GrowthMetric, standardPoints: StandardPe
       latestPercentile: null,
       zone: null,
       trend: resolveTrend(metric, userPoints),
+      diagnostic,
     };
   }
 
@@ -76,5 +93,6 @@ export function buildAssessment(metric: GrowthMetric, standardPoints: StandardPe
     latestPercentile,
     zone: zoneByPercentile(latestPercentile),
     trend: resolveTrend(metric, userPoints),
+    diagnostic,
   };
 }

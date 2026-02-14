@@ -7,7 +7,23 @@ export type AxisUnit = 'month' | 'week';
 export type AgeType = 'actual' | 'corrected';
 export type RangeMode = 'smart' | 'full';
 export type ZoneLabel = '偏低' | '正常' | '偏高';
-export type TrendLabel = '上升' | '平稳' | '下降' | '数据不足';
+export type TrendLabel = '上升' | '平稳' | '下降' | '数据不足' | '记录较少' | '当前标准下无有效点';
+
+export interface PrematurityResult {
+  isPremature: boolean;
+  isEstimated: boolean;
+  source: 'gestationalWeeks' | 'dueDate' | null;
+  birthWeeks: number | null;
+}
+
+export interface DiagnosticInfo {
+  totalRecords: number;
+  validFentonPoints: number;
+  outOfRangePoints: number;
+  missingPMAPoints: number;
+  invalidValuePoints: number;
+  futureRecordPoints: number;
+}
 
 export interface StandardPercentilePoint {
   x: number;
@@ -36,6 +52,7 @@ export interface Assessment {
   latestPercentile: number | null;
   zone: ZoneLabel | null;
   trend: TrendLabel;
+  diagnostic?: DiagnosticInfo;
 }
 
 export interface CurveMeta {

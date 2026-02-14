@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     paddingBottom: organicTheme.spacing.md,
     backgroundColor: organicTheme.colors.background.paper,
     borderBottomWidth: 1,
-    borderBottomColor: organicTheme.colors.primary.pale,
+    borderBottomColor: organicTheme.colors.border.light,
   },
   backButton: {
     width: 40,

@@ -53,6 +53,12 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const { confirm, notify } = useFeedback();
 
+  const toLocalNoonIso = (date: Date) => {
+    const normalized = new Date(date);
+    normalized.setHours(12, 0, 0, 0);
+    return normalized.toISOString();
+  };
+
   // 按指标分组记录
   const groupedRecords = React.useMemo(() => {
     const groups: Record<GrowthMetric, GrowthRecord[]> = {
@@ -109,7 +115,7 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
       await onUpdate(editingRecord.id, {
         value: numValue,
         note: editNote.trim() || undefined,
-        recordedAt: editDate.toISOString(),
+        recordedAt: toLocalNoonIso(editDate),
       });
       setEditModalVisible(false);
       setEditingRecord(null);

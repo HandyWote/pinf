@@ -152,3 +152,18 @@
 - 在 Gitea 环境下，发布步骤应优先调用 Gitea Release API，避免依赖 GitHub 专用 release action。
 - Release Token 优先使用 `secrets.GITEA_TOKEN`，可回退到兼容变量 `secrets.GITHUB_TOKEN`。
 - 发布链路建议支持“tag 已存在 release”场景：创建失败后按 tag 查询并复用 release 再上传附件。
+- 成长曲线用户线绘制应遵循“仅在真实记录区间内插值、区间外置 NaN”，避免无数据区间被渲染为假趋势。
+- 成长曲线交互可采用“点按数据点后自动进入全屏并聚焦滚动到该年龄位置”的轻量方案，兼顾体验与改动成本。
+- 成长图表宽度应基于 `useWindowDimensions` 动态计算，避免旋转/分屏导致的宽度失真。
+- 成长页与图表组件的描边语义统一使用 `organicTheme.colors.border.*`，避免 `primary.*` 充当描边回流。
+- 成长记录“补录时间”交互建议采用二级弹层：主表单点按时间字段后拉起独立时间选择弹层，避免在主表单内挤占布局。
+- iOS 时间选择优先 `DateTimePicker(mode=\"datetime\", display=\"spinner\")`；Android 采用 `date + time` 双轮盘组合并统一“取消/确认”收口。
+- 外部技能安装优先遵循官方 `INSTALL.md`，避免自行猜测目录结构。
+- `superpowers` 在 Codex 环境的标准链路为：克隆到 `~/.codex/superpowers`，软链 `~/.agents/skills/superpowers -> ~/.codex/superpowers/skills`。
+- 若安装后技能未生效，优先检查软链目标是否误指向仓库根目录而非 `skills` 子目录。
+- Fenton 用户点横轴必须与标准曲线同口径（PMA 周龄），禁止直接复用“距预产期周数”作为 Fenton 绘图横轴。
+- 生长曲线评估需区分“无记录”与“当前标准下无有效点”，避免把过滤后的 0 点误报为“数据不足”。
+- 早产儿自动标准判定可在 `gestationalWeeks` 缺失时回退 `dueDate` 路径，避免错误退回 WHO 导致口径漂移。
+- `react-native-chart-kit` Web 端对 `NaN` 极敏感，`datasets.data` 中出现 `NaN` 会触发 `<path>/<circle>` 渲染错误并导致曲线不可见。
+- 生长曲线数据入图前应做 `Number.isFinite` 清洗，非法 `value` 记录必须在引擎层过滤，不能带入图表组件。
+- 生长页建议在图表下方提供“按周龄排序的原始记录明细”，用于快速核对数据库记录与入图结果是否一致。

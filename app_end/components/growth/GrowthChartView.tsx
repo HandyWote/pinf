@@ -1,23 +1,21 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Dimensions,
+  ActivityIndicator,
   Modal as RNModal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
-  ActivityIndicator,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
+import { organicTheme } from '@/constants/theme';
+import { buildGrowthCurveModel, type RangeMode, type StandardMode } from '@/domain/growthCurve';
+import { calculateRecordAge } from '@/domain/growthCurve/age';
 import type { Baby } from '@/types/baby';
 import type { GrowthMetric, GrowthRecord } from '@/types/growth';
-import { buildGrowthCurveModel, type RangeMode, type StandardMode } from '@/domain/growthCurve';
-import { theme } from '@/constants/theme';
-
-const screenWidth = Dimensions.get('window').width;
 
 interface GrowthChartViewProps {
   baby: Baby;
@@ -50,15 +48,25 @@ function toFixedSafe(value: number, fraction = 1): string {
   return Number.isFinite(value) ? value.toFixed(fraction) : '--';
 }
 
+function formatDateSafe(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function interpolateUserSeries(xValues: number[], userPoints: { x: number; value: number }[]): number[] {
-  if (userPoints.length === 0) return xValues.map(() => Number.NaN);
+  if (userPoints.length === 0) return xValues.map(() => 0);
   if (userPoints.length === 1) {
-    const target = userPoints[0];
-    return xValues.map((x) => (Math.abs(x - target.x) < 0.51 ? target.value : target.value));
+    return xValues.map(() => userPoints[0].value);
   }
+
   return xValues.map((x) => {
     if (x <= userPoints[0].x) return userPoints[0].value;
     if (x >= userPoints[userPoints.length - 1].x) return userPoints[userPoints.length - 1].value;
+
     for (let i = 0; i < userPoints.length - 1; i++) {
       const left = userPoints[i];
       const right = userPoints[i + 1];
@@ -67,7 +75,29 @@ function interpolateUserSeries(xValues: number[], userPoints: { x: number; value
         return left.value + (right.value - left.value) * ratio;
       }
     }
-    return Number.NaN;
+
+    return userPoints[userPoints.length - 1].value;
+  });
+}
+
+function interpolateSeries(xValues: number[], points: { x: number; value: number }[]): number[] {
+  if (points.length === 0) return xValues.map(() => 0);
+  if (points.length === 1) {
+    return xValues.map(() => points[0].value);
+  }
+
+  return xValues.map((x) => {
+    if (x <= points[0].x) return points[0].value;
+    if (x >= points[points.length - 1].x) return points[points.length - 1].value;
+    for (let i = 0; i < points.length - 1; i++) {
+      const left = points[i];
+      const right = points[i + 1];
+      if (x >= left.x && x <= right.x) {
+        const ratio = (x - left.x) / (right.x - left.x || 1);
+        return left.value + (right.value - left.value) * ratio;
+      }
+    }
+    return points[points.length - 1].value;
   });
 }
 
@@ -75,6 +105,7 @@ function buildSparseLabels(xValues: number[], unit: 'month' | 'week', maxVisible
   if (xValues.length <= maxVisible) {
     return xValues.map((x) => `${Math.round(x * 10) / 10}${unit === 'month' ? '月' : '周'}`);
   }
+
   const step = Math.ceil(xValues.length / maxVisible);
   return xValues.map((x, idx) => (idx % step === 0 ? `${Math.round(x * 10) / 10}${unit === 'month' ? '月' : '周'}` : ''));
 }
@@ -108,11 +139,13 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
   loading = false,
   style,
 }) => {
-  const isWeb = Platform.OS === 'web';
+  const { width: windowWidth } = useWindowDimensions();
+
   const [standardMode, setStandardMode] = useState<StandardMode>('auto');
   const [manualStandard, setManualStandard] = useState<'WHO' | 'FENTON'>('WHO');
   const [rangeMode, setRangeMode] = useState<RangeMode>('smart');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isGuideVisible, setIsGuideVisible] = useState(false);
   const [zoom, setZoom] = useState(1.5);
   const [legend, setLegend] = useState<LegendState>(defaultLegend);
   const [tooltipText, setTooltipText] = useState('');
@@ -128,27 +161,86 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
         standardMode,
         manualStandard: standardMode === 'manual' ? manualStandard : undefined,
       }),
-    [baby, metric, records, ageType, rangeMode, standardMode, manualStandard]
+    [ageType, baby, manualStandard, metric, rangeMode, records, standardMode]
   );
 
   const meta = METRIC_META[metric];
+  const sortedRecordsByWeek = useMemo(() => {
+    return [...records]
+      .filter((record) => record.metric === metric)
+      .map((record) => {
+        const ages = calculateRecordAge(baby, record.recordedAt);
+        const actualWeeks = ages.actualMonths * 4.33;
+        const week = ages.pmaWeeks ?? actualWeeks;
+        return {
+          ...record,
+          week,
+          weekType: ages.pmaWeeks !== null ? 'PMA' : '实际',
+        };
+      })
+      .filter((record) => Number.isFinite(record.week))
+      .sort((a, b) => {
+        if (a.week !== b.week) return a.week - b.week;
+        return new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime();
+      });
+  }, [baby, records, metric]);
 
-  const xValues = useMemo(() => model.standardPoints.map((p) => p.x), [model.standardPoints]);
+  const xValues = useMemo(() => {
+    const merged = [...model.standardPoints.map((p) => p.x), ...model.userPoints.map((p) => p.x)]
+      .filter((x) => Number.isFinite(x))
+      .sort((a, b) => a - b);
+
+    const deduped: number[] = [];
+    for (const x of merged) {
+      const last = deduped[deduped.length - 1];
+      if (last === undefined || Math.abs(last - x) > 0.0001) {
+        deduped.push(x);
+      }
+    }
+    return deduped;
+  }, [model.standardPoints, model.userPoints]);
   const labels = useMemo(() => buildSparseLabels(xValues, model.meta.axisUnit), [xValues, model.meta.axisUnit]);
   const userData = useMemo(() => interpolateUserSeries(xValues, model.userPoints), [xValues, model.userPoints]);
+  const p97Data = useMemo(
+    () => interpolateSeries(xValues, model.standardPoints.map((p) => ({ x: p.x, value: p.p97 }))),
+    [xValues, model.standardPoints]
+  );
+  const p85Data = useMemo(
+    () => interpolateSeries(xValues, model.standardPoints.map((p) => ({ x: p.x, value: p.p85 }))),
+    [xValues, model.standardPoints]
+  );
+  const p50Data = useMemo(
+    () => interpolateSeries(xValues, model.standardPoints.map((p) => ({ x: p.x, value: p.p50 }))),
+    [xValues, model.standardPoints]
+  );
+  const p15Data = useMemo(
+    () => interpolateSeries(xValues, model.standardPoints.map((p) => ({ x: p.x, value: p.p15 }))),
+    [xValues, model.standardPoints]
+  );
+  const p3Data = useMemo(
+    () => interpolateSeries(xValues, model.standardPoints.map((p) => ({ x: p.x, value: p.p3 }))),
+    [xValues, model.standardPoints]
+  );
 
   const chartData = useMemo(() => {
     const datasets: { data: number[]; color: (opacity?: number) => string; strokeWidth: number }[] = [];
-    if (legend.p97) datasets.push({ data: model.standardPoints.map((p) => p.p97), color: () => SERIES_COLORS.p97, strokeWidth: 1 });
-    if (legend.p85) datasets.push({ data: model.standardPoints.map((p) => p.p85), color: () => SERIES_COLORS.p85, strokeWidth: 1 });
-    if (legend.p50) datasets.push({ data: model.standardPoints.map((p) => p.p50), color: () => SERIES_COLORS.p50, strokeWidth: 2 });
-    if (legend.p15) datasets.push({ data: model.standardPoints.map((p) => p.p15), color: () => SERIES_COLORS.p15, strokeWidth: 1 });
-    if (legend.p3) datasets.push({ data: model.standardPoints.map((p) => p.p3), color: () => SERIES_COLORS.p3, strokeWidth: 1 });
+
+    if (legend.p97) datasets.push({ data: p97Data, color: () => SERIES_COLORS.p97, strokeWidth: 1 });
+    if (legend.p85) datasets.push({ data: p85Data, color: () => SERIES_COLORS.p85, strokeWidth: 1 });
+    if (legend.p50) datasets.push({ data: p50Data, color: () => SERIES_COLORS.p50, strokeWidth: 2 });
+    if (legend.p15) datasets.push({ data: p15Data, color: () => SERIES_COLORS.p15, strokeWidth: 1 });
+    if (legend.p3) datasets.push({ data: p3Data, color: () => SERIES_COLORS.p3, strokeWidth: 1 });
+
     if (legend.user && model.userPoints.length > 0) {
       datasets.push({ data: userData, color: () => SERIES_COLORS.user, strokeWidth: 2 });
     }
+
     return { labels, datasets };
-  }, [labels, legend, model.standardPoints, model.userPoints.length, userData]);
+  }, [labels, legend, model.userPoints.length, p15Data, p3Data, p50Data, p85Data, p97Data, userData]);
+
+  const fullscreenViewportWidth = Math.max(windowWidth - organicTheme.spacing.md * 2, 260);
+  const fullscreenChartWidth = Math.max(fullscreenViewportWidth * zoom, fullscreenViewportWidth);
+  const inlineChartWidth = Math.max(windowWidth - organicTheme.spacing.lg * 3, 260);
 
   const toggleLegend = (key: keyof LegendState) => {
     setLegend((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -160,55 +252,61 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
       width={width}
       height={height}
       fromZero={false}
-      bezier={false}
+      bezier={model.userPoints.length > 1}
       withInnerLines
       withOuterLines
       withVerticalLines={false}
       withHorizontalLines
       withVerticalLabels
       withHorizontalLabels
-      withDots={!isWeb}
+      withDots
       yAxisInterval={1}
-      yAxisSuffix=""
+      yAxisSuffix={meta.unit}
       chartConfig={{
         backgroundColor: 'transparent',
         backgroundGradientFrom: 'transparent',
         backgroundGradientTo: 'transparent',
         decimalPlaces: 1,
-        color: () => theme.colors.primary,
-        labelColor: () => theme.colors.textSub,
+        color: () => organicTheme.colors.primary.main,
+        labelColor: () => organicTheme.colors.text.secondary,
         propsForDots: {
           r: '3',
           strokeWidth: '1',
-          stroke: '#FFFFFF',
+          stroke: organicTheme.colors.background.paper,
         },
       }}
       style={styles.chart}
-      onDataPointClick={
-        isWeb
-          ? undefined
-          : ({ index, value }) => {
-              const x = xValues[index];
-              const unit = model.meta.axisUnit === 'month' ? '月' : '周';
-              setTooltipText(`年龄 ${toFixedSafe(x, 1)}${unit} · 数值 ${toFixedSafe(value, 2)}${meta.unit}`);
-            }
-      }
+      onDataPointClick={({ index, value, dataset }: any) => {
+        const x = xValues[index];
+        const unit = model.meta.axisUnit === 'month' ? '月' : '周';
+        const seriesLabel = dataset?.color?.(1) === SERIES_COLORS.user ? '宝宝记录' : '标准曲线';
+        setTooltipText(`${seriesLabel} · 年龄 ${toFixedSafe(x, 1)}${unit} · 数值 ${toFixedSafe(value, 2)}${meta.unit}`);
+      }}
     />
   );
 
   const latestPercentileText =
     model.assessment.latestPercentile === null ? '--' : `P${Math.round(model.assessment.latestPercentile)}`;
+  const trendHint =
+    model.assessment.trend === '当前标准下无有效点'
+      ? '请切换 WHO/Fenton 或检查记录日期、孕周与预产期设置'
+      : '';
 
   return (
     <View style={[styles.container, style]}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>{meta.label}曲线</Text>
-          {loading && <ActivityIndicator size="small" color={theme.colors.primary} />}
+          {loading && <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />}
         </View>
-        <TouchableOpacity style={styles.fullscreenBtn} onPress={() => setIsFullscreen(true)}>
-          <Text style={styles.fullscreenText}>全屏</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.helpBtn} onPress={() => setIsGuideVisible(true)}>
+            <Text style={styles.helpText}>说明</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.fullscreenBtn} onPress={() => setIsFullscreen(true)}>
+            <Text style={styles.fullscreenText}>全屏</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.metricSwitch}>
@@ -293,11 +391,47 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
         <Text style={styles.assessmentText}>最新百分位：{latestPercentileText}</Text>
         <Text style={styles.assessmentText}>区间标签：{model.assessment.zone ?? '--'}</Text>
         <Text style={styles.assessmentText}>近3次趋势：{model.assessment.trend}</Text>
+        {trendHint ? <Text style={styles.assessmentHint}>{trendHint}</Text> : null}
       </View>
+
+      {standardMode === 'manual' && manualStandard === 'FENTON' && model.assessment.diagnostic && (
+        <View style={styles.diagnosticCard}>
+          <Text style={styles.diagnosticTitle}>Fenton 曲线诊断信息</Text>
+          <Text style={styles.diagnosticText}>
+            总记录：{model.assessment.diagnostic.totalRecords} 条
+          </Text>
+          <Text style={styles.diagnosticText}>
+            Fenton有效点：{model.assessment.diagnostic.validFentonPoints} 条（PMA在22-50周）
+          </Text>
+          {model.assessment.diagnostic.outOfRangePoints > 0 && (
+            <Text style={styles.diagnosticText}>
+              超范围点：{model.assessment.diagnostic.outOfRangePoints} 条
+            </Text>
+          )}
+          {model.assessment.diagnostic.missingPMAPoints > 0 && (
+            <Text style={styles.diagnosticText}>
+              缺少PMA字段：{model.assessment.diagnostic.missingPMAPoints} 条
+            </Text>
+          )}
+          {model.assessment.diagnostic.invalidValuePoints > 0 && (
+            <Text style={styles.diagnosticText}>
+              数值非法：{model.assessment.diagnostic.invalidValuePoints} 条
+            </Text>
+          )}
+          {model.assessment.diagnostic.futureRecordPoints > 0 && (
+            <Text style={styles.diagnosticText}>
+              记录日期异常：{model.assessment.diagnostic.futureRecordPoints} 条
+            </Text>
+          )}
+          {model.assessment.diagnostic.validFentonPoints === 0 && (
+            <Text style={styles.diagnosticHint}>建议查看 WHO 标准曲线</Text>
+          )}
+        </View>
+      )}
 
       <View style={styles.chartWrapper}>
         {model.standardPoints.length > 0 ? (
-          renderChart(screenWidth - theme.layout.pagePadding * 3, 240)
+          renderChart(inlineChartWidth, 240)
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>暂无可展示的标准曲线数据</Text>
@@ -321,6 +455,31 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
             <Text style={[styles.legendText, !legend[key] && styles.legendTextMuted]}>{label}</Text>
           </TouchableOpacity>
         ))}
+      </View>
+
+      <View style={styles.recordPanel}>
+        <Text style={styles.recordPanelTitle}>全部成长记录（按周龄）</Text>
+        {sortedRecordsByWeek.length === 0 ? (
+          <Text style={styles.recordEmpty}>暂无成长记录</Text>
+        ) : (
+          sortedRecordsByWeek.map((record) => (
+            <View key={`${record.id}-${record.metric}-${record.recordedAt}`} style={styles.recordRow}>
+              <View style={styles.recordMain}>
+                <Text style={styles.recordMetric}>{METRIC_META[record.metric].label}</Text>
+                <Text style={styles.recordValue}>
+                  {toFixedSafe(Number(record.value), record.metric === 'weight' ? 2 : 1)}
+                  {record.unit}
+                </Text>
+              </View>
+              <View style={styles.recordMeta}>
+                <Text style={styles.recordWeek}>
+                  {record.weekType} {toFixedSafe(record.week, 1)}周
+                </Text>
+                <Text style={styles.recordDate}>{formatDateSafe(record.recordedAt)}</Text>
+              </View>
+            </View>
+          ))
+        )}
       </View>
 
       {onRefresh && (
@@ -347,6 +506,14 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
               >
                 <Text style={styles.zoomText}>+</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.resetBtn}
+                onPress={() => {
+                  setZoom(1.5);
+                }}
+              >
+                <Text style={styles.resetText}>重置</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.closeBtn} onPress={() => setIsFullscreen(false)}>
                 <Text style={styles.closeText}>关闭</Text>
               </TouchableOpacity>
@@ -354,10 +521,36 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
           </View>
 
           <ScrollView horizontal contentContainerStyle={styles.fullscreenChartContent} showsHorizontalScrollIndicator>
-            {renderChart(screenWidth * zoom, 360)}
+            {renderChart(fullscreenChartWidth, 360)}
           </ScrollView>
 
           {tooltipText ? <Text style={styles.tooltipText}>{tooltipText}</Text> : null}
+        </View>
+      </RNModal>
+
+      <RNModal visible={isGuideVisible} animationType="fade" transparent onRequestClose={() => setIsGuideVisible(false)}>
+        <View style={styles.guideOverlay}>
+          <View style={styles.guideCard}>
+            <View style={styles.guideHeader}>
+              <Text style={styles.guideTitle}>生长曲线说明</Text>
+              <TouchableOpacity style={styles.guideClose} onPress={() => setIsGuideVisible(false)}>
+                <Text style={styles.guideCloseText}>关闭</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.guideSectionTitle}>1. 这张图怎么看</Text>
+              <Text style={styles.guideText}>横轴是月龄/周龄，纵轴是当前指标数值。</Text>
+              <Text style={styles.guideText}>红色“宝宝”线是你家宝宝的真实记录点并平滑连接。</Text>
+
+              <Text style={styles.guideSectionTitle}>2. 百分位线含义</Text>
+              <Text style={styles.guideText}>P50 代表同龄宝宝的中位数，P3/P97 是常见参考边界。</Text>
+              <Text style={styles.guideText}>宝宝线长期明显低于 P3 或高于 P97，建议线下咨询医生。</Text>
+
+              <Text style={styles.guideSectionTitle}>3. WHO 与 Fenton</Text>
+              <Text style={styles.guideText}>WHO 常用于足月婴幼儿；Fenton 常用于早产儿早期评估。</Text>
+              <Text style={styles.guideText}>你可在上方切换自动/手动标准查看不同参考口径。</Text>
+            </ScrollView>
+          </View>
         </View>
       </RNModal>
     </View>
@@ -366,115 +559,164 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.large,
-    padding: theme.spacing.lg,
-    ...theme.shadows.card,
-    gap: theme.spacing.md,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    padding: organicTheme.spacing.lg,
+    ...organicTheme.shadows.soft[0],
+    gap: organicTheme.spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: organicTheme.spacing.xs,
+  },
+  helpBtn: {
+    paddingHorizontal: organicTheme.spacing.sm,
+    paddingVertical: 6,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
+    backgroundColor: organicTheme.colors.background.paper,
+  },
+  helpText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.medium,
+  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: organicTheme.spacing.sm,
   },
   title: {
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '700',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    color: organicTheme.colors.text.primary,
   },
   fullscreenBtn: {
-    paddingHorizontal: theme.spacing.sm,
+    paddingHorizontal: organicTheme.spacing.sm,
     paddingVertical: 6,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.primaryLight,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    backgroundColor: organicTheme.colors.primary.pale,
   },
   fullscreenText: {
-    color: theme.colors.primary,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '600',
+    color: organicTheme.colors.primary.main,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   metricSwitch: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: organicTheme.spacing.sm,
   },
   chip: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.full,
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.xs,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
     borderWidth: 1,
-    borderColor: '#DCE5EE',
-    backgroundColor: '#FFFFFF',
+    borderColor: organicTheme.colors.border.light,
+    backgroundColor: organicTheme.colors.background.paper,
   },
   chipActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: organicTheme.colors.primary.main,
+    borderColor: organicTheme.colors.border.accent,
   },
   chipText: {
-    color: theme.colors.textSub,
-    fontSize: theme.fontSizes.sm,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.sm,
   },
   chipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: organicTheme.colors.background.paper,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   modeRow: {
-    gap: theme.spacing.xs,
+    gap: organicTheme.spacing.xs,
   },
   inlineGroup: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: organicTheme.spacing.xs,
   },
   smallChip: {
-    paddingHorizontal: theme.spacing.sm,
+    paddingHorizontal: organicTheme.spacing.sm,
     paddingVertical: 5,
-    borderRadius: theme.borderRadius.small,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
     borderWidth: 1,
-    borderColor: '#DCE5EE',
+    borderColor: organicTheme.colors.border.light,
+    backgroundColor: organicTheme.colors.background.paper,
   },
   smallChipActive: {
-    backgroundColor: theme.colors.primaryLight,
-    borderColor: theme.colors.primary,
+    backgroundColor: organicTheme.colors.primary.pale,
+    borderColor: organicTheme.colors.border.accent,
   },
   smallChipText: {
-    color: theme.colors.textSub,
-    fontSize: theme.fontSizes.xs,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
   },
   smallChipTextActive: {
-    color: theme.colors.primary,
-    fontWeight: '600',
+    color: organicTheme.colors.primary.main,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   ageTypeSwitch: {
     flexDirection: 'row',
-    gap: theme.spacing.xs,
+    gap: organicTheme.spacing.xs,
   },
   metaText: {
-    color: theme.colors.textSub,
-    fontSize: theme.fontSizes.xs,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
   },
   assessmentCard: {
-    backgroundColor: theme.colors.primaryLight,
-    borderRadius: theme.borderRadius.medium,
-    padding: theme.spacing.sm,
+    backgroundColor: organicTheme.colors.primary.pale,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    padding: organicTheme.spacing.sm,
     gap: 4,
   },
   assessmentText: {
-    color: theme.colors.textMain,
-    fontSize: theme.fontSizes.sm,
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.sm,
+  },
+  assessmentHint: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  diagnosticCard: {
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.subtle,
+    padding: organicTheme.spacing.sm,
+    gap: 4,
+  },
+  diagnosticTitle: {
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  diagnosticText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+    lineHeight: 18,
+  },
+  diagnosticHint: {
+    color: organicTheme.colors.primary.main,
+    fontSize: organicTheme.typography.fontSize.xs,
+    fontWeight: organicTheme.typography.fontWeight.medium,
+    marginTop: 4,
   },
   chartWrapper: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: theme.borderRadius.medium,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.subtle,
     overflow: 'hidden',
   },
   chart: {
-    marginVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.medium,
+    marginVertical: organicTheme.spacing.xs,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
   },
   emptyState: {
     height: 220,
@@ -482,16 +724,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyText: {
-    color: theme.colors.textSub,
+    color: organicTheme.colors.text.secondary,
   },
   tooltipText: {
-    color: theme.colors.textSub,
-    fontSize: theme.fontSizes.xs,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
   },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.sm,
+    gap: organicTheme.spacing.sm,
   },
   legendItem: {
     flexDirection: 'row',
@@ -504,30 +746,80 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   legendText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textSub,
+    fontSize: organicTheme.typography.fontSize.xs,
+    color: organicTheme.colors.text.secondary,
   },
   legendTextMuted: {
     opacity: 0.5,
   },
+  recordPanel: {
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.subtle,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    padding: organicTheme.spacing.sm,
+    gap: organicTheme.spacing.xs,
+    backgroundColor: organicTheme.colors.background.paper,
+  },
+  recordPanelTitle: {
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  recordEmpty: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  recordRow: {
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: organicTheme.colors.border.subtle,
+    gap: 2,
+  },
+  recordMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recordMetric: {
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.sm,
+  },
+  recordValue: {
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  recordMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recordWeek: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  recordDate: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
   refreshButton: {
     alignSelf: 'flex-start',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.medium,
-    backgroundColor: theme.colors.primaryLight,
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.xs,
+    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    backgroundColor: organicTheme.colors.primary.pale,
   },
   refreshText: {
-    color: theme.colors.primary,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '600',
+    color: organicTheme.colors.primary.main,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   fullscreenContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.sm,
+    backgroundColor: organicTheme.colors.background.cream,
+    paddingHorizontal: organicTheme.spacing.md,
+    paddingVertical: organicTheme.spacing.lg,
+    gap: organicTheme.spacing.sm,
   },
   fullscreenHeader: {
     flexDirection: 'row',
@@ -535,47 +827,109 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fullscreenTitle: {
-    fontSize: theme.fontSizes.md,
-    fontWeight: '700',
-    color: theme.colors.textMain,
+    fontSize: organicTheme.typography.fontSize.md,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    color: organicTheme.colors.text.primary,
   },
   fullscreenActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    gap: organicTheme.spacing.xs,
   },
   zoomBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#DCE5EE',
+    borderColor: organicTheme.colors.border.default,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: organicTheme.colors.background.paper,
   },
   zoomText: {
-    color: theme.colors.textMain,
-    fontSize: theme.fontSizes.md,
-    fontWeight: '700',
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.md,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   zoomLevel: {
     minWidth: 40,
     textAlign: 'center',
-    color: theme.colors.textSub,
-    fontSize: theme.fontSizes.xs,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
+  },
+  resetBtn: {
+    paddingHorizontal: organicTheme.spacing.sm,
+    paddingVertical: 6,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
+    backgroundColor: organicTheme.colors.background.paper,
+  },
+  resetText: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.xs,
   },
   closeBtn: {
-    paddingHorizontal: theme.spacing.sm,
+    paddingHorizontal: organicTheme.spacing.sm,
     paddingVertical: 6,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.primaryLight,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    backgroundColor: organicTheme.colors.primary.pale,
   },
   closeText: {
-    color: theme.colors.primary,
-    fontSize: theme.fontSizes.xs,
-    fontWeight: '600',
+    color: organicTheme.colors.primary.main,
+    fontSize: organicTheme.typography.fontSize.xs,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
   },
   fullscreenChartContent: {
-    paddingRight: theme.spacing.lg,
+    paddingRight: organicTheme.spacing.lg,
+  },
+  guideOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: organicTheme.spacing.lg,
+  },
+  guideCard: {
+    maxHeight: '80%',
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.light,
+    padding: organicTheme.spacing.lg,
+    gap: organicTheme.spacing.sm,
+  },
+  guideHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  guideTitle: {
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.md,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  guideClose: {
+    paddingHorizontal: organicTheme.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: organicTheme.shapes.borderRadius.pill,
+    backgroundColor: organicTheme.colors.primary.pale,
+  },
+  guideCloseText: {
+    color: organicTheme.colors.primary.main,
+    fontSize: organicTheme.typography.fontSize.xs,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  guideSectionTitle: {
+    marginTop: organicTheme.spacing.sm,
+    marginBottom: 4,
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+  },
+  guideText: {
+    marginBottom: 2,
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    lineHeight: 20,
   },
 });

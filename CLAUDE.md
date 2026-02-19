@@ -172,3 +172,12 @@
 - `react-native-chart-kit` Web 端对 `NaN` 极敏感，`datasets.data` 中出现 `NaN` 会触发 `<path>/<circle>` 渲染错误并导致曲线不可见。
 - 生长曲线数据入图前应做 `Number.isFinite` 清洗，非法 `value` 记录必须在引擎层过滤，不能带入图表组件。
 - 生长页建议在图表下方提供“按周龄排序的原始记录明细”，用于快速核对数据库记录与入图结果是否一致。
+
+## 会话沉淀：预约推送 / 消息订阅（2026-02-15）
+- 决定：采用 demo-first 增量实现预约推送/订阅，先在 `main` 完成后端订阅接口与 demo 页面，推送通道可后续接入。
+- 实现要点：新增 `NotificationSubscription` 表（持久化），`remind_time` 以 UTC 存储；后端遵循 model + migration + to_dict 三件套。
+- 前端为独立可移除的调试页 `app_end/app/test-notifications.tsx`，并在 `appointmentStore` 暴露 subscribe/unsubscribe 接口，保证易回滚。
+- 验收：支持创建/删除订阅、模拟（或手动触发）发送；后续接入 Expo/FCM/APNs 时无需改动业务逻辑。
+- 已追加（最小侵入）实现：前端新增 `registerForPushNotificationsAsync` 并在 Demo 页面获取 Expo token；创建订阅时将 `token` 一并传给后端。
+- 后端新增 `utils/notification_sender.py`（Expo Push 最小实现），并在 `test-send` 与调度器中尝试调用真实推送，发送成功后回写 `sent_at`/`status`。
+- 保持兼容：若设备未注册 token，旧的本地 mock 与标记为 `sent` 的行为不变，便于回滚与验证。

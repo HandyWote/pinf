@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   Appointment,
   CreateAppointmentInput,
@@ -6,6 +7,7 @@ import type {
   AppointmentStatus,
 } from '@/types/appointment';
 import * as appointmentApi from '@/services/api/appointment';
+import * as notificationsApi from '@/services/api/notifications';
 
 interface AppointmentState {
   appointments: Appointment[];
@@ -16,6 +18,8 @@ interface AppointmentState {
   add: (payload: CreateAppointmentInput) => Promise<void>;
   update: (id: number, payload: UpdateAppointmentInput) => Promise<void>;
   remove: (id: number) => Promise<void>;
+  subscribe: (appointmentId: number, remindTime: string) => Promise<void>;
+  unsubscribe: (id: number) => Promise<void>;
   clear: () => void;
 }
 
@@ -70,6 +74,39 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       await get().fetch();
     } catch (error) {
       const message = error instanceof Error ? error.message : '删除预约失败';
+      set({ error: message, loading: false });
+      throw error;
+    }
+  },
+
+  subscribe: async (appointmentId: number, remindTimeIso: string) => {
+    set({ loading: true, error: null });
+    try {
+      // 读取本地已保存的 push token（若有），并随 payload 一并上传
+      const { STORAGE_KEYS } = await import('@/services/api/client');
+      const token = await AsyncStorage.getItem(STORAGE_KEYS.PUSH_TOKEN);
+
+      const notifications = await import('@/services/api/notifications');
+      const payload: any = { appointmentId, remindTime: remindTimeIso, channel: 'push' };
+      if (token) payload.token = token;
+
+      await notifications.createSubscription(payload);
+      set({ loading: false });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '创建订阅失败';
+      set({ error: message, loading: false });
+      throw error;
+    }
+  },
+
+  unsubscribe: async (subscriptionId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const notifications = await import('@/services/api/notifications');
+      await notifications.deleteSubscription(subscriptionId);
+      set({ loading: false });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '取消订阅失败';
       set({ error: message, loading: false });
       throw error;
     }

@@ -9,4 +9,6 @@ export * from './growth';
 export * from './appointment';
 export * from './content';
 export * from './chat';
+export * from './notifications';
+export * from './devices';
 export type { AxiosError } from 'axios';

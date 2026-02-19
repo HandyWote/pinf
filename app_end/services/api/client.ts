@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   USER_PROFILE: 'user.profile',
   NEED_SET_PASSWORD: 'auth.need_set_password',
   CONTENT_CACHE: 'content.cache',
+  PUSH_TOKEN: 'push.token',
 } as const;
 
 /**

@@ -50,6 +50,8 @@ class Config:
     WECHAT_SYNC_MAX_PAGES = int(os.environ.get("WECHAT_SYNC_MAX_PAGES", "5"))
     WECHAT_SYNC_PAGE_SIZE = int(os.environ.get("WECHAT_SYNC_PAGE_SIZE", "20"))
     WECHAT_SYNC_RETRY = int(os.environ.get("WECHAT_SYNC_RETRY", "3"))
-
+    # 通知/订阅调度（用于本地 demo 与后续推送接入）
+    NOTIFICATIONS_ENABLED = os.environ.get("NOTIFICATIONS_ENABLED", "false").lower() in ("1", "true", "yes")
+    NOTIFICATIONS_SCAN_INTERVAL_MINUTES = int(os.environ.get("NOTIFICATIONS_SCAN_INTERVAL_MINUTES", "60"))
     # CORS 配置
     CORS_ORIGINS = ["*"]  # 生产环境需收紧

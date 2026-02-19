@@ -56,6 +56,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="test-notifications"
+        options={{
+          title: '通知',
+          tabBarIcon: ({ color }: { color: string }) => (
+            <IconSymbol size={organicTheme.iconSizes.tab} name="bell.fill" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

@@ -55,6 +55,9 @@ def create_app(config_class=Config):
     from routes.content import content_bp
     from routes.appointment import appointment_bp
     from routes.chat import chat_bp
+    from routes.notifications import notifications_bp
+    from routes.devices import devices_bp
+    from utils.notification_scheduler import start_notification_scheduler
 
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(baby_bp, url_prefix="/api")
@@ -62,12 +65,15 @@ def create_app(config_class=Config):
     app.register_blueprint(content_bp, url_prefix="/api")
     app.register_blueprint(appointment_bp, url_prefix="/api")
     app.register_blueprint(chat_bp, url_prefix="/api")
+    app.register_blueprint(notifications_bp, url_prefix="/api")
+    app.register_blueprint(devices_bp, url_prefix="/api")
 
     with app.app_context():
         db.create_all()
         run_migrations(db)
 
     start_wechat_sync_scheduler(app)
+    start_notification_scheduler(app)
 
     @app.route("/")
     def index():

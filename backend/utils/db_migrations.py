@@ -46,9 +46,42 @@ _MIGRATIONS = [
         "sql": "CREATE INDEX IF NOT EXISTS idx_articles_wechat_article_id ON articles(wechat_article_id)",
     },
     {
+        "id": "2026_02_15_add_notification_subscriptions",
+        "sql": (
+            "CREATE TABLE IF NOT EXISTS notification_subscriptions ("
+            "id SERIAL PRIMARY KEY,"
+            "user_id INTEGER NOT NULL,"
+            "appointment_id INTEGER,"
+            "channel VARCHAR(32) NOT NULL DEFAULT 'push',"
+            "token VARCHAR(512),"
+            "remind_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,"
+            "status VARCHAR(20) NOT NULL DEFAULT 'pending',"
+            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+            "sent_at TIMESTAMP,"
+            "FOREIGN KEY (user_id) REFERENCES users(id),"
+            "FOREIGN KEY (appointment_id) REFERENCES appointments(id)"
+            ")"
+        ),
+    },
+    {
+        "id": "2026_02_15_add_device_tokens",
+        "sql": (
+            "CREATE TABLE IF NOT EXISTS device_tokens ("
+            "id SERIAL PRIMARY KEY,"
+            "user_id INTEGER NOT NULL,"
+            "token VARCHAR(512) NOT NULL UNIQUE,"
+            "platform VARCHAR(32),"
+            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+            "last_seen_at TIMESTAMP,"
+            "FOREIGN KEY (user_id) REFERENCES users(id)"
+            ")"
+        ),
+    },
+    {
         "id": "2026_02_12_drop_videos_table",
         "sql": "DROP TABLE IF EXISTS videos",
     },
+
 ]
 
 
@@ -72,6 +105,8 @@ def run_migrations(db):
                 text("INSERT INTO schema_migrations (id) VALUES (:id)"),
                 {"id": migration["id"]},
             )
+            # 立即将已应用的 migration id 加入集合，避免本次循环中重复处理相同 id
+            applied.add(migration["id"])
 
         db.session.commit()
     except Exception as exc:  # pragma: no cover - 启动时兜底

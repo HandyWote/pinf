@@ -3,12 +3,13 @@
   "compilerOptions": {
     "strict": true,
     "lib": ["ES2020", "DOM"],
+    "types": ["react", "react-native", "expo", "expo-router"],
+    "skipLibCheck": true,
     "paths": {
       "@/*": [
         "./*"
       ]
-    },
-    "typeRoots": ["./types", "./node_modules/@types"]
+    }
   },
   "include": [
     "**/*.ts",

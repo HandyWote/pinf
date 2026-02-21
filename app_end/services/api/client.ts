@@ -8,6 +8,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
+const DEFAULT_API_BASE_URL = 'https://backend.pinf.top/api';
+
+const normalizeApiBaseUrl = (value?: string | null): string | null => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    return trimmed.replace(/\/+$/, '');
+  } catch {
+    return null;
+  }
+};
+
 // 存储键常量
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth.token',
@@ -23,11 +41,13 @@ export const STORAGE_KEYS = {
  * 优先级：
  * 1. 环境变量 API_BASE_URL（通过 app.config.ts 注入到 Constants.expoConfig.extra）
  * 2. 开发环境默认值（根据平台自动选择）
- * 3. 生产环境（必须显式配置）
+ * 3. 生产环境回退默认线上地址（避免因配置缺失崩溃）
  */
 const getApiBaseUrl = (): string => {
   // 1. 优先使用环境变量配置
-  const configuredBaseUrl = (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl;
+  const configuredBaseUrl = normalizeApiBaseUrl(
+    (Constants.expoConfig?.extra as { apiBaseUrl?: string } | undefined)?.apiBaseUrl
+  );
   if (configuredBaseUrl) {
     return configuredBaseUrl;
   }
@@ -49,9 +69,8 @@ const getApiBaseUrl = (): string => {
   }
 
   // 3. 生产环境必须显式配置
-  throw new Error(
-    '[API] 生产环境必须配置 API_BASE_URL 环境变量。请在 app.config.ts 或构建时设置该变量。'
-  );
+  // 回退到默认地址，避免应用直接崩溃
+  return DEFAULT_API_BASE_URL;
 };
 
 const API_BASE_URL = getApiBaseUrl();

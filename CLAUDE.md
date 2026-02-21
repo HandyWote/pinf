@@ -181,3 +181,9 @@
 - 已追加（最小侵入）实现：前端新增 `registerForPushNotificationsAsync` 并在 Demo 页面获取 Expo token；创建订阅时将 `token` 一并传给后端。
 - 后端新增 `utils/notification_sender.py`（Expo Push 最小实现），并在 `test-send` 与调度器中尝试调用真实推送，发送成功后回写 `sent_at`/`status`。
 - 保持兼容：若设备未注册 token，旧的本地 mock 与标记为 `sent` 的行为不变，便于回滚与验证。
+
+## 会话沉淀（2026-02-21）
+- APK 闪退优先检查 `expo-notifications` 插件是否缺失，缺失会导致原生配置未注入。
+- 生产包 API 基址必须通过 `API_BASE_URL` 注入 `app.config.ts`，避免运行时报错。
+- Gitea 构建可在 workflow 顶层 `env` 注入 `API_BASE_URL`，与应用配置解耦。
+- Web 端需避免静态导入 `expo-notifications`，用平台守卫 + 动态导入防止解析失败。

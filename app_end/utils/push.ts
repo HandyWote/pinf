@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 
 /**
  * 在真机上请求推送权限并返回 Expo Push Token（或 null）
@@ -9,6 +8,12 @@ import * as Notifications from 'expo-notifications';
  */
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
   try {
+    if (Platform.OS === 'web') {
+      return null;
+    }
+
+    const Notifications = await import('expo-notifications');
+
     if (!Device.isDevice) {
       console.warn('Push: not a physical device');
       return null;

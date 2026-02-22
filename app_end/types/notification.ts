@@ -1,4 +1,4 @@
-export type SubscriptionStatus = 'pending' | 'sent' | 'cancelled';
+export type SubscriptionStatus = 'pending' | 'sent' | 'cancelled' | 'missed';
 
 export interface NotificationSubscription {
   id: number;

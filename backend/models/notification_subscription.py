@@ -11,7 +11,7 @@ class NotificationSubscription(db.Model):
     channel = db.Column(db.String(32), nullable=False, default="push")
     token = db.Column(db.String(512), nullable=True)
     remind_time = db.Column(db.DateTime, nullable=False, index=True)
-    status = db.Column(db.String(20), nullable=False, default="pending")  # pending | sent | cancelled
+    status = db.Column(db.String(20), nullable=False, default="pending")  # pending | sent | cancelled | missed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     sent_at = db.Column(db.DateTime, nullable=True)
 

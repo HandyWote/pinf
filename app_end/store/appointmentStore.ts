@@ -1,13 +1,8 @@
-import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type {
-  Appointment,
-  CreateAppointmentInput,
-  UpdateAppointmentInput,
-  AppointmentStatus,
-} from '@/types/appointment';
+import { create } from 'zustand';
+
 import * as appointmentApi from '@/services/api/appointment';
-import * as notificationsApi from '@/services/api/notifications';
+import type { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from '@/types/appointment';
 
 interface AppointmentState {
   appointments: Appointment[];
@@ -82,13 +77,19 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   subscribe: async (appointmentId: number, remindTimeIso: string) => {
     set({ loading: true, error: null });
     try {
-      // 读取本地已保存的 push token（若有），并随 payload 一并上传
       const { STORAGE_KEYS } = await import('@/services/api/client');
       const token = await AsyncStorage.getItem(STORAGE_KEYS.PUSH_TOKEN);
+      if (!token) {
+        throw new Error('未获取到推送 Token，请先授权通知权限');
+      }
 
       const notifications = await import('@/services/api/notifications');
-      const payload: any = { appointmentId, remindTime: remindTimeIso, channel: 'push' };
-      if (token) payload.token = token;
+      const payload = {
+        appointmentId,
+        remindTime: remindTimeIso,
+        channel: 'push',
+        token,
+      };
 
       await notifications.createSubscription(payload);
       set({ loading: false });

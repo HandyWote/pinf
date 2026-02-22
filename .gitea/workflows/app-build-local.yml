@@ -1,0 +1,155 @@
+name: APP Local Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'app-*'
+  workflow_dispatch:  # 支持手动触发
+
+env:
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  EAS_BUILD_NO_EXPO_GO_WARNING: "true"
+  API_BASE_URL: "https://backend.pinf.top/api"
+
+  build-app-local:
+    runs-on: 	ubuntu-eas-builder
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Decode keystore from secrets
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > /tmp/keystore.jks
+          ls -la /tmp/keystore.jks
+
+      - name: Install dependencies
+        working-directory: ${{ vars.APP_PATH }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build APK locally
+        working-directory: ${{ vars.APP_PATH }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APP_VERSION: ${{ env.APP_VERSION }}
+        run: |
+          # EAS 本地构建
+          eas build --platform android --profile production --local --non-interactive
+
+          # 查找构建产物
+          BUILD_OUTPUT=$(find ./build -name "*.apk" -type f | head -n 1)
+          if [ -z "$BUILD_OUTPUT" ]; then
+            echo "APK not found in build directory"
+            find ./build -type f || echo "Build directory:"
+            exit 1
+          fi
+
+          # 复制到输出目录
+          cp "$BUILD_OUTPUT" "/output/pinf-${{ github.ref_name }}.apk"
+          echo "APK built successfully: $(basename $BUILD_OUTPUT)"
+
+      - name: Verify APK
+        run: |
+          APK_FILE="/output/pinf-${{ github.ref_name }}.apk"
+          if [ ! -f "$APK_FILE" ]; then
+            echo "APK file not found at $APK_FILE"
+            exit 1
+          fi
+          ls -la "$APK_FILE"
+          file "$APK_FILE"
+
+      - name: Generate Release Notes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            echo "## Updates" > release_notes.txt
+            git log $PREV_TAG..${{ github.ref_name }} --pretty=format:"- %s" >> release_notes.txt
+          else
+            echo "## Initial Release" > release_notes.txt
+            git log --pretty=format:"- %s" -10 >> release_notes.txt
+          fi
+
+      - name: Upload APK as artifact (for debugging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinf-apk
+          path: /output/pinf-${{ github.ref_name }}.apk
+          retention-days: 7
+
+      - name: Create Gitea Release
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          API_BASE="${GITHUB_SERVER_URL%/}/api/v1"
+          OWNER="${GITHUB_REPOSITORY%/*}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          TAG="${GITHUB_REF_NAME}"
+          APK_FILE="/output/pinf-${TAG}.apk"
+
+          if [ ! -f "$APK_FILE" ]; then
+            echo "APK file not found: $APK_FILE"
+            exit 1
+          fi
+
+          RELEASE_PAYLOAD=$(jq -n \
+            --arg tag "$TAG" \
+            --arg name "App $TAG" \
+            --arg body "$(cat release_notes.txt)" \
+            '{tag_name:$tag,name:$name,body:$body,draft:false,prerelease:false}')
+
+          CREATE_RESPONSE=$(curl -sS -X POST \
+            -H "Authorization: token ${GITEA_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$RELEASE_PAYLOAD" \
+            "${API_BASE}/repos/${OWNER}/${REPO}/releases" \
+            -w '\n%{http_code}')
+
+          CREATE_BODY=$(echo "$CREATE_RESPONSE" | sed '$d')
+          CREATE_CODE=$(echo "$CREATE_RESPONSE" | tail -n1)
+
+          if [ "$CREATE_CODE" = "201" ]; then
+            RELEASE_ID=$(echo "$CREATE_BODY" | jq -r '.id')
+          else
+            GET_RESPONSE=$(curl -sS \
+              -H "Authorization: token ${GITEA_TOKEN}" \
+              "${API_BASE}/repos/${OWNER}/${REPO}/releases/tags/${TAG}" \
+              -w '\n%{http_code}')
+            GET_BODY=$(echo "$GET_RESPONSE" | sed '$d')
+            GET_CODE=$(echo "$GET_RESPONSE" | tail -n1)
+
+            if [ "$GET_CODE" != "200" ]; then
+              echo "Create release failed (${CREATE_CODE}), and release by tag not found (${GET_CODE})."
+              echo "$CREATE_BODY"
+              echo "$GET_BODY"
+              exit 1
+            fi
+            RELEASE_ID=$(echo "$GET_BODY" | jq -r '.id')
+          fi
+
+          UPLOAD_RESPONSE=$(curl -sS -X POST \
+            -H "Authorization: token ${GITEA_TOKEN}" \
+            -F "attachment=@${APK_FILE}" \
+            "${API_BASE}/repos/${OWNER}/${REPO}/releases/${RELEASE_ID}/assets?name=pinf-${TAG}.apk" \
+            -w '\n%{http_code}')
+
+          UPLOAD_BODY=$(echo "$UPLOAD_RESPONSE" | sed '$d')
+          UPLOAD_CODE=$(echo "$UPLOAD_RESPONSE" | tail -n1)
+          if [ "$UPLOAD_CODE" != "201" ]; then
+            echo "Upload asset failed: HTTP ${UPLOAD_CODE}"
+            echo "$UPLOAD_BODY"
+            exit 1
+          fi
+
+          echo "Release created successfully!"

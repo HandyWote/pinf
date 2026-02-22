@@ -207,3 +207,9 @@
 - `workflow_dispatch` 用于“仅验证构建”时，发布步骤需加 `if` 限制为 tag push 事件。
 - 流水线产物路径优先使用 `${GITHUB_WORKSPACE}` 子目录，避免依赖 runner 私有挂载路径（如 `/output`）。
 - 本地打包工作流可保留 tag 发布能力，同时通过条件语句与手动测试场景解耦。
+- `act_runner` 容器设置代理不等于 job 容器自动继承，workflow 需显式透传 `HTTP_PROXY/HTTPS_PROXY/NO_PROXY`。
+- EAS 本地 Android 构建遇到 Gradle wrapper 网络抖动时，优先增加 `GRADLE_OPTS` 超时参数并为 `eas build --local` 增加重试。
+- 使用 `socks5h` 代理时，建议在构建脚本显式注入 JVM `socksProxyHost/socksProxyPort`，避免 Java 链路绕过代理。
+- 若网络环境稳定且团队接受明文配置，可在 CI workflow 顶层 `env` 直接硬编码代理地址，避免变量注入缺失。
+- `socks5h` 场景下建议同时保留 JVM socks 参数注入，确保 Gradle wrapper 下载链路走代理。
+- 代理硬编码后应评估运维变更成本，变更代理地址需同步修改 workflow 文件。

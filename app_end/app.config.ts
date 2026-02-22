@@ -17,6 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     name: appJson.expo.name,
+    owner: 'handywotes-organization',
     slug: appJson.expo.slug,
     version: process.env.APP_VERSION || appJson.expo.version,
     orientation: appJson.expo.orientation as ExpoConfig['orientation'],

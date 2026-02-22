@@ -11,6 +11,10 @@ env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
   EAS_BUILD_NO_EXPO_GO_WARNING: "true"
   API_BASE_URL: "https://backend.pinf.top/api"
+  HTTP_PROXY: "socks5h://186.1.1.2:10808"
+  HTTPS_PROXY: "socks5h://186.1.1.2:10808"
+  ALL_PROXY: "socks5h://186.1.1.2:10808"
+  NO_PROXY: "localhost,127.0.0.1,186.1.1.2,git.handywote.top"
 
 jobs:
   build-app-local:
@@ -44,11 +48,35 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           APP_VERSION: ${{ env.APP_VERSION }}
         run: |
+          set -euo pipefail
           OUTPUT_DIR="${GITHUB_WORKSPACE}/output"
           mkdir -p "$OUTPUT_DIR"
 
+          GRADLE_TIMEOUT_OPTS="-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
+          export GRADLE_OPTS="${GRADLE_OPTS:-} ${GRADLE_TIMEOUT_OPTS}"
+
+          # JVM 对 socks5h 环境变量并不总是自动生效，显式注入 socks 代理参数
+          if [[ "${HTTPS_PROXY:-}" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
+            SOCKS_HOST="${BASH_REMATCH[1]}"
+            SOCKS_PORT="${BASH_REMATCH[2]}"
+            export GRADLE_OPTS="${GRADLE_OPTS} -DsocksProxyHost=${SOCKS_HOST} -DsocksProxyPort=${SOCKS_PORT}"
+          fi
+
+          echo "Using GRADLE_OPTS: ${GRADLE_OPTS}"
+
           # EAS 本地构建
-          eas build --platform android --profile production --local --non-interactive
+          ATTEMPT=1
+          MAX_ATTEMPTS=3
+          until eas build --platform android --profile production --local --non-interactive; do
+            if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
+              echo "EAS local build failed after ${ATTEMPT} attempts"
+              exit 1
+            fi
+            WAIT_SECONDS=$((ATTEMPT * 20))
+            echo "EAS local build failed on attempt ${ATTEMPT}, retrying in ${WAIT_SECONDS}s..."
+            sleep "$WAIT_SECONDS"
+            ATTEMPT=$((ATTEMPT + 1))
+          done
 
           # 查找构建产物
           BUILD_OUTPUT=$(find ./build -name "*.apk" -type f | head -n 1)

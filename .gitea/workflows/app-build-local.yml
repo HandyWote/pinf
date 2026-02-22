@@ -12,8 +12,9 @@ env:
   EAS_BUILD_NO_EXPO_GO_WARNING: "true"
   API_BASE_URL: "https://backend.pinf.top/api"
 
+jobs:
   build-app-local:
-    runs-on: 	ubuntu-eas-builder
+    runs-on: ubuntu-eas-builder
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,6 +44,9 @@ env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           APP_VERSION: ${{ env.APP_VERSION }}
         run: |
+          OUTPUT_DIR="${GITHUB_WORKSPACE}/output"
+          mkdir -p "$OUTPUT_DIR"
+
           # EAS 本地构建
           eas build --platform android --profile production --local --non-interactive
 
@@ -55,12 +59,12 @@ env:
           fi
 
           # 复制到输出目录
-          cp "$BUILD_OUTPUT" "/output/pinf-${{ github.ref_name }}.apk"
+          cp "$BUILD_OUTPUT" "$OUTPUT_DIR/pinf-${{ github.ref_name }}.apk"
           echo "APK built successfully: $(basename $BUILD_OUTPUT)"
 
       - name: Verify APK
         run: |
-          APK_FILE="/output/pinf-${{ github.ref_name }}.apk"
+          APK_FILE="${GITHUB_WORKSPACE}/output/pinf-${{ github.ref_name }}.apk"
           if [ ! -f "$APK_FILE" ]; then
             echo "APK file not found at $APK_FILE"
             exit 1
@@ -83,10 +87,11 @@ env:
         uses: actions/upload-artifact@v4
         with:
           name: pinf-apk
-          path: /output/pinf-${{ github.ref_name }}.apk
+          path: ${{ github.workspace }}/output/pinf-${{ github.ref_name }}.apk
           retention-days: 7
 
       - name: Create Gitea Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         env:
           GITEA_TOKEN: ${{ secrets.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
@@ -96,7 +101,7 @@ env:
           OWNER="${GITHUB_REPOSITORY%/*}"
           REPO="${GITHUB_REPOSITORY#*/}"
           TAG="${GITHUB_REF_NAME}"
-          APK_FILE="/output/pinf-${TAG}.apk"
+          APK_FILE="${GITHUB_WORKSPACE}/output/pinf-${TAG}.apk"
 
           if [ ! -f "$APK_FILE" ]; then
             echo "APK file not found: $APK_FILE"

@@ -204,3 +204,11 @@
 - 通知测试页应保留 reason/projectId/permission 诊断信息，便于定位 token 获取失败根因。
 - 本地通知测试建议复用 expo-notifications，并统一走权限申请与 Android 通知渠道初始化。
 - 在“真机最小闭环”阶段，页面可禁用无 token 的发送按钮，避免误判功能可用性。
+
+## 会话沉淀（2026-02-22 本地打包流水线）
+- `app-build-local.yml` 必须使用顶层 `jobs:`，不能把 job 缩进到 `env:` 下。
+- 本地打包流水线建议保留 `workflow_dispatch`，用于单独手动验证。
+- 若 `app-build-local.yml` 与 `app-build.yml` 监听同一 tag，打 tag 会并发触发两条流水线。
+- `workflow_dispatch` 用于“仅验证构建”时，发布步骤需加 `if` 限制为 tag push 事件。
+- 流水线产物路径优先使用 `${GITHUB_WORKSPACE}` 子目录，避免依赖 runner 私有挂载路径（如 `/output`）。
+- 本地打包工作流可保留 tag 发布能力，同时通过条件语句与手动测试场景解耦。

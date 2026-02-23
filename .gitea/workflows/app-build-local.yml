@@ -53,7 +53,9 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
 
           GRADLE_TIMEOUT_OPTS="-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
-          export GRADLE_OPTS="${GRADLE_OPTS:-} ${GRADLE_TIMEOUT_OPTS}"
+          GRADLE_STABILITY_OPTS="-Dorg.gradle.daemon=false"
+          export GRADLE_OPTS="${GRADLE_OPTS:-} ${GRADLE_TIMEOUT_OPTS} ${GRADLE_STABILITY_OPTS}"
+          export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -XX:-UsePerfData"
 
           # JVM 对 socks5h 环境变量并不总是自动生效，显式注入 socks 代理参数
           if [[ "${HTTPS_PROXY:-}" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
@@ -63,6 +65,7 @@ jobs:
           fi
 
           echo "Using GRADLE_OPTS: ${GRADLE_OPTS}"
+          echo "Using JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS}"
 
           # EAS 本地构建
           ATTEMPT=1
@@ -89,6 +92,15 @@ jobs:
           # 复制到输出目录
           cp "$BUILD_OUTPUT" "$OUTPUT_DIR/pinf-${{ github.ref_name }}.apk"
           echo "APK built successfully: $(basename $BUILD_OUTPUT)"
+
+      - name: Dump JVM crash logs on failure
+        if: failure()
+        run: |
+          echo "Searching hs_err_pid logs under /tmp..."
+          find /tmp -type f -name 'hs_err_pid*.log' -print | while read -r file; do
+            echo "===== $file ====="
+            sed -n '1,200p' "$file" || true
+          done
 
       - name: Verify APK
         run: |

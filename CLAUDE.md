@@ -218,3 +218,6 @@
 - 若网络环境稳定且团队接受明文配置，可在 CI workflow 顶层 `env` 直接硬编码代理地址，避免变量注入缺失。
 - `socks5h` 场景下建议同时保留 JVM socks 参数注入，确保 Gradle wrapper 下载链路走代理。
 - 代理硬编码后应评估运维变更成本，变更代理地址需同步修改 workflow 文件。
+- Gradle/JVM 出现 `hs_err_pid` 崩溃时，可先尝试 `JAVA_TOOL_OPTIONS=-XX:-UsePerfData` 规避 PerfData 采样相关 native 崩溃。
+- 本地构建稳定性可通过 `-Dorg.gradle.daemon=false` 降低守护进程带来的容器内不确定性。
+- CI 中应在失败后自动采集 `hs_err_pid*.log` 前 200 行，便于快速定位 JVM 崩溃点。

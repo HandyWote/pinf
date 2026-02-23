@@ -34,12 +34,26 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: app_end/package-lock.json
+      - name: Setup Node.js (nvm)
+        run: |
+          set -euo pipefail
+          export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+          if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+            echo "nvm not found at $NVM_DIR/nvm.sh"
+            exit 1
+          fi
+
+          # shellcheck disable=SC1090
+          . "$NVM_DIR/nvm.sh"
+          nvm install 20
+          nvm use 20
+
+          NODE_BIN_DIR="$(dirname "$(command -v node)")"
+          echo "$NODE_BIN_DIR" >> "$GITHUB_PATH"
+          echo "NVM_DIR=$NVM_DIR" >> "$GITHUB_ENV"
+
+          node --version
+          npm --version
 
       - name: Install Android SDK
         run: |

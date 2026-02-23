@@ -233,3 +233,7 @@
 - `actions/setup-java` 开启 `cache: gradle` 时要求仓库已存在 Gradle 依赖描述文件；若 Android 工程是 CI 动态生成，应关闭该缓存选项。
 - Expo managed 项目在未提交 `android/` 目录时，CI 需先执行 `npx expo prebuild -p android` 再跑 `gradlew`。
 - 仅在 `android/` 不存在时触发 prebuild 可避免每次重生工程带来的额外耗时。
+## 会话沉淀（2026-02-23 Node 初始化）
+- 发布流水线 `app-build.yml` 也应统一为 `nvm install/use`，避免 `setup-node` 在代理隧道下载阶段失败。
+- 日志中的 `punycode` deprecation 多为提示，优先排查 `tunneling socket could not be established`/`socket hang up`。
+- Node 初始化后应写入 `GITHUB_PATH` 并打印 `node --version`、`npm --version` 便于验收。

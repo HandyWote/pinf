@@ -5,6 +5,15 @@
   },
   "build": {
     "production": {
+      "cache": {
+        "key": "local-cache-v1",
+        "paths": [
+          "node_modules",
+          ".expo",
+          ".npm",
+          "android/.gradle"
+        ]
+      },
       "android": {
         "buildType": "apk"
       }
@@ -12,6 +21,15 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "cache": {
+        "key": "local-cache-v1",
+        "paths": [
+          "node_modules",
+          ".expo",
+          ".npm",
+          "android/.gradle"
+        ]
+      },
       "android": { "buildType": "apk" }
     }
   }

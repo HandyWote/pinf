@@ -221,3 +221,12 @@
 - Gradle/JVM 出现 `hs_err_pid` 崩溃时，可先尝试 `JAVA_TOOL_OPTIONS=-XX:-UsePerfData` 规避 PerfData 采样相关 native 崩溃。
 - 本地构建稳定性可通过 `-Dorg.gradle.daemon=false` 降低守护进程带来的容器内不确定性。
 - CI 中应在失败后自动采集 `hs_err_pid*.log` 前 200 行，便于快速定位 JVM 崩溃点。
+- 本地 EAS 构建建议在 workflow 顶层统一设置缓存目录：`GRADLE_USER_HOME`、`NPM_CONFIG_CACHE`、`CCACHE_DIR`、`EAS_LOCAL_BUILD_WORKINGDIR`。
+- 依赖安装阶段可开启 `npm prefer-offline` 并关闭 `fund/audit`，减少网络抖动对安装耗时影响。
+- `eas.json` 的 `build.<profile>.cache.paths` 应显式配置（如 `node_modules/.expo/.npm/android/.gradle`），避免本地构建 payload 中 `cache.paths` 为空。
+- 若目标是本地链路性能优先，`app-build-local` 可从 `eas build --local` 切换为 `./gradlew :app:assembleRelease` 直构模式。
+- 直构模式下需在 CI 里动态写入 `android/local.properties` 的 `sdk.dir`，避免 `SDK location not found`。
+- APK 产物路径应固定为 `android/app/build/outputs/apk/release`，避免沿用 EAS 本地构建的 `build/` 目录假设。
+- 当 `runs-on: ubuntu-latest` 无自定义镜像时，APK 流水线应显式加入 `setup-java`、`setup-node` 与 Android SDK commandline-tools 安装步骤。
+- Expo SDK 54 / RN 0.81 链路建议在 CI 安装 `platforms;android-36`、`build-tools;36.0.0`、`ndk;27.1.12297006`，与项目配置对齐。
+- 普通 runner 下缓存目录建议落在 `${{ github.workspace }}`，避免写入根目录导致权限问题。

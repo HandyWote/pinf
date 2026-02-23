@@ -237,3 +237,8 @@
 - 发布流水线 `app-build.yml` 也应统一为 `nvm install/use`，避免 `setup-node` 在代理隧道下载阶段失败。
 - 日志中的 `punycode` deprecation 多为提示，优先排查 `tunneling socket could not be established`/`socket hang up`。
 - Node 初始化后应写入 `GITHUB_PATH` 并打印 `node --version`、`npm --version` 便于验收。
+
+## 会话沉淀（2026-02-23 Android SDK 代理）
+- `sdkmanager` 不支持把 `socks5h://` 直接放在 `HTTP_PROXY/HTTPS_PROXY`，会触发 `MalformedURLException: unknown protocol: socks5h`。
+- Android SDK 安装步骤建议改为显式 `sdkmanager --proxy=socks --proxy_host --proxy_port`，并在该步骤内 `unset HTTP_PROXY/HTTPS_PROXY`。
+- Gradle 仍可通过 JVM 参数 `-DsocksProxyHost/-DsocksProxyPort` 走 SOCKS 代理，避免与全局代理变量耦合。

@@ -10,8 +10,7 @@ on:
 env:
   APP_PATH: "app_end"
   API_BASE_URL: "https://backend.pinf.top/api"
-  HTTP_PROXY: "socks5h://186.1.1.2:10808"
-  HTTPS_PROXY: "socks5h://186.1.1.2:10808"
+  SOCKS_PROXY: "socks5h://186.1.1.2:10808"
   ALL_PROXY: "socks5h://186.1.1.2:10808"
   NO_PROXY: "localhost,127.0.0.1,186.1.1.2,git.handywote.top"
   GRADLE_USER_HOME: "${{ github.workspace }}/.gradle-cache"
@@ -62,6 +61,17 @@ jobs:
           export ANDROID_HOME="${ANDROID_SDK_ROOT}"
           mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"
 
+          PROXY_URL="${HTTPS_PROXY:-${HTTP_PROXY:-${ALL_PROXY:-${SOCKS_PROXY:-}}}}"
+          SDKMANAGER_PROXY_ARGS=()
+          if [[ "$PROXY_URL" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
+            SDKMANAGER_PROXY_ARGS=(--proxy=socks --proxy_host="${BASH_REMATCH[1]}" --proxy_port="${BASH_REMATCH[2]}")
+          elif [[ "$PROXY_URL" =~ ^https?://([^:/]+):([0-9]+)$ ]]; then
+            SDKMANAGER_PROXY_ARGS=(--proxy=http --proxy_host="${BASH_REMATCH[1]}" --proxy_port="${BASH_REMATCH[2]}")
+          fi
+
+          # Java URL 解析不支持 socks5h://，避免 sdkmanager 误读 HTTP(S)_PROXY 后直接失败
+          unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+
           if [ ! -x "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" ]; then
             cd /tmp
             curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o cmdline-tools.zip
@@ -71,8 +81,8 @@ jobs:
           fi
 
           export PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager --install \
+          yes | sdkmanager "${SDKMANAGER_PROXY_ARGS[@]}" --licenses >/dev/null || true
+          sdkmanager "${SDKMANAGER_PROXY_ARGS[@]}" --install \
             "platform-tools" \
             "platforms;android-36" \
             "build-tools;36.0.0" \
@@ -124,7 +134,8 @@ jobs:
           GRADLE_STABILITY_OPTS="-Dorg.gradle.daemon=false"
           export GRADLE_OPTS="${GRADLE_OPTS:-} ${GRADLE_TIMEOUT_OPTS} ${GRADLE_STABILITY_OPTS}"
           export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -XX:-UsePerfData"
-          if [[ "${HTTPS_PROXY:-}" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
+          PROXY_URL="${HTTPS_PROXY:-${HTTP_PROXY:-${ALL_PROXY:-${SOCKS_PROXY:-}}}}"
+          if [[ "$PROXY_URL" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
             SOCKS_HOST="${BASH_REMATCH[1]}"
             SOCKS_PORT="${BASH_REMATCH[2]}"
             export GRADLE_OPTS="${GRADLE_OPTS} -DsocksProxyHost=${SOCKS_HOST} -DsocksProxyPort=${SOCKS_PORT}"

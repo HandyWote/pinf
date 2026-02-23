@@ -242,3 +242,8 @@
 - `sdkmanager` 不支持把 `socks5h://` 直接放在 `HTTP_PROXY/HTTPS_PROXY`，会触发 `MalformedURLException: unknown protocol: socks5h`。
 - Android SDK 安装步骤建议改为显式 `sdkmanager --proxy=socks --proxy_host --proxy_port`，并在该步骤内 `unset HTTP_PROXY/HTTPS_PROXY`。
 - Gradle 仍可通过 JVM 参数 `-DsocksProxyHost/-DsocksProxyPort` 走 SOCKS 代理，避免与全局代理变量耦合。
+
+## 会话沉淀（2026-02-23 npm 依赖安装超时）
+- `npm ci` 在 runner 上出现 `ETIMEDOUT` 时，通常需在安装步骤显式导出 `HTTP_PROXY/HTTPS_PROXY`，不能只依赖 `ALL_PROXY`。
+- npm 网络抖动场景建议同时设置 `fetch-retries`、`fetch-retry-mintimeout`、`fetch-retry-maxtimeout`、`fetch-timeout`。
+- 代理策略可按工具分层：`sdkmanager` 用显式 `--proxy`，npm 用 `HTTP(S)_PROXY`，Gradle 用 JVM socks 参数。

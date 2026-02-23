@@ -33,7 +33,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -119,6 +118,11 @@ jobs:
 
           echo "Using GRADLE_OPTS: ${GRADLE_OPTS}"
           echo "Using JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS}"
+
+          if [ ! -d "android" ]; then
+            echo "android directory not found, running expo prebuild..."
+            npx expo prebuild -p android --non-interactive
+          fi
 
           if [ -n "${ANDROID_SDK_ROOT:-}" ]; then
             ANDROID_SDK_DIR="$ANDROID_SDK_ROOT"

@@ -225,3 +225,6 @@
 - 当 `runs-on: ubuntu-latest` 无自定义镜像时，APK 流水线应显式加入 `setup-java`、`setup-node` 与 Android SDK commandline-tools 安装步骤。
 - Expo SDK 54 / RN 0.81 链路建议在 CI 安装 `platforms;android-36`、`build-tools;36.0.0`、`ndk;27.1.12297006`，与项目配置对齐。
 - 普通 runner 下缓存目录建议落在 `${{ github.workspace }}`，避免写入根目录导致权限问题。
+- `actions/setup-java` 开启 `cache: gradle` 时要求仓库已存在 Gradle 依赖描述文件；若 Android 工程是 CI 动态生成，应关闭该缓存选项。
+- Expo managed 项目在未提交 `android/` 目录时，CI 需先执行 `npx expo prebuild -p android` 再跑 `gradlew`。
+- 仅在 `android/` 不存在时触发 prebuild 可避免每次重生工程带来的额外耗时。

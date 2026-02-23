@@ -160,7 +160,7 @@ jobs:
 
           if [ ! -d "android" ]; then
             echo "android directory not found, running expo prebuild..."
-            npx expo prebuild -p android --non-interactive
+            CI=1 npx expo prebuild -p android
           fi
 
           if [ -n "${ANDROID_SDK_ROOT:-}" ]; then
@@ -174,7 +174,8 @@ jobs:
           echo "sdk.dir=${ANDROID_SDK_DIR}" > android/local.properties
           echo "Using Android SDK: ${ANDROID_SDK_DIR}"
 
-          ./gradlew --no-daemon :app:assembleRelease
+          chmod +x ./android/gradlew || true
+          ./android/gradlew --no-daemon :app:assembleRelease
 
           # 查找构建产物
           BUILD_OUTPUT=$(find ./android/app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)

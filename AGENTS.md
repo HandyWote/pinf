@@ -242,3 +242,8 @@
 - `npm ci` 在 runner 上出现 `ETIMEDOUT` 时，通常需在安装步骤显式导出 `HTTP_PROXY/HTTPS_PROXY`，不能只依赖 `ALL_PROXY`。
 - npm 网络抖动场景建议同时设置 `fetch-retries`、`fetch-retry-mintimeout`、`fetch-retry-maxtimeout`、`fetch-timeout`。
 - 代理策略可按工具分层：`sdkmanager` 用显式 `--proxy`，npm 用 `HTTP(S)_PROXY`，Gradle 用 JVM socks 参数。
+
+## 会话沉淀（2026-02-23 prebuild/gradlew）
+- Expo CLI 在该链路下不支持 `--non-interactive` 参数，CI 场景应改为 `CI=1 npx expo prebuild -p android`。
+- Expo prebuild 生成的 Gradle wrapper 位于 `android/gradlew`，不能在项目根直接执行 `./gradlew`。
+- 本地/CI 统一可在执行前 `chmod +x ./android/gradlew || true` 作为可执行位兜底。

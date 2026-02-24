@@ -2,6 +2,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 import appJson from './app.json';
 
 const DEFAULT_API_BASE_URL = 'https://backend.pinf.top/api';
+const GOOGLE_SERVICES_FILE = './google-services.json';
 
 const normalizeApiBaseUrl = (value?: string): string | undefined => {
   if (!value) return undefined;
@@ -13,6 +14,7 @@ const normalizeApiBaseUrl = (value?: string): string | undefined => {
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const apiBaseUrl = normalizeApiBaseUrl(process.env.API_BASE_URL) || DEFAULT_API_BASE_URL;
+  const androidConfig = appJson.expo.android as ExpoConfig['android'];
 
   return {
     ...config,
@@ -26,7 +28,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     userInterfaceStyle: appJson.expo.userInterfaceStyle as ExpoConfig['userInterfaceStyle'],
     newArchEnabled: appJson.expo.newArchEnabled,
     ios: appJson.expo.ios,
-    android: appJson.expo.android as ExpoConfig['android'],
+    android: {
+      ...androidConfig,
+      googleServicesFile: GOOGLE_SERVICES_FILE,
+    },
     web: appJson.expo.web as ExpoConfig['web'],
     plugins: appJson.expo.plugins as ExpoConfig['plugins'],
     experiments: appJson.expo.experiments,

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578829491511",
+    "project_id": "pinf-13f75",
+    "storage_bucket": "pinf-13f75.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578829491511:android:9b99acf2697f1a4bf84eb2",
+        "android_client_info": {
+          "package_name": "com.handywote.pinf"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGrHauIEARIDUncZxOTok73JOb1CIDDQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -262,3 +262,9 @@
 - 若目标是提速，`Verify APK` 可收敛为“存在性 + 文件大小 + sha256”。
 - `file/unzip` 结构校验可作为增强项，不必作为默认阻塞步骤。
 - `sha256sum` 缺失时可降级为提示，不应让校验步骤硬失败。
+
+## 会话沉淀（2026-02-24 Firebase google-services）
+- Android 获取 Expo Push Token 依赖 Firebase 原生初始化，必须在 Expo 配置中声明 googleServicesFile。
+- google-services.json 应放在 app_end 根目录，并通过 expo.android.googleServicesFile 指向相对路径 ./google-services.json。
+- 仅把文件放入目录不足以生效，必须重新 EAS 打包安装新 APK。
+- 排查 token_request_failed 时，先确认 permission=granted、projectId 正确、googleServicesFile 已进入 expo config 输出。

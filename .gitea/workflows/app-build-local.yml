@@ -175,7 +175,7 @@ jobs:
           echo "Using Android SDK: ${ANDROID_SDK_DIR}"
 
           chmod +x ./android/gradlew || true
-          ./android/gradlew --no-daemon :app:assembleRelease
+          ./android/gradlew --no-daemon -p android :app:assembleRelease
 
           # 查找构建产物
           BUILD_OUTPUT=$(find ./android/app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)

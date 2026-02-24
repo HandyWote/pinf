@@ -252,3 +252,8 @@
 - Expo CLI 在该链路下不支持 `--non-interactive` 参数，CI 场景应改为 `CI=1 npx expo prebuild -p android`。
 - Expo prebuild 生成的 Gradle wrapper 位于 `android/gradlew`，不能在项目根直接执行 `./gradlew`。
 - 本地/CI 统一可在执行前 `chmod +x ./android/gradlew || true` 作为可执行位兜底。
+
+## 会话沉淀（2026-02-24 Gradle project dir）
+- 在 `app_end` 工作目录调用 `./android/gradlew` 时，Gradle 仍可能把当前目录识别为 project dir。
+- Expo prebuild 生成工程后，构建命令应显式指定 `-p android`，确保读取 `android/settings.gradle`。
+- 若报 `does not contain a Gradle build`，优先检查 Gradle project dir 而不是代理链路。

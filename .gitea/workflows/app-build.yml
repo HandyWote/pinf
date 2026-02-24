@@ -1,10 +1,7 @@
 name: APP Build
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
-      - 'app-*'
+  workflow_dispatch:
 
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

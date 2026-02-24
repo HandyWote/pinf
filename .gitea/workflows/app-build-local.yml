@@ -1,10 +1,6 @@
 name: APP Local Build
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
-      - 'app-*'
   workflow_dispatch:  # 支持手动触发
 
 env:
@@ -200,13 +196,18 @@ jobs:
 
       - name: Verify APK
         run: |
+          set -euo pipefail
           APK_FILE="${GITHUB_WORKSPACE}/output/pinf-${{ github.ref_name }}.apk"
           if [ ! -f "$APK_FILE" ]; then
             echo "APK file not found at $APK_FILE"
             exit 1
           fi
-          ls -la "$APK_FILE"
-          file "$APK_FILE"
+          ls -lh "$APK_FILE"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$APK_FILE"
+          else
+            echo "sha256sum not found, skip digest output"
+          fi
 
       - name: Generate Release Notes
         run: |

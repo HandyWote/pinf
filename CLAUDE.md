@@ -257,3 +257,13 @@
 - 在 `app_end` 工作目录调用 `./android/gradlew` 时，Gradle 仍可能把当前目录识别为 project dir。
 - Expo prebuild 生成工程后，构建命令应显式指定 `-p android`，确保读取 `android/settings.gradle`。
 - 若报 `does not contain a Gradle build`，优先检查 Gradle project dir 而不是代理链路。
+
+## 会话沉淀（2026-02-24 Verify APK 工具兼容）
+- `Verify APK` 步骤不要强依赖 `file` 命令，runner 镜像可能未预装。
+- 可采用“有 `file` 用 `file`，无 `file` 回退 `unzip -l` + `sha256sum`”的降级策略。
+- 校验步骤建议加 `set -euo pipefail`，避免命令缺失时静默通过。
+
+## 会话沉淀（2026-02-24 轻量 APK 校验）
+- 若目标是提速，`Verify APK` 可收敛为“存在性 + 文件大小 + sha256”。
+- `file/unzip` 结构校验可作为增强项，不必作为默认阻塞步骤。
+- `sha256sum` 缺失时可降级为提示，不应让校验步骤硬失败。

@@ -268,3 +268,22 @@
 - google-services.json 应放在 app_end 根目录，并通过 expo.android.googleServicesFile 指向相对路径 ./google-services.json。
 - 仅把文件放入目录不足以生效，必须重新 EAS 打包安装新 APK。
 - 排查 token_request_failed 时，先确认 permission=granted、projectId 正确、googleServicesFile 已进入 expo config 输出。
+## 会话沉淀（2026-02-24 Expo Doctor/Cache）
+- Expo SDK 54 项目不应直接安装 `@types/react-native`，否则 `expo-doctor` 会失败。
+- EAS `cache.paths` 中若包含不存在目录（如 `.npm`）会在 `SAVE_CACHE` 阶段导致构建标记失败。
+- 构建日志显示 `RUN_GRADLEW` 成功但 `SAVE_CACHE` 失败时，产物可能已生成，需同时检查 artifacts.buildUrl。
+- 预约提醒摘要建议新增独立接口（如 `/appointments/summary`），由后端返回“今天 + 近 3 天”待就诊预约，前端只负责悬浮层展示。
+- 预约创建与更新应统一校验 `clinic/department/status/remindAt`，至少保证非空、状态白名单、且 `remindAt <= scheduledAt`。
+- 预约时间提交应优先使用本地无时区 datetime 字符串，避免前端 `toISOString()` 导致“今天/近 3 天”判断偏移。
+- 登录后预约悬浮提醒适合挂在根布局，只在当前登录会话内按“用户 + 日期”展示一次，避免反复打扰。
+- 预约页完善优先级高于通知 demo；若保留 Expo/FCM 底层能力，可先移除测试页入口而不删除依赖。
+
+## 会话沉淀（2026-03-07 预约新增与提醒排障）
+- 预约新增前端应优先使用 `create/update` 接口返回值直接回写 `appointmentStore`，不要强依赖“新增后立即全量 fetch”。
+- 登录后预约提醒不要在 `login/set-password` 路由触发请求，否则可能在未进入业务页前就消费掉展示机会。
+- 若产品预期是“重新登录再次提醒”，进入认证流程或退出登录时应重置提醒弹层的已展示标记。
+- 预约时间输入建议支持 `YYYY-MM-DD` 与 `HH:mm` 文本直输，原生时间选择器仅作兜底，避免部分平台上看起来“时间被锁死”。
+- Expo SDK 54 若出现 Metro `dependencies is not iterable`，可优先关闭 `reactCompiler` 作为兜底排查项。
+- 若自定义动画 `Modal` 出现“按钮点击但弹层不显示”的不稳定现象，优先回退到 React Native 原生 `Modal` 保证核心流程可用。
+- 登录后预约提示若只需信息展示，优先直接复用本地 `appointmentStore` 列表，不必额外依赖摘要接口。
+- 一次性提醒弹窗若无业务操作，保留“知道了/关闭”即可，避免跳转和复杂状态机增加故障面。

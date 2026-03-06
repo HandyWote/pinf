@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
@@ -98,4 +99,6 @@ def create_app(config_class=Config):
 
 if __name__ == "__main__":
     application = create_app()
-    application.run(host="0.0.0.0", port=5010, debug=False)
+    host = os.getenv("BACKEND_HOST", "127.0.0.1")
+    port = int(os.getenv("BACKEND_PORT", "5010"))
+    application.run(host=host, port=port, debug=False)

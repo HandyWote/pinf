@@ -28,7 +28,8 @@ export default function TabLayout() {
           fontSize: organicTheme.typography.fontSize.xs,
           fontWeight: organicTheme.typography.fontWeight.semibold,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -53,15 +54,6 @@ export default function TabLayout() {
           title: '课堂',
           tabBarIcon: ({ color }: { color: string }) => (
             <IconSymbol size={organicTheme.iconSizes.tab} name="play.circle.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="test-notifications"
-        options={{
-          title: '通知',
-          tabBarIcon: ({ color }: { color: string }) => (
-            <IconSymbol size={organicTheme.iconSizes.tab} name="bell.fill" color={color} />
           ),
         }}
       />

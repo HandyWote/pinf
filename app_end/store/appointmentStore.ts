@@ -4,6 +4,11 @@ import { create } from 'zustand';
 import * as appointmentApi from '@/services/api/appointment';
 import type { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from '@/types/appointment';
 
+const sortAppointments = (appointments: Appointment[]) =>
+  [...appointments].sort(
+    (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+  );
+
 interface AppointmentState {
   appointments: Appointment[];
   loading: boolean;
@@ -27,10 +32,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const list = await appointmentApi.listAppointments();
-      const sorted = [...list].sort(
-        (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-      );
-      set({ appointments: sorted, loading: false });
+      set({ appointments: sortAppointments(list), loading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : '获取预约失败';
       set({ error: message, loading: false });
@@ -41,8 +43,12 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   add: async (payload: CreateAppointmentInput) => {
     set({ loading: true, error: null });
     try {
-      await appointmentApi.createAppointment(payload);
-      await get().fetch();
+      const created = await appointmentApi.createAppointment(payload);
+      set((state) => ({
+        appointments: sortAppointments([...state.appointments, created]),
+        loading: false,
+        error: null,
+      }));
     } catch (error) {
       const message = error instanceof Error ? error.message : '创建预约失败';
       set({ error: message, loading: false });
@@ -53,8 +59,14 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   update: async (id: number, payload: UpdateAppointmentInput) => {
     set({ loading: true, error: null });
     try {
-      await appointmentApi.updateAppointment(id, payload);
-      await get().fetch();
+      const updated = await appointmentApi.updateAppointment(id, payload);
+      set((state) => ({
+        appointments: sortAppointments(
+          state.appointments.map((item) => (item.id === id ? updated : item))
+        ),
+        loading: false,
+        error: null,
+      }));
     } catch (error) {
       const message = error instanceof Error ? error.message : '更新预约失败';
       set({ error: message, loading: false });
@@ -66,7 +78,11 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       await appointmentApi.deleteAppointment(id);
-      await get().fetch();
+      set((state) => ({
+        appointments: state.appointments.filter((item) => item.id !== id),
+        loading: false,
+        error: null,
+      }));
     } catch (error) {
       const message = error instanceof Error ? error.message : '删除预约失败';
       set({ error: message, loading: false });

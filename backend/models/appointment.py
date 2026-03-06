@@ -19,10 +19,13 @@ class Appointment(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "userId": self.user_id,
+            "babyId": self.baby_id,
             "clinic": self.clinic,
             "department": self.department,
             "scheduledAt": self.scheduled_at.isoformat() if self.scheduled_at else None,
             "remindAt": self.remind_at.isoformat() if self.remind_at else None,
             "status": self.status,
             "note": self.note,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
         }

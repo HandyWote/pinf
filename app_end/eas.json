@@ -10,7 +10,6 @@
         "paths": [
           "node_modules",
           ".expo",
-          ".npm",
           "android/.gradle"
         ]
       },
@@ -26,7 +25,6 @@
         "paths": [
           "node_modules",
           ".expo",
-          ".npm",
           "android/.gradle"
         ]
       },

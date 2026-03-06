@@ -47,7 +47,6 @@ export const Modal: React.FC<ModalProps> = ({
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    console.log('Modal visible changed:', visible);
     if (visible) {
       // 重置初始位置
       translateY.setValue(startY);

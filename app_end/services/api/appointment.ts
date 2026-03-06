@@ -4,6 +4,7 @@
 import { api } from './client';
 import type {
   Appointment,
+  AppointmentSummary,
   CreateAppointmentInput,
   UpdateAppointmentInput,
 } from '@/types/appointment';
@@ -23,6 +24,11 @@ export const createAppointment = async (
   payload: CreateAppointmentInput
 ): Promise<Appointment> => {
   const res = await api.post<ApiResponse<Appointment>>('/appointments', payload);
+  return res.data.data;
+};
+
+export const getAppointmentSummary = async (windowDays = 3): Promise<AppointmentSummary> => {
+  const res = await api.get<ApiResponse<AppointmentSummary>>('/appointments/summary', { windowDays });
   return res.data.data;
 };
 

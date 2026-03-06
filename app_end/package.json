@@ -18,7 +18,6 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@types/react": "~19.1.10",
-    "@types/react-native": "^0.72.0",
     "axios": "^1.13.2",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",

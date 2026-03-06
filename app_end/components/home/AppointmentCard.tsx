@@ -15,6 +15,7 @@ type Props = {
   statusVariant?: StatusVariant;
   dateDay?: string;
   dateMonth?: string;
+  actionLabel?: string;
   onAction?: () => void;
 };
 
@@ -27,6 +28,7 @@ export const AppointmentCard: React.FC<Props> = ({
   statusVariant = 'primary',
   dateDay,
   dateMonth,
+  actionLabel = '查看详情',
   onAction,
 }) => {
   const tagVariant =
@@ -40,7 +42,7 @@ export const AppointmentCard: React.FC<Props> = ({
     <View style={styles.container}>
       <View style={styles.datePill}>
         <Text style={styles.dateDay}>{dateDay ?? dateText.split('-')[2]?.slice(0, 2)}</Text>
-        <Text style={styles.dateMonth}>{dateMonth ?? dateText.split('-')[1] + '月'}</Text>
+        <Text style={styles.dateMonth}>{dateMonth ?? `${dateText.split('-')[1]}月`}</Text>
       </View>
       <View style={styles.content}>
         <View style={styles.headerRow}>
@@ -50,14 +52,14 @@ export const AppointmentCard: React.FC<Props> = ({
         <Text style={styles.subtitle}>{department}</Text>
         <View style={styles.metaRow}>
           <Text style={styles.meta}>{dateText}</Text>
-          {remindText && <Text style={styles.meta}>{remindText}</Text>}
+          {remindText ? <Text style={styles.meta}>{remindText}</Text> : null}
         </View>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onAction ?? (() => {})}
           style={styles.linkRow}
         >
-          <Text style={styles.linkText}>查看详情</Text>
+          <Text style={styles.linkText}>{actionLabel}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { GrowthRecordModal } from '@/components/home/GrowthRecordModal';
+import { AppointmentInfoOnceModal } from '@/components/home/AppointmentInfoOnceModal';
 import { AppointmentModal } from '@/components/home/AppointmentModal';
 import { BabyForm, Modal, OrganicBackground, OrganicCard } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
@@ -481,6 +482,7 @@ export default function HomeScreen() {
         onClose={() => setShowAppointmentModal(false)}
         onSubmit={handleAddAppointment}
       />
+      <AppointmentInfoOnceModal />
       <BabyForm
         visible={showBabyForm}
         onClose={() => setShowBabyForm(false)}

@@ -154,7 +154,16 @@ apiClient.interceptors.response.use(
 
     // 统一错误提示（这里简化处理，实际应该用 toast 组件）
     const errorMessage = extractErrorMessage(error);
-    console.error('API Error:', errorMessage);
+    console.error('API Error:', {
+      message: errorMessage,
+      method: originalRequest?.method,
+      url: originalRequest?.baseURL
+        ? `${String(originalRequest.baseURL).replace(/\/$/, '')}${originalRequest.url || ''}`
+        : originalRequest?.url,
+      status: error.response?.status,
+      response: error.response?.data,
+      code: error.code,
+    });
 
     return Promise.reject(error);
   }

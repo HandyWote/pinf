@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.DEPLOY_PASSWORD }}
           script: |
             cd ${{ vars.BACKEND_PATH }}
-            git pull
+            git pull origin main
             docker compose up -d --build
       - name: Deployment status
         run: echo "部署完成！"

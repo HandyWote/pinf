@@ -7,6 +7,7 @@ always reply in chinese
 use superpower skill
 use TDD to guide programing(RED: red-eddit-green)
 always reuse existing components in the project; refuse to reinvent the wheel.
+always provide many solutions to help me brain-storming and also need to give me one with the least technical debt in the future
 
 ## 项目概述
 

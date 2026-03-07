@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*.*.*'
       - 'backend-*'
+    branches:
+      - main
+    paths:
+      - ".gitea/workflows/release.yml"
 
 env:
   DEPLOY_PORT: 22
@@ -45,15 +49,16 @@ jobs:
     if: needs.detect-changes.outputs.backend_changed == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to server
-        run: |
-          sudo apt-get update && sudo apt-get install -y sshpass
-          sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' ssh -o StrictHostKeyChecking=no \
-            -p ${{ env.DEPLOY_PORT }} \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "cd ${{ vars.BACKEND_PATH }} && \
-             git pull && \
-             docker compose -f docker-compose.yml up -d --build"
-
+             
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          script: |
+            cd ${{ vars.BACKEND_PATH }}
+            git pull
+            docker compose up -d --build
       - name: Deployment status
         run: echo "部署完成！"

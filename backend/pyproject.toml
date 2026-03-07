@@ -14,3 +14,10 @@ dependencies = [
     "python-dotenv==1.0.0",
     "requests==2.31.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["routes/tests", "models/tests", "utils/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=. --cov-report=term-missing"

@@ -8,10 +8,7 @@ on:
     branches:
       - main
     paths:
-      - ".gitea/workflows/release.yml"
-
-env:
-  DEPLOY_PORT: 22
+      - ".gitea/workflows/backend-deploy.yml"
 
 jobs:
   # Job 1: 检测 backend 变更

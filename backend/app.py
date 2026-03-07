@@ -47,7 +47,7 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     jwt.init_app(app)
-    cors.init_app(app)
+    cors.init_app(app, origins=app.config.get("CORS_ORIGINS", ["*"]))
 
     # 注册蓝图（路由）
     from routes.auth import auth_bp

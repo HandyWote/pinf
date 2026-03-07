@@ -144,3 +144,5 @@ logs/
 
 docker/
 data/
+
+.idea

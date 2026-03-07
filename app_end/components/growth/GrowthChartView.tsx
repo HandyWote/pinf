@@ -16,6 +16,7 @@ import { buildGrowthCurveModel, type RangeMode, type StandardMode } from '@/doma
 import { calculateRecordAge } from '@/domain/growthCurve/age';
 import type { Baby } from '@/types/baby';
 import type { GrowthMetric, GrowthRecord } from '@/types/growth';
+import { createGrowthChartPresentation } from './chartPresentation';
 
 interface GrowthChartViewProps {
   baby: Baby;
@@ -241,6 +242,7 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
   const fullscreenViewportWidth = Math.max(windowWidth - organicTheme.spacing.md * 2, 260);
   const fullscreenChartWidth = Math.max(fullscreenViewportWidth * zoom, fullscreenViewportWidth);
   const inlineChartWidth = Math.max(windowWidth - organicTheme.spacing.lg * 3, 260);
+  const chartPresentation = createGrowthChartPresentation();
 
   const toggleLegend = (key: keyof LegendState) => {
     setLegend((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -262,19 +264,8 @@ export const GrowthChartView: React.FC<GrowthChartViewProps> = ({
       withDots
       yAxisInterval={1}
       yAxisSuffix={meta.unit}
-      chartConfig={{
-        backgroundColor: 'transparent',
-        backgroundGradientFrom: 'transparent',
-        backgroundGradientTo: 'transparent',
-        decimalPlaces: 1,
-        color: () => organicTheme.colors.primary.main,
-        labelColor: () => organicTheme.colors.text.secondary,
-        propsForDots: {
-          r: '3',
-          strokeWidth: '1',
-          stroke: organicTheme.colors.background.paper,
-        },
-      }}
+      transparent={chartPresentation.transparent}
+      chartConfig={chartPresentation.chartConfig}
       style={styles.chart}
       onDataPointClick={({ index, value, dataset }: any) => {
         const x = xValues[index];

@@ -18,6 +18,7 @@ import {
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
 import { getUseNativeDriver } from './modalAnimation';
+import { getModalScrollViewStyle } from './modalLayout';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -89,7 +90,7 @@ export const Modal: React.FC<ModalProps> = ({
 
     const childProps = child.props as { style?: ViewStyle };
     return React.cloneElement(child as React.ReactElement<any>, {
-      style: [childProps.style, styles.scrollViewFlex],
+      style: getModalScrollViewStyle(childProps.style, isAutoHeight),
     });
   });
 
@@ -190,8 +191,5 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: organicTheme.spacing.md,
-  },
-  scrollViewFlex: {
-    flex: 1,
   },
 });

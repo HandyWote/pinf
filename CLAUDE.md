@@ -292,3 +292,8 @@
 - 若自定义动画 `Modal` 出现“按钮点击但弹层不显示”的不稳定现象，优先回退到 React Native 原生 `Modal` 保证核心流程可用。
 - 登录后预约提示若只需信息展示，优先直接复用本地 `appointmentStore` 列表，不必额外依赖摘要接口。
 - 一次性提醒弹窗若无业务操作，保留“知道了/关闭”即可，避免跳转和复杂状态机增加故障面。
+
+## 会话沉淀（2026-03-07 Android autolinking 跨环境缓存）
+- Expo/RN Android 本地构建应尽量固定在同一文件系统环境内完成，不要混用 WSL 生成缓存后再切回 Windows 继续构建。
+- `app_end/android/build/generated/autolinking` 若记录的是 `/mnt/...` 根路径，会导致 Windows Gradle 侧原生模块解析为 `No matching variant`。
+- 最小侵入修复优先放在 `app_end/android/settings.gradle`，按当前 root path 校验 `autolinking.json`，不匹配就自动清理并重新生成。

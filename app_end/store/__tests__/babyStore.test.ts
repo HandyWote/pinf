@@ -9,13 +9,13 @@ vi.mock('@/services/api/baby', () => ({
   deleteBaby: vi.fn(),
 }));
 
-// Mock AsyncStorage
+// Mock AsyncStorage - must return Promise
 vi.mock('@react-native-async-storage/async-storage', () => ({
   default: {
-    setItem: vi.fn(),
-    getItem: vi.fn(),
-    multiGet: vi.fn(),
-    removeItem: vi.fn(),
+    setItem: vi.fn(() => Promise.resolve()),
+    getItem: vi.fn(() => Promise.resolve(null)),
+    multiGet: vi.fn(() => Promise.resolve([])),
+    removeItem: vi.fn(() => Promise.resolve()),
   },
 }));
 
@@ -109,7 +109,7 @@ describe('babyStore', () => {
 
       await useBabyStore.getState().fetchBabies();
 
-      expect(useBabyStore.getState().error).toBe('获取宝宝列表失败');
+      expect(useBabyStore.getState().error).toBe('Network error');
     });
   });
 

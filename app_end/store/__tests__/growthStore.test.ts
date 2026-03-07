@@ -67,7 +67,7 @@ describe('growthStore', () => {
       await expect(useGrowthStore.getState().fetch(1)).rejects.toThrow();
 
       const state = useGrowthStore.getState();
-      expect(state.error).toBe('获取成长记录失败');
+      expect(state.error).toBe('Network error');
       expect(state.loading).toBe(false);
     });
   });

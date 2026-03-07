@@ -1,0 +1,1522 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for utils/whoData.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">utils</a> whoData.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">34.28% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>12/35</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">14.28% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>2/14</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">20% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/5</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">34.28% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>12/35</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a>
+<a name='L449'></a><a href='#L449'>449</a>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * WHO 儿童生长标准数据 (0-60 个月)
+ * 数据来源: WHO Child Growth Standards + CDC WHO 数据文件
+ * 包含 LMS 参数用于计算任意百分位
+ */
+&nbsp;
+export type Gender = 'male' | 'female';
+export type GrowthMetric = 'weight' | 'height' | 'head';
+export type AgeType = 'actual' | 'corrected';
+&nbsp;
+/**
+ * LMS 参数数据点
+ * L: Box-Cox 变换参数
+ * M: 中位数（Median）
+ * S: 变异系数
+ */
+export interface LMSPoint {
+  ageMonths: number;  // 月龄（月）
+  L: number;
+  M: number;
+  S: number;
+}
+&nbsp;
+/**
+ * 百分位数据点
+ */
+export interface PercentilePoint {
+  ageMonths: number;
+  p3: number;
+  p15: number;
+  p50: number;
+  p85: number;
+  p97: number;
+}
+&nbsp;
+/**
+ * 指标数据集
+ */
+export interface MetricData {
+  lms: LMSPoint[];
+  percentiles: PercentilePoint[];
+}
+&nbsp;
+// ============================================================================
+// 体重 for 年龄 (Weight-for-Age)
+// 数据来源: CDC WHO 数据文件 wtageinf.csv
+// ============================================================================
+&nbsp;
+// 男孩体重数据 (0-36个月)
+export const whoWeightMale: MetricData = {
+  lms: [
+    { ageMonths: 0, L: 1.815151075, M: 3.530203168, S: 0.152385273 },
+    { ageMonths: 1, L: 1.547523128, M: 4.003106424, S: 0.146025021 },
+    { ageMonths: 2, L: 1.068795548, M: 4.879525083, S: 0.136478767 },
+    { ageMonths: 3, L: 0.695973505, M: 5.672888765, S: 0.129677511 },
+    { ageMonths: 4, L: 0.41981509, M: 6.391391982, S: 0.124717085 },
+    { ageMonths: 5, L: 0.219866801, M: 7.041836432, S: 0.121040119 },
+    { ageMonths: 6, L: 0.077505598, M: 7.630425182, S: 0.1182712 },
+    { ageMonths: 7, L: -0.02190761, M: 8.162951035, S: 0.116153695 },
+    { ageMonths: 8, L: -0.0894409, M: 8.644832479, S: 0.114510349 },
+    { ageMonths: 9, L: -0.1334091, M: 9.081119817, S: 0.113217163 },
+    { ageMonths: 10, L: -0.1600954, M: 9.476500305, S: 0.11218624 },
+    { ageMonths: 11, L: -0.17429685, M: 9.835307701, S: 0.111354536 },
+    { ageMonths: 12, L: -0.1797189, M: 10.16153567, S: 0.110676413 },
+    { ageMonths: 15, L: -0.17518447, M: 10.7306256, S: 0.109656941 },
+    { ageMonths: 18, L: -0.15770999, M: 11.4220677, S: 0.108694678 },
+    { ageMonths: 21, L: -0.15402279, M: 11.61977698, S: 0.108483324 },
+    { ageMonths: 24, L: -0.15276214, M: 11.80477902, S: 0.108317416 },
+    { ageMonths: 27, L: -0.15446658, M: 11.9789663, S: 0.108193944 },
+    { ageMonths: 30, L: -0.15952202, M: 12.14404334, S: 0.108110954 },
+    { ageMonths: 33, L: -0.16817926, M: 12.30154103, S: 0.108067236 },
+    { ageMonths: 36, L: -0.1805668, M: 12.45283028, S: 0.108062078 },
+  ],
+  percentiles: [
+    { ageMonths: 0, p3: 2.36, p15: 2.93, p50: 3.53, p85: 4.17, p97: 4.45 },
+    { ageMonths: 1, p3: 2.80, p15: 3.43, p50: 4.00, p85: 4.72, p97: 5.03 },
+    { ageMonths: 2, p3: 3.61, p15: 4.36, p50: 4.88, p85: 5.33, p97: 5.97 },
+    { ageMonths: 3, p3: 4.34, p15: 5.16, p50: 5.67, p85: 6.39, p97: 7.11 },
+    { ageMonths: 4, p3: 4.99, p15: 5.89, p50: 6.39, p85: 7.46, p97: 7.99 },
+    { ageMonths: 5, p3: 5.58, p15: 6.55, p50: 7.04, p85: 8.20, p97: 8.79 },
+    { ageMonths: 6, p3: 6.10, p15: 7.15, p50: 7.63, p85: 8.87, p97: 9.51 },
+    { ageMonths: 7, p3: 6.56, p15: 7.69, p50: 8.16, p85: 9.48, p97: 10.16 },
+    { ageMonths: 8, p3: 6.98, p15: 8.18, p50: 8.64, p85: 10.02, p97: 10.75 },
+    { ageMonths: 9, p3: 7.36, p15: 8.63, p50: 9.08, p85: 10.51, p97: 11.27 },
+    { ageMonths: 10, p3: 7.70, p15: 9.04, p50: 9.48, p85: 10.96, p97: 11.75 },
+    { ageMonths: 11, p3: 8.01, p15: 9.42, p50: 9.84, p85: 11.36, p97: 12.17 },
+    { ageMonths: 12, p3: 8.28, p15: 9.77, p50: 10.16, p85: 11.73, p97: 12.57 },
+    { ageMonths: 15, p3: 8.95, p15: 10.53, p50: 10.89, p85: 12.56, p97: 13.48 },
+    { ageMonths: 18, p3: 9.51, p15: 11.15, p50: 11.49, p85: 13.27, p97: 14.24 },
+    { ageMonths: 21, p3: 9.98, p15: 11.68, p50: 12.00, p85: 13.88, p97: 14.89 },
+    { ageMonths: 24, p3: 10.38, p15: 12.15, p50: 12.46, p85: 14.43, p97: 15.47 },
+    { ageMonths: 27, p3: 10.73, p15: 12.57, p50: 12.87, p85: 14.92, p97: 15.99 },
+    { ageMonths: 30, p3: 11.04, p15: 12.94, p50: 13.23, p85: 15.37, p97: 16.47 },
+    { ageMonths: 33, p3: 11.31, p15: 13.28, p50: 13.57, p85: 15.77, p97: 16.90 },
+    { ageMonths: 36, p3: 11.56, p15: 13.59, p50: 13.87, p85: 16.14, p97: 17.29 },
+  ],
+};
+&nbsp;
+// 女孩体重数据 (0-36个月)
+export const whoWeightFemale: MetricData = {
+  lms: [
+    { ageMonths: 0, L: 1.509187507, M: 3.39918645, S: 0.142106724 },
+    { ageMonths: 1, L: 1.357944315, M: 3.79752846, S: 0.138075916 },
+    { ageMonths: 2, L: 1.105537708, M: 4.544776513, S: 0.131733888 },
+    { ageMonths: 3, L: 0.902596648, M: 5.230584214, S: 0.126892697 },
+    { ageMonths: 4, L: 0.734121414, M: 5.859960798, S: 0.123025182 },
+    { ageMonths: 5, L: 0.590235275, M: 6.437587751, S: 0.119840911 },
+    { ageMonths: 6, L: 0.464391566, M: 6.967850457, S: 0.117166868 },
+    { ageMonths: 7, L: 0.352164071, M: 7.454854109, S: 0.11489384 },
+    { ageMonths: 8, L: 0.250497889, M: 7.902436186, S: 0.112949644 },
+    { ageMonths: 9, L: 0.15724751, M: 8.314178377, S: 0.11128469 },
+    { ageMonths: 10, L: 0.070885725, M: 8.693418423, S: 0.109863709 },
+    { ageMonths: 11, L: -0.00968493, M: 9.043261854, S: 0.10866078 },
+    { ageMonths: 12, L: -0.085258, M: 9.366593571, S: 0.10765621 },
+    { ageMonths: 15, L: -0.22355869, M: 9.944226063, S: 0.106183085 },
+    { ageMonths: 18, L: -0.34699919, M: 10.4454058, S: 0.105349631 },
+    { ageMonths: 21, L: -0.45721877, M: 10.88638558, S: 0.105083666 },
+    { ageMonths: 24, L: -0.55523599, M: 11.28089537, S: 0.105322575 },
+    { ageMonths: 27, L: -0.64185418, M: 11.64043402, S: 0.106007025 },
+    { ageMonths: 30, L: -0.71788283, M: 11.97453748, S: 0.107078197 },
+    { ageMonths: 33, L: -0.78423359, M: 12.2910249, S: 0.108477009 },
+    { ageMonths: 36, L: -0.8419355, M: 12.59622335, S: 0.110144488 },
+  ],
+  percentiles: [
+    { ageMonths: 0, p3: 2.41, p15: 2.99, p50: 3.40, p85: 4.00, p97: 4.25 },
+    { ageMonths: 1, p3: 2.76, p15: 3.38, p50: 3.80, p85: 4.45, p97: 4.74 },
+    { ageMonths: 2, p3: 3.40, p15: 4.11, p50: 4.54, p85: 5.31, p97: 5.66 },
+    { ageMonths: 3, p3: 4.00, p15: 4.79, p50: 5.23, p85: 6.08, p97: 6.49 },
+    { ageMonths: 4, p3: 4.55, p15: 5.42, p50: 5.86, p85: 6.80, p97: 7.26 },
+    { ageMonths: 5, p3: 5.05, p15: 5.99, p50: 6.44, p85: 7.46, p97: 7.95 },
+    { ageMonths: 6, p3: 5.52, p15: 6.52, p50: 6.97, p85: 8.06, p97: 8.59 },
+    { ageMonths: 7, p3: 5.95, p15: 7.01, p50: 7.45, p85: 8.60, p97: 9.18 },
+    { ageMonths: 8, p3: 6.35, p15: 7.47, p50: 7.90, p85: 9.11, p97: 9.72 },
+    { ageMonths: 9, p3: 6.72, p15: 7.90, p50: 8.31, p85: 9.58, p97: 10.22 },
+    { ageMonths: 10, p3: 7.06, p15: 8.30, p50: 8.69, p85: 10.00, p97: 10.67 },
+    { ageMonths: 11, p3: 7.37, p15: 8.66, p50: 9.04, p85: 10.40, p97: 11.10 },
+    { ageMonths: 12, p3: 7.66, p15: 9.00, p50: 9.37, p85: 10.76, p97: 11.49 },
+    { ageMonths: 15, p3: 8.34, p15: 9.78, p50: 10.12, p85: 11.63, p97: 12.41 },
+    { ageMonths: 18, p3: 8.90, p15: 10.45, p50: 10.77, p85: 12.40, p97: 13.23 },
+    { ageMonths: 21, p3: 9.37, p15: 11.02, p50: 11.31, p85: 13.03, p97: 13.90 },
+    { ageMonths: 24, p3: 9.76, p15: 11.49, p50: 11.77, p85: 13.57, p97: 14.48 },
+    { ageMonths: 27, p3: 10.10, p15: 11.90, p50: 12.17, p85: 14.05, p97: 14.99 },
+    { ageMonths: 30, p3: 10.38, p15: 12.25, p50: 12.52, p85: 14.49, p97: 15.46 },
+    { ageMonths: 33, p3: 10.63, p15: 12.56, p50: 12.82, p85: 14.88, p97: 15.88 },
+    { ageMonths: 36, p3: 10.86, p15: 12.84, p50: 13.10, p85: 15.25, p97: 16.27 },
+  ],
+};
+&nbsp;
+// ============================================================================
+// 身高 for 年龄 (Length/Height-for-Age)
+// 数据来源: WHO Child Growth Standards
+// ============================================================================
+&nbsp;
+// 男孩身高数据 (0-36个月)
+export const whoHeightMale: MetricData = {
+  lms: [
+    { ageMonths: 0, L: 1, M: 49.88, S: 0.03795 },
+    { ageMonths: 1, L: 1, M: 54.73, S: 0.03557 },
+    { ageMonths: 2, L: 1, M: 58.42, S: 0.03424 },
+    { ageMonths: 3, L: 1, M: 61.42, S: 0.03328 },
+    { ageMonths: 4, L: 1, M: 63.88, S: 0.03256 },
+    { ageMonths: 5, L: 1, M: 65.99, S: 0.03198 },
+    { ageMonths: 6, L: 1, M: 67.82, S: 0.03151 },
+    { ageMonths: 7, L: 1, M: 69.45, S: 0.03112 },
+    { ageMonths: 8, L: 1, M: 70.93, S: 0.03079 },
+    { ageMonths: 9, L: 1, M: 72.29, S: 0.03051 },
+    { ageMonths: 10, L: 1, M: 73.55, S: 0.03026 },
+    { ageMonths: 11, L: 1, M: 74.73, S: 0.03005 },
+    { ageMonths: 12, L: 1, M: 75.75, S: 0.02986 },
+    { ageMonths: 15, L: 1, M: 78.67, S: 0.02939 },
+    { ageMonths: 18, L: 1, M: 81.24, S: 0.02904 },
+    { ageMonths: 21, L: 1, M: 83.53, S: 0.02879 },
+    { ageMonths: 24, L: 1, M: 85.58, S: 0.02861 },
+    { ageMonths: 27, L: 1, M: 87.44, S: 0.02850 },
+    { ageMonths: 30, L: 1, M: 89.14, S: 0.02844 },
+    { ageMonths: 33, L: 1, M: 90.71, S: 0.02842 },
+    { ageMonths: 36, L: 1, M: 92.16, S: 0.02843 },
+  ],
+  percentiles: [
+    { ageMonths: 0, p3: 46.1, p15: 48.3, p50: 49.9, p85: 51.5, p97: 53.7 },
+    { ageMonths: 1, p3: 50.8, p15: 53.2, p50: 54.7, p85: 56.3, p97: 58.6 },
+    { ageMonths: 2, p3: 54.4, p15: 56.9, p50: 58.4, p85: 60.1, p97: 62.5 },
+    { ageMonths: 3, p3: 57.4, p15: 60.0, p50: 61.4, p85: 63.2, p97: 65.7 },
+    { ageMonths: 4, p3: 59.9, p15: 62.5, p50: 63.9, p85: 65.7, p97: 68.3 },
+    { ageMonths: 5, p3: 61.9, p15: 64.6, p50: 66.0, p85: 67.8, p97: 70.5 },
+    { ageMonths: 6, p3: 63.7, p15: 66.5, p50: 67.8, p85: 69.7, p97: 72.4 },
+    { ageMonths: 7, p3: 65.3, p15: 68.2, p50: 69.5, p85: 71.4, p97: 74.2 },
+    { ageMonths: 8, p3: 66.8, p15: 69.7, p50: 70.9, p85: 72.9, p97: 75.8 },
+    { ageMonths: 9, p3: 68.1, p15: 71.1, p50: 72.3, p85: 74.3, p97: 77.2 },
+    { ageMonths: 10, p3: 69.4, p15: 72.3, p50: 73.6, p85: 75.6, p97: 78.6 },
+    { ageMonths: 11, p3: 70.5, p15: 73.5, p50: 74.7, p85: 76.8, p97: 79.8 },
+    { ageMonths: 12, p3: 71.6, p15: 74.6, p50: 75.8, p85: 77.9, p97: 81.0 },
+    { ageMonths: 15, p3: 74.5, p15: 77.7, p50: 78.7, p85: 80.9, p97: 84.1 },
+    { ageMonths: 18, p3: 77.1, p15: 80.4, p50: 81.2, p85: 83.6, p97: 86.8 },
+    { ageMonths: 21, p3: 79.4, p15: 82.8, p50: 83.5, p85: 86.0, p97: 89.3 },
+    { ageMonths: 24, p3: 81.4, p15: 84.9, p50: 85.6, p85: 88.1, p97: 91.5 },
+    { ageMonths: 27, p3: 83.3, p15: 86.8, p50: 87.4, p85: 90.0, p97: 93.4 },
+    { ageMonths: 30, p3: 85.0, p15: 88.5, p50: 89.1, p85: 91.8, p97: 95.2 },
+    { ageMonths: 33, p3: 86.5, p15: 90.1, p50: 90.7, p85: 93.4, p97: 96.9 },
+    { ageMonths: 36, p3: 87.9, p15: 91.5, p50: 92.2, p85: 94.9, p97: 98.5 },
+  ],
+};
+&nbsp;
+// 女孩身高数据 (0-36个月)
+export const whoHeightFemale: MetricData = {
+  lms: [
+    { ageMonths: 0, L: 1, M: 49.15, S: 0.03786 },
+    { ageMonths: 1, L: 1, M: 53.72, S: 0.03548 },
+    { ageMonths: 2, L: 1, M: 57.07, S: 0.03427 },
+    { ageMonths: 3, L: 1, M: 59.83, S: 0.03342 },
+    { ageMonths: 4, L: 1, M: 62.14, S: 0.03276 },
+    { ageMonths: 5, L: 1, M: 64.14, S: 0.03222 },
+    { ageMonths: 6, L: 1, M: 65.90, S: 0.03178 },
+    { ageMonths: 7, L: 1, M: 67.48, S: 0.03142 },
+    { ageMonths: 8, L: 1, M: 68.92, S: 0.03111 },
+    { ageMonths: 9, L: 1, M: 70.24, S: 0.03085 },
+    { ageMonths: 10, L: 1, M: 71.46, S: 0.03063 },
+    { ageMonths: 11, L: 1, M: 72.60, S: 0.03044 },
+    { ageMonths: 12, L: 1, M: 73.58, S: 0.03027 },
+    { ageMonths: 15, L: 1, M: 76.38, S: 0.02986 },
+    { ageMonths: 18, L: 1, M: 78.84, S: 0.02956 },
+    { ageMonths: 21, L: 1, M: 81.05, S: 0.02934 },
+    { ageMonths: 24, L: 1, M: 83.05, S: 0.02919 },
+    { ageMonths: 27, L: 1, M: 84.88, S: 0.02910 },
+    { ageMonths: 30, L: 1, M: 86.57, S: 0.02905 },
+    { ageMonths: 33, L: 1, M: 88.14, S: 0.02904 },
+    { ageMonths: 36, L: 1, M: 89.60, S: 0.02907 },
+  ],
+  percentiles: [
+    { ageMonths: 0, p3: 45.4, p15: 47.5, p50: 49.1, p85: 50.8, p97: 52.9 },
+    { ageMonths: 1, p3: 49.8, p15: 52.1, p50: 53.7, p85: 55.4, p97: 57.7 },
+    { ageMonths: 2, p3: 53.0, p15: 55.4, p50: 57.1, p85: 58.8, p97: 61.2 },
+    { ageMonths: 3, p3: 55.6, p15: 58.1, p50: 59.8, p85: 61.6, p97: 64.1 },
+    { ageMonths: 4, p3: 57.8, p15: 60.4, p50: 62.1, p85: 64.0, p97: 66.6 },
+    { ageMonths: 5, p3: 59.7, p15: 62.4, p50: 64.1, p85: 66.1, p97: 68.7 },
+    { ageMonths: 6, p3: 61.4, p15: 64.1, p50: 65.9, p85: 67.9, p97: 70.6 },
+    { ageMonths: 7, p3: 62.9, p15: 65.7, p50: 67.5, p85: 69.6, p97: 72.3 },
+    { ageMonths: 8, p3: 64.3, p15: 67.2, p50: 68.9, p85: 71.1, p97: 73.9 },
+    { ageMonths: 9, p3: 65.6, p15: 68.5, p50: 70.2, p85: 72.5, p97: 75.3 },
+    { ageMonths: 10, p3: 66.8, p15: 69.7, p50: 71.5, p85: 73.8, p97: 76.6 },
+    { ageMonths: 11, p3: 67.9, p15: 70.9, p50: 72.6, p85: 75.0, p97: 77.9 },
+    { ageMonths: 12, p3: 68.9, p15: 71.9, p50: 73.6, p85: 76.0, p97: 79.0 },
+    { ageMonths: 15, p3: 71.6, p15: 74.7, p50: 76.4, p85: 78.9, p97: 82.0 },
+    { ageMonths: 18, p3: 74.0, p15: 77.1, p50: 78.8, p85: 81.4, p97: 84.6 },
+    { ageMonths: 21, p3: 76.1, p15: 79.3, p50: 81.1, p85: 83.7, p97: 87.0 },
+    { ageMonths: 24, p3: 78.0, p15: 81.2, p50: 83.1, p85: 85.7, p97: 89.1 },
+    { ageMonths: 27, p3: 79.7, p15: 83.0, p50: 84.9, p85: 87.5, p97: 91.0 },
+    { ageMonths: 30, p3: 81.3, p15: 84.6, p50: 86.6, p85: 89.2, p97: 92.7 },
+    { ageMonths: 33, p3: 82.7, p15: 86.1, p50: 88.1, p85: 90.8, p97: 94.3 },
+    { ageMonths: 36, p3: 84.1, p15: 87.5, p50: 89.6, p85: 92.3, p97: 95.9 },
+  ],
+};
+&nbsp;
+// ============================================================================
+// 头围 for 年龄 (Head Circumference-for-Age)
+// 数据来源: WHO Child Growth Standards
+// ============================================================================
+&nbsp;
+// 男孩头围数据 (0-36个月)
+export const whoHeadMale: MetricData = {
+  lms: [
+    { ageMonths: 0, L: 1, M: 34.46, S: 0.03695 },
+    { ageMonths: 1, L: 1, M: 37.30, S: 0.03253 },
+    { ageMonths: 2, L: 1, M: 39.11, S: 0.03051 },
+    { ageMonths: 3, L: 1, M: 40.44, S: 0.02931 },
+    { ageMonths: 4, L: 1, M: 41.50, S: 0.02846 },
+    { ageMonths: 5, L: 1, M: 42.38, S: 0.02782 },
+    { ageMonths: 6, L: 1, M: 43.14, S: 0.02732 },
+    { ageMonths: 7, L: 1, M: 43.81, S: 0.02691 },
+    { ageMonths: 8, L: 1, M: 44.40, S: 0.02657 },
+    { ageMonths: 9, L: 1, M: 44.93, S: 0.02629 },
+    { ageMonths: 10, L: 1, M: 45.41, S: 0.02605 },
+    { ageMonths: 11, L: 1, M: 45.85, S: 0.02584 },
+    { ageMonths: 12, L: 1, M: 46.26, S: 0.02566 },
+    { ageMonths: 15, L: 1, M: 47.30, S: 0.02520 },
+    { ageMonths: 18, L: 1, M: 48.16, S: 0.02491 },
+    { ageMonths: 21, L: 1, M: 48.90, S: 0.02474 },
+    { ageMonths: 24, L: 1, M: 49.55, S: 0.02466 },
+    { ageMonths: 27, L: 1, M: 50.13, S: 0.02464 },
+    { ageMonths: 30, L: 1, M: 50.65, S: 0.02467 },
+    { ageMonths: 33, L: 1, M: 51.13, S: 0.02474 },
+    { ageMonths: 36, L: 1, M: 51.57, S: 0.02485 },
+  ],
+  percentiles: [
+    { ageMonths: 0, p3: 32.0, p15: 33.3, p50: 34.5, p85: 35.7, p97: 37.0 },
+    { ageMonths: 1, p3: 35.1, p15: 36.4, p50: 37.3, p85: 38.3, p97: 39.5 },
+    { ageMonths: 2, p3: 36.9, p15: 38.2, p50: 39.1, p85: 40.1, p97: 41.3 },
+    { ageMonths: 3, p3: 38.3, p15: 39.5, p50: 40.4, p85: 41.5, p97: 42.7 },
+    { ageMonths: 4, p3: 39.4, p15: 40.6, p50: 41.5, p85: 42.6, p97: 43.8 },
+    { ageMonths: 5, p3: 40.3, p15: 41.5, p50: 42.4, p85: 43.5, p97: 44.7 },
+    { ageMonths: 6, p3: 41.0, p15: 42.3, p50: 43.1, p85: 44.3, p97: 45.5 },
+    { ageMonths: 7, p3: 41.7, p15: 43.0, p50: 43.8, p85: 45.0, p97: 46.2 },
+    { ageMonths: 8, p3: 42.3, p15: 43.6, p50: 44.4, p85: 45.6, p97: 46.8 },
+    { ageMonths: 9, p3: 42.8, p15: 44.1, p50: 44.9, p85: 46.1, p97: 47.4 },
+    { ageMonths: 10, p3: 43.3, p15: 44.6, p50: 45.4, p85: 46.6, p97: 47.9 },
+    { ageMonths: 11, p3: 43.7, p15: 45.0, p50: 45.9, p85: 47.1, p97: 48.4 },
+    { ageMonths: 12, p3: 44.1, p15: 45.4, p50: 46.3, p85: 47.5, p97: 48.8 },
+    { ageMonths: 15, p3: 45.2, p15: 46.5, p50: 47.3, p85: 48.5, p97: 49.9 },
+    { ageMonths: 18, p3: 46.0, p15: 47.4, p50: 48.2, p85: 49.4, p97: 50.8 },
+    { ageMonths: 21, p3: 46.7, p15: 48.1, p50: 48.9, p85: 50.1, p97: 51.6 },
+    { ageMonths: 24, p3: 47.3, p15: 48.7, p50: 49.5, p85: 50.8, p97: 52.3 },
+    { ageMonths: 27, p3: 47.9, p15: 49.2, p50: 50.1, p85: 51.4, p97: 52.9 },
+    { ageMonths: 30, p3: 48.3, p15: 49.7, p50: 50.6, p85: 52.0, p97: 53.5 },
+    { ageMonths: 33, p3: 48.8, p15: 50.1, p50: 51.1, p85: 52.5, p97: 54.0 },
+    { ageMonths: 36, p3: 49.1, p15: 50.5, p50: 51.6, p85: 53.0, p97: 54.5 },
+  ],
+};
+&nbsp;
+// 女孩头围数据 (0-36个月)
+export const whoHeadFemale: MetricData = {
+  lms: [
+    { ageMonths: 0, L: 1, M: 33.88, S: 0.03560 },
+    { ageMonths: 1, L: 1, M: 36.48, S: 0.03192 },
+    { ageMonths: 2, L: 1, M: 38.27, S: 0.03019 },
+    { ageMonths: 3, L: 1, M: 39.58, S: 0.02915 },
+    { ageMonths: 4, L: 1, M: 40.63, S: 0.02840 },
+    { ageMonths: 5, L: 1, M: 41.50, S: 0.02782 },
+    { ageMonths: 6, L: 1, M: 42.25, S: 0.02736 },
+    { ageMonths: 7, L: 1, M: 42.91, S: 0.02699 },
+    { ageMonths: 8, L: 1, M: 43.50, S: 0.02669 },
+    { ageMonths: 9, L: 1, M: 44.02, S: 0.02643 },
+    { ageMonths: 10, L: 1, M: 44.49, S: 0.02621 },
+    { ageMonths: 11, L: 1, M: 44.92, S: 0.02602 },
+    { ageMonths: 12, L: 1, M: 45.31, S: 0.02585 },
+    { ageMonths: 15, L: 1, M: 46.32, S: 0.02541 },
+    { ageMonths: 18, L: 1, M: 47.16, S: 0.02512 },
+    { ageMonths: 21, L: 1, M: 47.88, S: 0.02495 },
+    { ageMonths: 24, L: 1, M: 48.51, S: 0.02486 },
+    { ageMonths: 27, L: 1, M: 49.07, S: 0.02483 },
+    { ageMonths: 30, L: 1, M: 49.57, S: 0.02486 },
+    { ageMonths: 33, L: 1, M: 50.03, S: 0.02492 },
+    { ageMonths: 36, L: 1, M: 50.45, S: 0.02502 },
+  ],
+  percentiles: [
+    { ageMonths: 0, p3: 31.5, p15: 32.8, p50: 33.9, p85: 35.0, p97: 36.2 },
+    { ageMonths: 1, p3: 34.4, p15: 35.6, p50: 36.5, p85: 37.5, p97: 38.7 },
+    { ageMonths: 2, p3: 36.1, p15: 37.4, p50: 38.3, p85: 39.3, p97: 40.5 },
+    { ageMonths: 3, p3: 37.4, p15: 38.7, p50: 39.6, p85: 40.6, p97: 41.8 },
+    { ageMonths: 4, p3: 38.5, p15: 39.7, p50: 40.6, p85: 41.7, p97: 42.8 },
+    { ageMonths: 5, p3: 39.3, p15: 40.6, p50: 41.5, p85: 42.6, p97: 43.8 },
+    { ageMonths: 6, p3: 40.0, p15: 41.3, p50: 42.3, p85: 43.4, p97: 44.6 },
+    { ageMonths: 7, p3: 40.6, p15: 41.9, p50: 42.9, p85: 44.0, p97: 45.2 },
+    { ageMonths: 8, p3: 41.2, p15: 42.5, p50: 43.5, p85: 44.6, p97: 45.8 },
+    { ageMonths: 9, p3: 41.6, p15: 42.9, p50: 44.0, p85: 45.1, p97: 46.4 },
+    { ageMonths: 10, p3: 42.1, p15: 43.4, p50: 44.5, p85: 45.6, p97: 46.9 },
+    { ageMonths: 11, p3: 42.5, p15: 43.8, p50: 44.9, p85: 46.1, p97: 47.4 },
+    { ageMonths: 12, p3: 42.8, p15: 44.2, p50: 45.3, p85: 46.5, p97: 47.8 },
+    { ageMonths: 15, p3: 43.9, p15: 45.2, p50: 46.3, p85: 47.5, p97: 48.8 },
+    { ageMonths: 18, p3: 44.6, p15: 46.0, p50: 47.2, p85: 48.4, p97: 49.7 },
+    { ageMonths: 21, p3: 45.3, p15: 46.7, p50: 47.9, p85: 49.1, p97: 50.5 },
+    { ageMonths: 24, p3: 45.9, p15: 47.3, p50: 48.5, p85: 49.7, p97: 51.1 },
+    { ageMonths: 27, p3: 46.4, p15: 47.8, p50: 49.1, p85: 50.3, p97: 51.7 },
+    { ageMonths: 30, p3: 46.9, p15: 48.3, p50: 49.6, p85: 50.8, p97: 52.2 },
+    { ageMonths: 33, p3: 47.3, p15: 48.7, p50: 50.0, p85: 51.3, p97: 52.7 },
+    { ageMonths: 36, p3: 47.6, p15: 49.1, p50: 50.5, p85: 51.7, p97: 53.2 },
+  ],
+};
+&nbsp;
+// ============================================================================
+// 数据访问函数
+// ============================================================================
+&nbsp;
+/**
+ * 获取指定性别和指标的 WHO 数据
+ */
+export function getWHOMetricData(gender: Gender, metric: GrowthMetric): MetricData {
+  const genderKey = gender === 'male' ? 'Male' : <span class="branch-1 cbranch-no" title="branch not covered" >'Female';</span>
+  const metricKey = metric.charAt(0).toUpperCase() + metric.slice(1) as 'Weight' | 'Height' | 'Head';
+&nbsp;
+  const dataMap: Record&lt;string, MetricData&gt; = {
+    whoWeightMale,
+    whoWeightFemale,
+    whoHeightMale,
+    whoHeightFemale,
+    whoHeadMale,
+    whoHeadFemale,
+  };
+&nbsp;
+  const dataKey = `who${metricKey}${genderKey}`;
+  return dataMap[dataKey] || <span class="branch-1 cbranch-no" title="branch not covered" >whoWeightMale;</span>
+}
+&nbsp;
+/**
+ * 使用 LMS 参数计算指定百分位的值
+ * 公式: X = M * (1 + L*S*Z)^(1/L) 当 L ≠ 0
+ *       X = M * exp(S*Z) 当 L = 0
+ *
+ * @param lms LMS 参数
+ * @param zScore Z 分数（对应百分位）
+ * @returns 计算出的百分位值
+ */
+export function <span class="fstat-no" title="function not covered" >calculatePercentileFromLMS(l</span>ms: LMSPoint, zScore: number): number {
+  const { L, M, S } = <span class="cstat-no" title="statement not covered" >lms;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  if (Math.abs(L) &lt; 0.0001) {</span>
+    // L ≈ 0 时使用指数公式
+<span class="cstat-no" title="statement not covered" >    return M * Math.exp(S * zScore);</span>
+  } else {
+    // 标准公式
+<span class="cstat-no" title="statement not covered" >    return M * Math.pow(1 + L * S * zScore, 1 / L);</span>
+  }
+}
+&nbsp;
+/**
+ * 计算测量值的 Z 分数
+ * 公式: Z = ((X/M)^L - 1) / (L*S) 当 L ≠ 0
+ *       Z = ln(X/M) / S 当 L = 0
+ *
+ * @param value 测量值
+ * @param lms LMS 参数
+ * @returns Z 分数
+ */
+export function <span class="fstat-no" title="function not covered" >calculateZScore(v</span>alue: number, lms: LMSPoint): number {
+  const { L, M, S } = <span class="cstat-no" title="statement not covered" >lms;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  if (Math.abs(L) &lt; 0.0001) {</span>
+    // L ≈ 0 时使用对数公式
+<span class="cstat-no" title="statement not covered" >    return Math.log(value / M) / S;</span>
+  } else {
+    // 标准公式
+<span class="cstat-no" title="statement not covered" >    return (Math.pow(value / M, L) - 1) / (L * S);</span>
+  }
+}
+&nbsp;
+/**
+ * Z 分数转百分位
+ */
+export function <span class="fstat-no" title="function not covered" >zScoreToPercentile(z</span>Score: number): number {
+  // 使用近似公式将 Z 分数转换为百分位
+  // 这是标准正态分布的累积分布函数近似
+  const sign = <span class="cstat-no" title="statement not covered" >zScore &lt; 0 ? -1 : 1;</span>
+  const absZ = <span class="cstat-no" title="statement not covered" >Math.abs(zScore);</span>
+&nbsp;
+  const a1 = <span class="cstat-no" title="statement not covered" >0.254829592;</span>
+  const a2 = <span class="cstat-no" title="statement not covered" >-0.284496736;</span>
+  const a3 = <span class="cstat-no" title="statement not covered" >1.421413741;</span>
+  const a4 = <span class="cstat-no" title="statement not covered" >-1.453152027;</span>
+  const a5 = <span class="cstat-no" title="statement not covered" >1.061405429;</span>
+  const p = <span class="cstat-no" title="statement not covered" >0.3275911;</span>
+&nbsp;
+  const t = <span class="cstat-no" title="statement not covered" >1.0 / (1.0 + p * absZ);</span>
+  const y = <span class="cstat-no" title="statement not covered" >1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absZ * absZ / 2);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  return sign === 1 ? (1 + y) / 2 * 100 : (1 - y) / 2 * 100;</span>
+}
+&nbsp;
+/**
+ * 常用 Z 分数对应百分位
+ */
+export const Z_SCORE_PERCENTILES: Record&lt;number, number&gt; = {
+  '-3.291': 0.1,   // 0.1st
+  '-2.878': 0.2,   // 0.2nd
+  '-2.576': 0.5,   // 0.5th
+  '-1.881': 3,     // 3rd
+  '-1.645': 5,     // 5th
+  '-1.282': 10,    // 10th
+  '-0.674': 25,    // 25th
+  0: 50,           // 50th (median)
+  0.674: 75,       // 75th
+  1.036: 85,       // 85th
+  1.282: 90,       // 90th
+  1.645: 95,       // 95th
+  1.881: 97,       // 97th
+  2.576: 99.5,     // 99.5th
+  3.291: 99.9,     // 99.9th
+};
+&nbsp;
+/**
+ * 百分位转 Z 分数（反向查找）
+ */
+export function <span class="fstat-no" title="function not covered" >percentileToZScore(p</span>ercentile: number): number {
+<span class="cstat-no" title="statement not covered" >  for (const [zStr, p] of Object.entries(Z_SCORE_PERCENTILES)) {</span>
+<span class="cstat-no" title="statement not covered" >    if (Math.abs(p - percentile) &lt; 0.1) {</span>
+<span class="cstat-no" title="statement not covered" >      return parseFloat(zStr);</span>
+    }
+  }
+  // 近似计算
+<span class="cstat-no" title="statement not covered" >  return 0;</span>
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-07T14:06:34.948Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "lib": ["ES2020", "DOM"],
-    "types": ["react", "react-native", "expo", "expo-router"],
+    "types": ["react", "react-native", "expo", "expo-router", "vitest/globals"],
     "skipLibCheck": true,
     "paths": {
       "@/*": [

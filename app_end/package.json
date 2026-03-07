@@ -12,8 +12,12 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "vitest",
+    "test:unit": "vitest --config vitest.config.unit.ts",
+    "test:ui": "vitest --config vitest.config.ui.ts",
     "test:watch": "vitest --watch",
+    "test:watch:unit": "vitest --config vitest.config.unit.ts --watch",
     "test:coverage": "vitest --coverage",
+    "test:coverage:unit": "vitest --config vitest.config.unit.ts --coverage",
     "test:package-manager": "node --test ./scripts/ensure-bun.test.js"
   },
   "dependencies": {
@@ -59,6 +63,7 @@
   "devDependencies": {
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "jsdom": "^28.1.0",

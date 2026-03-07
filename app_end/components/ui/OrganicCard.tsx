@@ -10,10 +10,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Platform,
   ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { organicTheme } from '@/constants/theme';
+import { getUseNativeDriver } from './modalAnimation';
+import { buildShadowStyle } from './shadowStyle';
 
 interface OrganicCardProps {
   children: React.ReactNode;
@@ -33,6 +36,10 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
   const [isPressed, setIsPressed] = useState(false);
+  const useNativeDriver = getUseNativeDriver();
+  const normalizedChildren = React.Children.toArray(children).filter((child) => {
+    return typeof child !== 'string' || child.trim().length > 0;
+  });
 
   const handlePressIn = () => {
     setIsPressed(true);
@@ -40,12 +47,12 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
       Animated.timing(scaleAnim, {
         toValue: 0.97,
         duration: organicTheme.animation.duration.fast,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
       Animated.timing(translateYAnim, {
         toValue: 2,
         duration: organicTheme.animation.duration.fast,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
     ]).start();
   };
@@ -56,44 +63,50 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
       Animated.timing(scaleAnim, {
         toValue: 1,
         duration: organicTheme.animation.duration.normal,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
       Animated.timing(translateYAnim, {
         toValue: 0,
         duration: organicTheme.animation.duration.normal,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
     ]).start();
   };
 
+  const overlays: React.ReactNode[] = [];
+
+  if (variant === 'gradient') {
+    overlays.push(
+      <LinearGradient
+        key="gradient"
+        colors={[
+          organicTheme.colors.primary.pale,
+          organicTheme.colors.background.paper,
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientOverlay}
+      />
+    );
+  }
+
+  if (variant === 'glass') {
+    overlays.push(<View key="glass" style={styles.glassOverlay} />);
+  }
+
+  if (variant === 'soft') {
+    overlays.push(<View key="soft" style={styles.softOverlay} />);
+  }
+
+  if (variant === 'ghost') {
+    overlays.push(<View key="ghost" style={styles.ghostOverlay} />);
+  }
+
   const cardContent = (
     <>
-      {variant === 'gradient' && (
-        <LinearGradient
-          colors={[
-            organicTheme.colors.primary.pale,
-            organicTheme.colors.background.paper,
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradientOverlay}
-        />
-      )}
-
-      {variant === 'glass' && (
-        <View style={styles.glassOverlay} />
-      )}
-
-      {variant === 'soft' && (
-        <View style={styles.softOverlay} />
-      )}
-
-      {variant === 'ghost' && (
-        <View style={styles.ghostOverlay} />
-      )}
-
+      {overlays}
       <View style={styles.content}>
-        {children}
+        {normalizedChildren}
       </View>
     </>
   );
@@ -150,7 +163,7 @@ const styles = StyleSheet.create({
     borderColor: organicTheme.colors.border.light,
   },
   shadow: {
-    ...organicTheme.shadows.soft[1],
+    ...buildShadowStyle(organicTheme.shadows.soft[1]),
   },
   pressedCard: {
     borderColor: organicTheme.colors.border.strong,
@@ -166,7 +179,7 @@ const styles = StyleSheet.create({
   glassOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    backdropFilter: 'blur(10px)',
+    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(10px)' } : {}),
   },
   softOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -19,6 +19,9 @@ always provide many solutions to help me brain-storming and also need to give me
 ```bash
 cd app_end
 
+# 安装依赖（仅允许 bun）
+bun install
+
 # 启动 Expo 开发服务器
 bun start
 
@@ -74,7 +77,7 @@ docker compose up -d
 3. **图标规范**: IconSymbol + SF Symbol 命名，新增图标需更新映射
 4. **交互反馈**: 统一使用 `Feedback` 抽象 (`notify/confirm`)，禁止直接调用 `Alert.alert`
 5. **后端三件套**: 字段变更必须同步修改 `model` + `db_migrations` + `to_dict`
-6. **最小验收**: 前端 `npm run lint` + `npx tsc --noEmit`；后端做目标模块语法检查
+6. **最小验收**: 前端 `bun run lint` + `npx tsc --noEmit`；后端做目标模块语法检查
 
 ## 关键配置
 

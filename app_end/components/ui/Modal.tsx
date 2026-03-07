@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
+import { getUseNativeDriver } from './modalAnimation';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -39,6 +40,7 @@ export const Modal: React.FC<ModalProps> = ({
   containerStyle,
   position = 'bottom',
 }) => {
+  const useNativeDriver = getUseNativeDriver();
   // 计算实际高度值（用于动画）
   const isAutoHeight = height === 'auto';
   const animationHeight = isAutoHeight ? SCREEN_HEIGHT * 0.75 : (typeof height === 'number' ? height : SCREEN_HEIGHT * 0.85);
@@ -56,12 +58,12 @@ export const Modal: React.FC<ModalProps> = ({
         Animated.timing(translateY, {
           toValue: 0,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
         Animated.timing(opacity, {
           toValue: 1,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
       ]).start();
     } else {
@@ -69,16 +71,16 @@ export const Modal: React.FC<ModalProps> = ({
         Animated.timing(translateY, {
           toValue: startY,
           duration: 250,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
         Animated.timing(opacity, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
       ]).start();
     }
-  }, [visible, startY, translateY, opacity]);
+  }, [opacity, startY, translateY, useNativeDriver, visible]);
 
   const renderChildren = () => React.Children.map(children, (child) => {
     if (!React.isValidElement(child) || child.type !== ScrollView) {

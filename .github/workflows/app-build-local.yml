@@ -10,7 +10,7 @@ env:
   ALL_PROXY: "socks5h://186.1.1.2:10808"
   NO_PROXY: "localhost,127.0.0.1,186.1.1.2,git.handywote.top"
   GRADLE_USER_HOME: "${{ github.workspace }}/.gradle-cache"
-  NPM_CONFIG_CACHE: "${{ github.workspace }}/.npm-cache"
+  BUN_INSTALL_CACHE_DIR: "${{ github.workspace }}/.bun-cache"
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
 
 jobs:
@@ -49,6 +49,15 @@ jobs:
 
           node --version
           npm --version
+
+      - name: Setup Bun
+        run: |
+          set -euo pipefail
+          curl -fsSL https://bun.sh/install | bash
+          echo "${HOME}/.bun/bin" >> "$GITHUB_PATH"
+          echo "BUN_INSTALL=${HOME}/.bun" >> "$GITHUB_ENV"
+          echo "BUN_INSTALL_CACHE_DIR=${BUN_INSTALL_CACHE_DIR}" >> "$GITHUB_ENV"
+          "${HOME}/.bun/bin/bun" --version
 
       - name: Install Android SDK
         run: |
@@ -102,7 +111,7 @@ jobs:
         working-directory: ${{ env.APP_PATH }}
         run: |
           set -euo pipefail
-          mkdir -p "${GRADLE_USER_HOME}" "${NPM_CONFIG_CACHE}" "${CCACHE_DIR}"
+          mkdir -p "${GRADLE_USER_HOME}" "${BUN_INSTALL_CACHE_DIR}" "${CCACHE_DIR}"
           PROXY_URL="${HTTPS_PROXY:-${HTTP_PROXY:-${ALL_PROXY:-${SOCKS_PROXY:-}}}}"
           if [ -n "${PROXY_URL}" ]; then
             export HTTP_PROXY="${PROXY_URL}"
@@ -111,24 +120,11 @@ jobs:
             export https_proxy="${PROXY_URL}"
           fi
 
-          npm config set cache "${NPM_CONFIG_CACHE}" --global
-          npm config set prefer-offline true --global
-          npm config set fund false --global
-          npm config set audit false --global
-          npm config set fetch-retries 5 --global
-          npm config set fetch-retry-mintimeout 20000 --global
-          npm config set fetch-retry-maxtimeout 120000 --global
-          npm config set fetch-timeout 300000 --global
-
           echo "Cache directories:"
-          ls -ld "${GRADLE_USER_HOME}" "${NPM_CONFIG_CACHE}" "${CCACHE_DIR}"
-          echo "Using npm proxy: ${PROXY_URL:-<none>}"
+          ls -ld "${GRADLE_USER_HOME}" "${BUN_INSTALL_CACHE_DIR}" "${CCACHE_DIR}"
+          echo "Using install proxy: ${PROXY_URL:-<none>}"
 
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+          bun install --frozen-lockfile
 
       - name: Build APK locally
         working-directory: ${{ env.APP_PATH }}
@@ -156,7 +152,7 @@ jobs:
 
           if [ ! -d "android" ]; then
             echo "android directory not found, running expo prebuild..."
-            CI=1 npx expo prebuild -p android
+            CI=1 bunx expo prebuild -p android
           fi
 
           if [ -n "${ANDROID_SDK_ROOT:-}" ]; then

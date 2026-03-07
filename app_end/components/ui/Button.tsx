@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { theme } from '@/constants/theme';
+import { buildShadowStyle } from './shadowStyle';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text';
 type ButtonSize = 'small' | 'medium' | 'large';
@@ -97,11 +98,11 @@ const styles = StyleSheet.create({
   // Variants
   primary: {
     backgroundColor: theme.colors.primary,
-    ...theme.shadows.small,
+    ...buildShadowStyle(theme.shadows.small),
   },
   secondary: {
     backgroundColor: theme.colors.accent,
-    ...theme.shadows.small,
+    ...buildShadowStyle(theme.shadows.small),
   },
   outline: {
     backgroundColor: 'transparent',

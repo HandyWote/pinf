@@ -3,16 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import {
   Modal as RNModal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { Button } from '@/components/ui/Button';
+import { InlineDateTimePickerField } from '@/components/ui/InlineDateTimePickerField';
 import { Input } from '@/components/ui/Input';
 import { organicTheme } from '@/constants/theme';
 import type { Appointment } from '@/types/appointment';
@@ -97,8 +96,6 @@ export const AppointmentModal: React.FC<Props> = ({
   const [dateText, setDateText] = useState('');
   const [timeText, setTimeText] = useState('');
   const [pickerDate, setPickerDate] = useState<Date>(buildDefaultDate);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -119,8 +116,6 @@ export const AppointmentModal: React.FC<Props> = ({
     setDateText(formatDateString(base));
     setTimeText(formatTimeText(base));
     setPickerDate(base);
-    setShowDatePicker(false);
-    setShowTimePicker(false);
     setErrors({});
   }, [initialValues, visible]);
 
@@ -172,20 +167,6 @@ export const AppointmentModal: React.FC<Props> = ({
     );
     setPickerDate(next);
     setTimeText(formatTimeText(next));
-  };
-
-  const handleDateChange = (_event: unknown, selected?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    applyPickerDate(selected);
-  };
-
-  const handleTimeChange = (_event: unknown, selected?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker(false);
-    }
-    applyPickerTime(selected);
   };
 
   const handleSubmit = async () => {
@@ -266,38 +247,22 @@ export const AppointmentModal: React.FC<Props> = ({
                 error={errors.scheduledAt}
               />
               <View style={styles.datetimeRow}>
-                <Button
-                  title="选择日期"
-                  onPress={() => setShowDatePicker((prev) => !prev)}
-                  variant="outline"
-                  size="medium"
-                  style={styles.datetimeButton}
+                <InlineDateTimePickerField
+                  buttonTitle="选择日期"
+                  mode="date"
+                  value={pickerDate}
+                  onConfirm={applyPickerDate}
+                  containerStyle={styles.datetimeButton}
                 />
-                <Button
-                  title="选择时间"
-                  onPress={() => setShowTimePicker((prev) => !prev)}
-                  variant="outline"
-                  size="medium"
-                  style={styles.datetimeButton}
+                <InlineDateTimePickerField
+                  buttonTitle="选择时间"
+                  mode="time"
+                  value={pickerDate}
+                  onConfirm={applyPickerTime}
+                  is24Hour
+                  containerStyle={styles.datetimeButton}
                 />
               </View>
-              {showDatePicker ? (
-                <DateTimePicker
-                  value={pickerDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                />
-              ) : null}
-              {showTimePicker ? (
-                <DateTimePicker
-                  value={pickerDate}
-                  mode="time"
-                  is24Hour
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleTimeChange}
-                />
-              ) : null}
               <Input
                 label="提前提醒（天）"
                 value={daysAhead}

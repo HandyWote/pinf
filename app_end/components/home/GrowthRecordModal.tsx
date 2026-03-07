@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
+import { InlineDateTimePickerField } from '@/components/ui/InlineDateTimePickerField';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { theme } from '@/constants/theme';
@@ -22,20 +22,9 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
   const [loading, setLoading] = useState(false);
 
   const [recordedAt, setRecordedAt] = useState(new Date());
-  const [tempRecordedAt, setTempRecordedAt] = useState(new Date());
-  const [showPicker, setShowPicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [pickerError, setPickerError] = useState('');
-  const [webDateText, setWebDateText] = useState('');
 
   const formatDateTime = (date: Date) => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  const formatDateText = (date: Date) => {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
@@ -105,7 +94,6 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
       setHead('');
       setNote('');
       setRecordedAt(new Date());
-      setTempRecordedAt(new Date());
     } catch {
       setErrors({ form: '提交失败，请重试' });
     } finally {
@@ -113,165 +101,56 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
     }
   };
 
-  const openPicker = () => {
-    setTempRecordedAt(recordedAt);
-    setWebDateText(formatDateText(recordedAt));
-    setPickerError('');
-    setShowPicker(true);
-  };
-
-  const handleDateOnlyChange = (_event: any, date?: Date) => {
-    if (!date) return;
-    setTempRecordedAt((prev) => {
-      const next = new Date(prev);
-      next.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-      return next;
-    });
-  };
-
-  const handleConfirmPicker = () => {
-    if (Platform.OS === 'web') {
-      const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-      const dateMatch = webDateText.match(datePattern);
-      if (!dateMatch) {
-        setPickerError('请输入正确格式：日期 YYYY-MM-DD');
-        return;
-      }
-
-      const year = Number(dateMatch[1]);
-      const month = Number(dateMatch[2]);
-      const day = Number(dateMatch[3]);
-      const parsed = new Date(year, month - 1, day, 0, 0, 0, 0);
-
-      if (
-        Number.isNaN(parsed.getTime()) ||
-        parsed.getFullYear() !== year ||
-        parsed.getMonth() !== month - 1 ||
-        parsed.getDate() !== day
-      ) {
-        setPickerError('日期无效，请检查后重试');
-        return;
-      }
-
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      if (parsed.getTime() > today.getTime()) {
-        setPickerError('记录日期不能晚于今天');
-        return;
-      }
-
-      setRecordedAt(parsed);
-      setShowPicker(false);
-      setPickerError('');
-      return;
-    }
-
-    setRecordedAt(tempRecordedAt);
-    setShowPicker(false);
-    setPickerError('');
-  };
-
   return (
-    <>
-      <Modal visible={visible} onClose={onClose} title="添加成长记录" height="auto">
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.form}>
-            <Input
-              label="体重 (kg)"
-              value={weight}
-              onChangeText={setWeight}
-              placeholder="示例：3.2"
-              keyboardType="decimal-pad"
-              error={errors.weight}
-            />
-            <Input
-              label="身高 (cm)"
-              value={height}
-              onChangeText={setHeight}
-              placeholder="示例：52"
-              keyboardType="decimal-pad"
-              error={errors.height}
-            />
-            <Input
-              label="头围 (cm)"
-              value={head}
-              onChangeText={setHead}
-              placeholder="示例：34"
-              keyboardType="decimal-pad"
-              error={errors.head}
-            />
+    <Modal visible={visible} onClose={onClose} title="添加成长记录" height="auto">
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.form}>
+          <Input
+            label="体重 (kg)"
+            value={weight}
+            onChangeText={setWeight}
+            placeholder="示例：3.2"
+            keyboardType="decimal-pad"
+            error={errors.weight}
+          />
+          <Input
+            label="身高 (cm)"
+            value={height}
+            onChangeText={setHeight}
+            placeholder="示例：52"
+            keyboardType="decimal-pad"
+            error={errors.height}
+          />
+          <Input
+            label="头围 (cm)"
+            value={head}
+            onChangeText={setHead}
+            placeholder="示例：34"
+            keyboardType="decimal-pad"
+            error={errors.head}
+          />
 
-            <View style={styles.dateRow}>
-              <Text style={styles.label}>记录日期（可补录）</Text>
-              <Button
-                title={formatDateTime(recordedAt)}
-                onPress={openPicker}
-                variant="outline"
-                size="medium"
-              />
-            </View>
-
-            {errors.form && <Text style={styles.error}>{errors.form}</Text>}
-
-            <Button title="保存" onPress={handleSubmit} loading={loading} disabled={loading} />
-          </View>
-        </ScrollView>
-      </Modal>
-
-      <Modal
-        visible={showPicker}
-        onClose={() => setShowPicker(false)}
-        title="选择记录时间"
-        height="auto"
-      >
-        <View style={styles.pickerPanel}>
-          {Platform.OS === 'ios' ? (
-            <DateTimePicker
-              value={tempRecordedAt}
+          <View style={styles.dateRow}>
+            <Text style={styles.label}>记录日期（可补录）</Text>
+            <InlineDateTimePickerField
+              buttonTitle={formatDateTime(recordedAt)}
               mode="date"
-              display="spinner"
+              value={recordedAt}
               maximumDate={new Date()}
-              onChange={handleDateOnlyChange}
-              style={styles.iosPicker}
-            />
-          ) : Platform.OS === 'web' ? (
-            <View style={styles.webPickers}>
-              <Input
-                label="日期（YYYY-MM-DD）"
-                value={webDateText}
-                onChangeText={setWebDateText}
-                placeholder="例如 2026-02-13"
-              />
-            </View>
-          ) : (
-            <View style={styles.androidPickers}>
-              <Text style={styles.pickerLabel}>日期</Text>
-              <DateTimePicker
-                value={tempRecordedAt}
-                mode="date"
-                display="spinner"
-                maximumDate={new Date()}
-                onChange={handleDateOnlyChange}
-              />
-            </View>
-          )}
-          {pickerError ? <Text style={styles.error}>{pickerError}</Text> : null}
-
-          <View style={styles.pickerActions}>
-            <Button
-              title="取消"
-              variant="text"
-              size="medium"
-              onPress={() => {
-                setShowPicker(false);
-                setPickerError('');
+              onConfirm={(selected) => {
+                const next = new Date(recordedAt);
+                next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+                setRecordedAt(next);
               }}
             />
-            <Button title="确认" size="medium" onPress={handleConfirmPicker} />
           </View>
+
+          {errors.form && <Text style={styles.error}>{errors.form}</Text>}
+
+          <Button title="保存" onPress={handleSubmit} loading={loading} disabled={loading} />
         </View>
-      </Modal>
-    </>
+      </ScrollView>
+    </Modal>
   );
 };
 
@@ -298,26 +177,5 @@ const styles = StyleSheet.create({
   error: {
     color: '#D64545',
     fontSize: theme.fontSizes.xs,
-  },
-  pickerPanel: {
-    gap: theme.spacing.md,
-  },
-  iosPicker: {
-    alignSelf: 'stretch',
-  },
-  androidPickers: {
-    gap: theme.spacing.sm,
-  },
-  webPickers: {
-    gap: theme.spacing.sm,
-  },
-  pickerLabel: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSub,
-  },
-  pickerActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: theme.spacing.sm,
   },
 });

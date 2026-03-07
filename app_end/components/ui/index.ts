@@ -15,3 +15,5 @@ export { BabyForm } from './BabyForm';
 export { OrganicBackground, OrganicCardDecoration } from './OrganicBackground';
 export { OrganicCard, OrganicCardHeader } from './OrganicCard';
 export { OrganicButton, OrganicChipButton } from './OrganicButton';
+export { InlineDateTimePickerField } from './InlineDateTimePickerField';
+export { resolvePickerChange } from './dateTimeFieldState';

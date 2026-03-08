@@ -8,7 +8,11 @@ import { OrganicButton } from '@/components/ui';
 import { organicTheme } from '@/constants/theme';
 import { useAuthStore } from '@/store';
 import { useAppointmentStore } from '@/store/appointmentStore';
-import { formatAppointmentDateTime } from '@/utils/appointment';
+import {
+  formatAppointmentDateTime,
+  getAppointmentEffectiveStatus,
+  parseAppointmentDate,
+} from '@/utils/appointment';
 
 const MAX_ITEMS = 6;
 const AUTH_SEGMENTS = new Set(['login', 'set-password']);
@@ -34,21 +38,33 @@ export function AppointmentInfoOnceModal() {
 
   const pendingAppointments = useMemo(() => {
     return appointments
-      .filter((item) => item.status === 'pending')
-      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+      .filter((item) => getAppointmentEffectiveStatus(item) === 'pending')
+      .sort((a, b) => {
+        const left = parseAppointmentDate(a.scheduledAt)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const right = parseAppointmentDate(b.scheduledAt)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        return left - right;
+      })
       .slice(0, MAX_ITEMS);
   }, [appointments]);
+  const hasOverdueAppointments = useMemo(
+    () => appointments.some((item) => getAppointmentEffectiveStatus(item) === 'overdue'),
+    [appointments]
+  );
 
   useEffect(() => {
     if (isLoading || loading || !isAuthenticated || isAuthFlow) return;
+    if (hasOverdueAppointments) {
+      setVisible(false);
+      return;
+    }
     if (shownInSessionRef.current) return;
     if (!pendingAppointments.length) return;
 
     shownInSessionRef.current = true;
     setVisible(true);
-  }, [isAuthenticated, isLoading, isAuthFlow, loading, pendingAppointments]);
+  }, [hasOverdueAppointments, isAuthenticated, isLoading, isAuthFlow, loading, pendingAppointments]);
 
-  if (!pendingAppointments.length) return null;
+  if (hasOverdueAppointments || !pendingAppointments.length) return null;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>

@@ -5,6 +5,7 @@ export { GrowthCard } from './GrowthCard';
 export { GrowthRecordModal } from './GrowthRecordModal';
 export { AppointmentModal } from './AppointmentModal';
 export { AppointmentInfoOnceModal } from './AppointmentInfoOnceModal';
+export { AppointmentCompletionPrompt } from './AppointmentCompletionPrompt';
 export { ContentStrip } from './ContentStrip';
 export { FloatingActionButton } from './FloatingActionButton';
 export { ActionGrid } from './ActionGrid';

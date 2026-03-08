@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-
 from flask import Blueprint, jsonify, request
 
 from models import db
 from models.appointment import Appointment
 from models.baby import Baby
+from utils.appointment_status import mark_overdue_appointments, now_local_naive, to_local_naive
 from utils.auth import token_required, validate_request_data
 
 appointment_bp = Blueprint("appointment", __name__)
@@ -19,9 +19,7 @@ def _parse_datetime(value, field):
             normalized = normalized[:-1] + "+00:00"
 
         parsed = datetime.fromisoformat(normalized)
-        if parsed.tzinfo is not None:
-            return parsed.replace(tzinfo=None)
-        return parsed
+        return to_local_naive(parsed)
     except ValueError as exc:
         raise ValueError(f"{field} 格式错误，需要 ISO8601 时间") from exc
 
@@ -78,11 +76,11 @@ def _resolve_baby(current_user, baby_id):
     if not baby:
         raise LookupError("宝宝不存在或无权限")
     return baby
-
-
 @appointment_bp.route("/appointments", methods=["GET"])
 @token_required
 def list_appointments(current_user):
+    mark_overdue_appointments(current_user.id)
+
     status = request.args.get("status")
     query = Appointment.query.filter_by(user_id=current_user.id)
     if status:
@@ -103,7 +101,9 @@ def get_appointment_summary(current_user):
     if window_days < 1 or window_days > 30:
         return jsonify({"status": "error", "message": "windowDays 需在 1-30 之间"}), 400
 
-    now = datetime.now()
+    mark_overdue_appointments(current_user.id)
+
+    now = now_local_naive()
     start_of_today = datetime(now.year, now.month, now.day)
     start_of_tomorrow = start_of_today + timedelta(days=1)
     upcoming_deadline = start_of_today + timedelta(days=window_days + 1)

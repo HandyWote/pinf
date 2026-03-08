@@ -28,6 +28,7 @@ import { useBabyStore } from '@/store/babyStore';
 import { useGrowthStore } from '@/store/growthStore';
 import { useAppointmentStore } from '@/store/appointmentStore';
 import { calculateBabyAge, formatDetailedAge } from '@/utils/ageCalculator';
+import { formatAppointmentDateBadge, getAppointmentEffectiveStatus } from '@/utils/appointment';
 import type { CreateBabyInput, UpdateBabyInput } from '@/types/baby';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -323,13 +324,12 @@ export default function OrganicHomeScreen() {
           </OrganicCard>
         ) : (
           filteredAppointments.slice(0, 2).map((item) => {
-            const date = new Date(item.scheduledAt);
-            const dateDay = String(date.getDate()).padStart(2, '0');
-            const dateMonth = `${date.getMonth() + 1}月`;
+            const badge = formatAppointmentDateBadge(item.scheduledAt);
+            const effectiveStatus = getAppointmentEffectiveStatus(item);
             const statusLabel =
-              item.status === 'pending'
+              effectiveStatus === 'pending'
                 ? '待就诊'
-                : item.status === 'completed'
+                : effectiveStatus === 'completed'
                   ? '已完成'
                   : '已过期';
 
@@ -337,14 +337,14 @@ export default function OrganicHomeScreen() {
               <OrganicCard key={item.id} shadow style={styles.appointmentCard}>
                 <View style={styles.appointmentContent}>
                   <View style={styles.appointmentDate}>
-                    <Text style={styles.appointmentDay}>{dateDay}</Text>
-                    <Text style={styles.appointmentMonth}>{dateMonth}</Text>
+                    <Text style={styles.appointmentDay}>{badge.day}</Text>
+                    <Text style={styles.appointmentMonth}>{badge.month}</Text>
                   </View>
                   <View style={styles.appointmentInfo}>
                     <Text style={styles.appointmentClinic}>{item.clinic}</Text>
                     <Text style={styles.appointmentDepartment}>{item.department}</Text>
                   </View>
-                  <View style={[styles.statusBadge, item.status === 'pending' ? styles.statusPending : item.status === 'completed' ? styles.statusCompleted : styles.statusExpired]}>
+                  <View style={[styles.statusBadge, effectiveStatus === 'pending' ? styles.statusPending : effectiveStatus === 'completed' ? styles.statusCompleted : styles.statusExpired]}>
                     <Text style={styles.statusText}>{statusLabel}</Text>
                   </View>
                 </View>

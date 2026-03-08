@@ -40,6 +40,14 @@ export const updateAppointment = async (
   return res.data.data;
 };
 
+export const updateAppointmentStatus = async (
+  id: number,
+  status: Appointment['status']
+): Promise<Appointment> => {
+  const res = await api.patch<ApiResponse<Appointment>>(`/appointments/${id}/status`, { status });
+  return res.data.data;
+};
+
 export const deleteAppointment = async (id: number): Promise<void> => {
   await api.delete(`/appointments/${id}`);
 };

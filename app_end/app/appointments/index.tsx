@@ -15,14 +15,15 @@ import type { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from
 import {
   formatAppointmentDateBadge,
   formatAppointmentDateTime,
+  getAppointmentEffectiveStatus,
   getAppointmentUrgencyLabel,
   groupAppointments,
 } from '@/utils/appointment';
 
 const STATUS_META = {
   pending: { label: '待就诊', variant: 'accent' as const },
-  completed: { label: '已完成', variant: 'muted' as const },
-  overdue: { label: '已过期', variant: 'primary' as const },
+  completed: { label: '已就诊', variant: 'muted' as const },
+  overdue: { label: '待确认', variant: 'primary' as const },
 };
 
 type SectionKey = 'today' | 'upcoming' | 'later' | 'past';
@@ -36,7 +37,7 @@ const SECTION_META: Record<SectionKey, { title: string; empty: string }> = {
 
 export default function AppointmentPage() {
   const router = useRouter();
-  const { appointments, fetch, remove, error, add, update } = useAppointmentStore();
+  const { appointments, fetch, remove, error, add, update, updateStatus } = useAppointmentStore();
   const { currentBaby } = useBabyStore();
   const { confirm, notify } = useFeedback();
   const [showModal, setShowModal] = useState(false);
@@ -81,6 +82,23 @@ export default function AppointmentPage() {
     setShowModal(true);
   };
 
+  const handleMarkCompleted = async (item: Appointment) => {
+    const confirmed = await confirm({
+      title: '标记已就诊',
+      message: `确认将“${item.clinic} / ${item.department}”更新为已就诊吗？`,
+      confirmText: '确认',
+      cancelText: '取消',
+    });
+    if (!confirmed) return;
+
+    try {
+      await updateStatus(item.id, 'completed');
+      notify('预约已更新为已就诊', 'success');
+    } catch {
+      notify('状态更新失败，请重试', 'error');
+    }
+  };
+
   const handleSubmit = async (payload: CreateAppointmentInput | UpdateAppointmentInput) => {
     if (editingAppointment) {
       await update(editingAppointment.id, payload as UpdateAppointmentInput);
@@ -106,7 +124,8 @@ export default function AppointmentPage() {
         <View style={styles.cardList}>
           {items.map((item) => {
             const badge = formatAppointmentDateBadge(item.scheduledAt);
-            const statusMeta = STATUS_META[item.status];
+            const effectiveStatus = getAppointmentEffectiveStatus(item);
+            const statusMeta = STATUS_META[effectiveStatus];
             const remindText = item.remindAt
               ? `提醒：${formatAppointmentDateTime(item.remindAt)}`
               : '未设置提醒';
@@ -122,19 +141,25 @@ export default function AppointmentPage() {
                   remindText={remindText}
                   statusLabel={statusMeta.label}
                   statusVariant={statusMeta.variant}
-                  actionLabel="编辑预约"
+                  actionLabel={effectiveStatus === 'overdue' ? '调整预约时间' : '编辑预约'}
                   onAction={() => handleOpenEdit(item)}
                 />
                 <View style={styles.cardMeta}>
                   <Text style={styles.metaText}>
                     紧急程度：{getAppointmentUrgencyLabel(item.scheduledAt, 3)}
                   </Text>
-                  {item.baby?.name ? (
-                    <Text style={styles.metaText}>宝宝：{item.baby.name}</Text>
-                  ) : null}
+                  {item.baby?.name ? <Text style={styles.metaText}>宝宝：{item.baby.name}</Text> : null}
                   {item.note ? <Text style={styles.noteText}>备注：{item.note}</Text> : null}
                 </View>
                 <View style={styles.actionRow}>
+                  {effectiveStatus !== 'completed' ? (
+                    <OrganicButton
+                      title="标记已就诊"
+                      variant={effectiveStatus === 'overdue' ? 'primary' : 'soft'}
+                      size="small"
+                      onPress={() => handleMarkCompleted(item)}
+                    />
+                  ) : null}
                   <OrganicButton
                     title="编辑"
                     variant="soft"
@@ -356,6 +381,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    flexWrap: 'wrap',
     gap: organicTheme.spacing.sm,
   },
   emptyBox: {

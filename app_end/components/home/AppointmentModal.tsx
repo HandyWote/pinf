@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { organicTheme } from '@/constants/theme';
 import type { Appointment } from '@/types/appointment';
 import { formatDateString } from '@/utils/ageCalculator';
-import { toLocalDateTimePayload } from '@/utils/appointment';
+import { parseAppointmentDate as parseLocalAppointmentDate, toLocalDateTimePayload } from '@/utils/appointment';
 
 type SubmitPayload = {
   clinic: string;
@@ -50,8 +50,7 @@ const formatTimeText = (date: Date) =>
 
 const parseAppointmentDate = (value?: string) => {
   if (!value) return buildDefaultDate();
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? buildDefaultDate() : parsed;
+  return parseLocalAppointmentDate(value) ?? buildDefaultDate();
 };
 
 const parseDateAndTime = (dateText: string, timeText: string) => {

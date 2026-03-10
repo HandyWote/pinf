@@ -1,20 +1,18 @@
-name: APP Local Build
+name: APP EAS Build
 
 on:
-  workflow_dispatch:  # 支持手动触发
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
 
 env:
-  APP_PATH: "app_end"
-  API_BASE_URL: "https://backend.pinf.top/api"
-  SOCKS_PROXY: "socks5h://186.1.1.2:10808"
-  ALL_PROXY: "socks5h://186.1.1.2:10808"
-  NO_PROXY: "localhost,127.0.0.1,186.1.1.2,git.handywote.top"
-  GRADLE_USER_HOME: "${{ github.workspace }}/.gradle-cache"
-  BUN_INSTALL_CACHE_DIR: "${{ github.workspace }}/.bun-cache"
-  CCACHE_DIR: "${{ github.workspace }}/.ccache"
+  APP_PATH: app_end
 
 jobs:
-  build-app-local:
+  build-app-eas:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -23,271 +21,103 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          distribution: temurin
-          java-version: "17"
+          node-version: '20'
 
-      - name: Setup Node.js (nvm)
-        run: |
-          set -euo pipefail
-          export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-          if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-            echo "nvm not found at $NVM_DIR/nvm.sh"
-            exit 1
-          fi
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
 
-          # shellcheck disable=SC1090
-          . "$NVM_DIR/nvm.sh"
-          nvm install 20
-          nvm use 20
-
-          NODE_BIN_DIR="$(dirname "$(command -v node)")"
-          echo "$NODE_BIN_DIR" >> "$GITHUB_PATH"
-          echo "NVM_DIR=$NVM_DIR" >> "$GITHUB_ENV"
-
-          node --version
-          npm --version
-
-      - name: Setup Bun
-        run: |
-          set -euo pipefail
-          curl -fsSL https://bun.sh/install | bash
-          echo "${HOME}/.bun/bin" >> "$GITHUB_PATH"
-          echo "BUN_INSTALL=${HOME}/.bun" >> "$GITHUB_ENV"
-          echo "BUN_INSTALL_CACHE_DIR=${BUN_INSTALL_CACHE_DIR}" >> "$GITHUB_ENV"
-          "${HOME}/.bun/bin/bun" --version
-
-      - name: Install Android SDK
-        run: |
-          set -euo pipefail
-          export ANDROID_SDK_ROOT="${HOME}/android-sdk"
-          export ANDROID_HOME="${ANDROID_SDK_ROOT}"
-          mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"
-
-          PROXY_URL="${HTTPS_PROXY:-${HTTP_PROXY:-${ALL_PROXY:-${SOCKS_PROXY:-}}}}"
-          SDKMANAGER_PROXY_ARGS=()
-          if [[ "$PROXY_URL" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
-            SDKMANAGER_PROXY_ARGS=(--proxy=socks --proxy_host="${BASH_REMATCH[1]}" --proxy_port="${BASH_REMATCH[2]}")
-          elif [[ "$PROXY_URL" =~ ^https?://([^:/]+):([0-9]+)$ ]]; then
-            SDKMANAGER_PROXY_ARGS=(--proxy=http --proxy_host="${BASH_REMATCH[1]}" --proxy_port="${BASH_REMATCH[2]}")
-          fi
-
-          # Java URL 解析不支持 socks5h://，避免 sdkmanager 误读 HTTP(S)_PROXY 后直接失败
-          unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
-
-          if [ ! -x "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" ]; then
-            cd /tmp
-            curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o cmdline-tools.zip
-            rm -rf "${ANDROID_SDK_ROOT}/cmdline-tools/latest"
-            unzip -q cmdline-tools.zip -d "${ANDROID_SDK_ROOT}/cmdline-tools"
-            mv "${ANDROID_SDK_ROOT}/cmdline-tools/cmdline-tools" "${ANDROID_SDK_ROOT}/cmdline-tools/latest"
-          fi
-
-          export PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
-          yes | sdkmanager "${SDKMANAGER_PROXY_ARGS[@]}" --licenses >/dev/null || true
-          sdkmanager "${SDKMANAGER_PROXY_ARGS[@]}" --install \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;36.0.0" \
-            "ndk;27.1.12297006"
-
-          {
-            echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}"
-            echo "ANDROID_HOME=${ANDROID_HOME}"
-            echo "PATH=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
-          } >> "$GITHUB_ENV"
-
-      - name: Extract version from tag
-        run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
-
-      - name: Decode keystore from secrets
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > /tmp/keystore.jks
-          ls -la /tmp/keystore.jks
-
-      - name: Install dependencies
-        working-directory: ${{ env.APP_PATH }}
-        run: |
-          set -euo pipefail
-          mkdir -p "${GRADLE_USER_HOME}" "${BUN_INSTALL_CACHE_DIR}" "${CCACHE_DIR}"
-          PROXY_URL="${HTTPS_PROXY:-${HTTP_PROXY:-${ALL_PROXY:-${SOCKS_PROXY:-}}}}"
-          if [ -n "${PROXY_URL}" ]; then
-            export HTTP_PROXY="${PROXY_URL}"
-            export HTTPS_PROXY="${PROXY_URL}"
-            export http_proxy="${PROXY_URL}"
-            export https_proxy="${PROXY_URL}"
-          fi
-
-          echo "Cache directories:"
-          ls -ld "${GRADLE_USER_HOME}" "${BUN_INSTALL_CACHE_DIR}" "${CCACHE_DIR}"
-          echo "Using install proxy: ${PROXY_URL:-<none>}"
-
-          bun install --frozen-lockfile
-
-      - name: Build APK locally
+      - name: Verify Expo auth
         working-directory: ${{ env.APP_PATH }}
         env:
-          APP_VERSION: ${{ env.APP_VERSION }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           set -euo pipefail
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "EXPO_TOKEN is required"
+            exit 1
+          fi
+          eas whoami
+
+      - name: Build APK on EAS cloud
+        id: eas_build
+        working-directory: ${{ env.APP_PATH }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          BUILD_JSON=$(eas build \
+            --platform android \
+            --profile production \
+            --non-interactive \
+            --wait \
+            --json)
+
+          echo "$BUILD_JSON" > /tmp/eas-build.json
+
+          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl // .artifacts.buildUrl // empty' /tmp/eas-build.json)
+          if [ -z "$BUILD_URL" ]; then
+            echo "Failed to get build URL from EAS output"
+            cat /tmp/eas-build.json
+            exit 1
+          fi
+
+          echo "build_url=$BUILD_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Download APK artifact
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
           OUTPUT_DIR="${GITHUB_WORKSPACE}/output"
+          APK_FILE="${OUTPUT_DIR}/pinf-${TAG}.apk"
+
           mkdir -p "$OUTPUT_DIR"
+          curl -fL "${{ steps.eas_build.outputs.build_url }}" -o "$APK_FILE"
 
-          # JVM 对 socks5h 环境变量并不总是自动生效，显式注入 socks 代理参数
-          GRADLE_TIMEOUT_OPTS="-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
-          GRADLE_STABILITY_OPTS="-Dorg.gradle.daemon=false"
-          export GRADLE_OPTS="${GRADLE_OPTS:-} ${GRADLE_TIMEOUT_OPTS} ${GRADLE_STABILITY_OPTS}"
-          export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -XX:-UsePerfData"
-          PROXY_URL="${HTTPS_PROXY:-${HTTP_PROXY:-${ALL_PROXY:-${SOCKS_PROXY:-}}}}"
-          if [[ "$PROXY_URL" =~ ^socks5h?://([^:/]+):([0-9]+)$ ]]; then
-            SOCKS_HOST="${BASH_REMATCH[1]}"
-            SOCKS_PORT="${BASH_REMATCH[2]}"
-            export GRADLE_OPTS="${GRADLE_OPTS} -DsocksProxyHost=${SOCKS_HOST} -DsocksProxyPort=${SOCKS_PORT}"
-          fi
-
-          echo "Using GRADLE_OPTS: ${GRADLE_OPTS}"
-          echo "Using JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS}"
-
-          if [ ! -d "android" ]; then
-            echo "android directory not found, running expo prebuild..."
-            CI=1 bunx expo prebuild -p android
-          fi
-
-          if [ -n "${ANDROID_SDK_ROOT:-}" ]; then
-            ANDROID_SDK_DIR="$ANDROID_SDK_ROOT"
-          elif [ -n "${ANDROID_HOME:-}" ]; then
-            ANDROID_SDK_DIR="$ANDROID_HOME"
-          else
-            echo "ANDROID_HOME/ANDROID_SDK_ROOT is not set"
-            exit 1
-          fi
-          echo "sdk.dir=${ANDROID_SDK_DIR}" > android/local.properties
-          echo "Using Android SDK: ${ANDROID_SDK_DIR}"
-
-          chmod +x ./android/gradlew || true
-          ./android/gradlew --no-daemon -p android :app:assembleRelease
-
-          # 查找构建产物
-          BUILD_OUTPUT=$(find ./android/app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
-          if [ -z "$BUILD_OUTPUT" ]; then
-            echo "APK not found in build directory"
-            find ./android/app/build/outputs -type f || echo "Build directory:"
+          if [ ! -s "$APK_FILE" ]; then
+            echo "Downloaded APK is empty"
             exit 1
           fi
 
-          # 复制到输出目录
-          cp "$BUILD_OUTPUT" "$OUTPUT_DIR/pinf-${{ github.ref_name }}.apk"
-          echo "APK built successfully: $(basename $BUILD_OUTPUT)"
-
-      - name: Dump JVM crash logs on failure
-        if: failure()
-        run: |
-          echo "Searching hs_err_pid logs under /tmp..."
-          find /tmp -type f -name 'hs_err_pid*.log' -print | while read -r file; do
-            echo "===== $file ====="
-            sed -n '1,200p' "$file" || true
-          done
-
-      - name: Verify APK
-        run: |
-          set -euo pipefail
-          APK_FILE="${GITHUB_WORKSPACE}/output/pinf-${{ github.ref_name }}.apk"
-          if [ ! -f "$APK_FILE" ]; then
-            echo "APK file not found at $APK_FILE"
-            exit 1
-          fi
           ls -lh "$APK_FILE"
-          if command -v sha256sum >/dev/null 2>&1; then
-            sha256sum "$APK_FILE"
-          else
-            echo "sha256sum not found, skip digest output"
-          fi
+          sha256sum "$APK_FILE"
 
       - name: Generate Release Notes
         run: |
+          set -euo pipefail
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
             echo "## Updates" > release_notes.txt
-            git log $PREV_TAG..${{ github.ref_name }} --pretty=format:"- %s" >> release_notes.txt
+            git log "$PREV_TAG".."${GITHUB_REF_NAME}" --pretty=format:"- %s" >> release_notes.txt
           else
             echo "## Initial Release" > release_notes.txt
             git log --pretty=format:"- %s" -10 >> release_notes.txt
           fi
 
-      - name: Upload APK as artifact (for debugging)
+      - name: Upload APK as artifact (debug)
         uses: actions/upload-artifact@v4
         with:
           name: pinf-apk
           path: ${{ github.workspace }}/output/pinf-${{ github.ref_name }}.apk
           retention-days: 7
 
-      - name: Create Gitea Release
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      - name: Create or update GitHub Release
         env:
-          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-
-          API_BASE="${GITHUB_SERVER_URL%/}/api/v1"
-          OWNER="${GITHUB_REPOSITORY%/*}"
-          REPO="${GITHUB_REPOSITORY#*/}"
           TAG="${GITHUB_REF_NAME}"
           APK_FILE="${GITHUB_WORKSPACE}/output/pinf-${TAG}.apk"
 
-          if [ ! -f "$APK_FILE" ]; then
-            echo "APK file not found: $APK_FILE"
-            exit 1
-          fi
-
-          RELEASE_PAYLOAD=$(jq -n \
-            --arg tag "$TAG" \
-            --arg name "App $TAG" \
-            --arg body "$(cat release_notes.txt)" \
-            '{tag_name:$tag,name:$name,body:$body,draft:false,prerelease:false}')
-
-          CREATE_RESPONSE=$(curl -sS -X POST \
-            -H "Authorization: token ${GITEA_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "$RELEASE_PAYLOAD" \
-            "${API_BASE}/repos/${OWNER}/${REPO}/releases" \
-            -w '\n%{http_code}')
-
-          CREATE_BODY=$(echo "$CREATE_RESPONSE" | sed '$d')
-          CREATE_CODE=$(echo "$CREATE_RESPONSE" | tail -n1)
-
-          if [ "$CREATE_CODE" = "201" ]; then
-            RELEASE_ID=$(echo "$CREATE_BODY" | jq -r '.id')
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK_FILE#pinf-${TAG}.apk" --clobber
+            gh release edit "$TAG" --notes-file release_notes.txt
           else
-            GET_RESPONSE=$(curl -sS \
-              -H "Authorization: token ${GITEA_TOKEN}" \
-              "${API_BASE}/repos/${OWNER}/${REPO}/releases/tags/${TAG}" \
-              -w '\n%{http_code}')
-            GET_BODY=$(echo "$GET_RESPONSE" | sed '$d')
-            GET_CODE=$(echo "$GET_RESPONSE" | tail -n1)
-
-            if [ "$GET_CODE" != "200" ]; then
-              echo "Create release failed (${CREATE_CODE}), and release by tag not found (${GET_CODE})."
-              echo "$CREATE_BODY"
-              echo "$GET_BODY"
-              exit 1
-            fi
-            RELEASE_ID=$(echo "$GET_BODY" | jq -r '.id')
+            gh release create "$TAG" "$APK_FILE#pinf-${TAG}.apk" \
+              --title "App $TAG" \
+              --notes-file release_notes.txt
           fi
 
-          UPLOAD_RESPONSE=$(curl -sS -X POST \
-            -H "Authorization: token ${GITEA_TOKEN}" \
-            -F "attachment=@${APK_FILE}" \
-            "${API_BASE}/repos/${OWNER}/${REPO}/releases/${RELEASE_ID}/assets?name=pinf-${TAG}.apk" \
-            -w '\n%{http_code}')
-
-          UPLOAD_BODY=$(echo "$UPLOAD_RESPONSE" | sed '$d')
-          UPLOAD_CODE=$(echo "$UPLOAD_RESPONSE" | tail -n1)
-          if [ "$UPLOAD_CODE" != "201" ]; then
-            echo "Upload asset failed: HTTP ${UPLOAD_CODE}"
-            echo "$UPLOAD_BODY"
-            exit 1
-          fi
-
-          echo "Release created successfully!"
+          echo "GitHub release published: $TAG"

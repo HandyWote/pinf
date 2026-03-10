@@ -1,0 +1,86 @@
+name: Webend Deploy
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-webend:
+    runs-on: ubuntu-latest
+    env:
+      WEBEND_PATH: webend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Download APK from GitHub Release to public/downloads
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+
+          mkdir -p "${WEBEND_PATH}/public/downloads"
+          rm -f "${WEBEND_PATH}/public/downloads/"*.apk
+
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TARGET_TAG="${{ github.event.release.tag_name }}"
+          else
+            TARGET_TAG="$(gh release list --repo "${REPO}" --limit 1 --json tagName --jq '.[0].tagName')"
+          fi
+
+          if [ -z "${TARGET_TAG}" ]; then
+            echo "No release tag found."
+            exit 1
+          fi
+
+          gh release download "${TARGET_TAG}" \
+            --repo "${REPO}" \
+            --pattern "*.apk" \
+            --dir "${WEBEND_PATH}/public/downloads" \
+            --clobber
+
+          APK_PATH="$(find "${WEBEND_PATH}/public/downloads" -maxdepth 1 -type f -name '*.apk' | head -n 1)"
+          if [ -z "${APK_PATH}" ]; then
+            echo "No APK asset found in release ${TARGET_TAG}."
+            exit 1
+          fi
+          APK_NAME="$(basename "${APK_PATH}")"
+
+          echo "/downloads/${APK_NAME}" > "${WEBEND_PATH}/public/downloads/link.txt"
+          echo "Downloaded from release ${TARGET_TAG}: ${APK_NAME}"
+          ls -lh "${WEBEND_PATH}/public/downloads/${APK_NAME}"
+
+      - name: Build webend
+        working-directory: ${{ env.WEBEND_PATH }}
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bun run build
+
+      - name: Upload dist artifact (debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: webend-dist
+          path: webend/dist
+          retention-days: 7
+
+      - name: Deploy to FTP server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          local-dir: ./webend/dist/
+          server-dir: ${{ vars.WEBEND_REMOTE_PATH }}

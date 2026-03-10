@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useDownloadConfig } from './composables/useDownloadConfig'
+import { useGyroscope } from './composables/useGyroscope'
+import { useTouchTilt } from './composables/useTouchTilt'
+import { useCardTiltInput } from './composables/useCardTiltInput'
+import { usePointerTilt } from './composables/usePointerTilt'
 
 const { config, loading, error, fetchConfig } = useDownloadConfig()
 
 // 3D 倾斜状态
 const cardRef = ref<HTMLElement | null>(null)
-const tilt = ref({ x: 0, y: 0 })
-const isHovering = ref(false)
+const { tilt: pointerTilt, isHovering } = usePointerTilt(cardRef, { maxTilt: 20 })
 const isClicking = ref(false)
 
 // 粒子效果
@@ -18,42 +21,54 @@ let particleId = 0
 const isDownloading = ref(false)
 const showParticles = ref(false)
 
-onMounted(() => {
-  fetchConfig()
-  window.addEventListener('mousemove', handleMouseMove)
+// 陀螺仪
+const {
+  orientation: gyroOrientation,
+  available: gyroAvailable,
+  needsPermission: gyroNeedsPermission,
+  permissionGranted: gyroPermissionGranted,
+  requestPermission: requestGyroPermission,
+  start: startGyro
+} = useGyroscope()
+
+// 检测触摸设备
+const isTouchDevice = ref('ontouchstart' in window || navigator.maxTouchPoints > 0)
+
+// 触摸滑动回退
+const { tilt: touchTilt, isActive: touchActive } = useTouchTilt(cardRef)
+const { currentTilt, inputMode } = useCardTiltInput({
+  gyroOrientation,
+  gyroAvailable,
+  gyroPermissionGranted,
+  touchTilt,
+  touchActive,
+  mouseTilt: pointerTilt,
+  isHovering
 })
 
-onUnmounted(() => {
-  window.removeEventListener('mousemove', handleMouseMove)
+// 是否显示陀螺仪权限按钮
+const showGyroButton = computed(() => {
+  return isTouchDevice.value && gyroNeedsPermission.value && !gyroPermissionGranted.value
 })
 
-const handleMouseMove = (e: MouseEvent) => {
-  if (!cardRef.value || !isHovering.value) return
-
-  const rect = cardRef.value.getBoundingClientRect()
-  const centerX = rect.left + rect.width / 2
-  const centerY = rect.top + rect.height / 2
-
-  // 更大的倾斜角度
-  const maxTilt = 25
-  const x = (e.clientX - centerX) / (rect.width / 2)
-  const y = (e.clientY - centerY) / (rect.height / 2)
-
-  tilt.value = {
-    x: -y * maxTilt,
-    y: x * maxTilt
+// 请求陀螺仪权限
+const handleRequestGyro = async () => {
+  const granted = await requestGyroPermission()
+  if (granted) {
+    startGyro()
   }
 }
 
-const handleMouseEnter = () => {
-  isHovering.value = true
+// 点击立绘时请求权限（iOS）
+const handleCardClick = () => {
+  if (showGyroButton.value) {
+    handleRequestGyro()
+  }
 }
 
-const handleMouseLeave = () => {
-  isHovering.value = false
-  // 平滑复位
-  tilt.value = { x: 0, y: 0 }
-}
+onMounted(() => {
+  fetchConfig()
+})
 
 const handleDownload = () => {
   if (!config.value?.downloadUrl || isDownloading.value) return
@@ -117,14 +132,13 @@ const handleDownload = () => {
           ref="cardRef"
           class="card"
           :class="{ hovering: isHovering, clicking: isClicking }"
-          @mouseenter="handleMouseEnter"
-          @mouseleave="handleMouseLeave"
-          @mousemove="handleMouseMove"
+          @click="handleCardClick"
         >
           <div
             class="card-inner"
+            :class="{ 'realtime-tilt': inputMode !== 'none' }"
             :style="{
-              transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isClicking ? 0.95 : 1})`
+              transform: `perspective(1200px) rotateX(${currentTilt.x}deg) rotateY(${currentTilt.y}deg) scale(${isClicking ? 0.95 : 1})`
             }"
           >
             <!-- 异形立绘图片 -->
@@ -142,7 +156,7 @@ const handleDownload = () => {
           <div
             class="card-shadow"
             :style="{
-              transform: `perspective(1200px) rotateX(${tilt.x * 0.5}deg) rotateY(${tilt.y * 0.5}deg) translateY(20px) scale(${isHovering ? 1.1 : 1})`,
+              transform: `perspective(1200px) rotateX(${currentTilt.x * 0.5}deg) rotateY(${currentTilt.y * 0.5}deg) translateY(20px) scale(${isHovering ? 1.1 : 1})`,
               opacity: isHovering ? 0.4 : 0.25
             }"
           ></div>
@@ -195,6 +209,13 @@ const handleDownload = () => {
 
         <p v-if="error" class="error-msg">{{ error }}</p>
         <p class="file-info" v-if="config && !error">{{ config.fileName }}</p>
+
+        <!-- 陀螺仪权限提示 -->
+        <p v-if="showGyroButton" class="gyro-hint">
+          <button class="gyro-btn" @click="handleRequestGyro">
+            启用陀螺仪体验更佳
+          </button>
+        </p>
       </div>
     </main>
 
@@ -224,8 +245,8 @@ const handleDownload = () => {
 .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  animation: orb-float 25s ease-in-out infinite;
+  filter: blur(56px);
+  animation: orb-float 32s ease-in-out infinite;
 }
 
 .orb-1 {
@@ -330,22 +351,26 @@ const handleDownload = () => {
   will-change: transform;
 }
 
+.card-inner.realtime-tilt {
+  transition: none;
+}
+
 /* 异形立绘图片 */
 .character-image {
   display: block;
   max-width: 320px;
   height: auto;
   /* 使用 drop-shadow 跟随异形边界 */
-  filter: drop-shadow(0 20px 40px rgba(139, 111, 92, 0.25));
+  filter: drop-shadow(0 14px 28px rgba(139, 111, 92, 0.2));
   transition: filter 0.3s ease;
 }
 
 .card.hovering .character-image {
-  filter: drop-shadow(0 30px 60px rgba(139, 111, 92, 0.35));
+  filter: drop-shadow(0 22px 44px rgba(139, 111, 92, 0.3));
 }
 
 .card.clicking .character-image {
-  filter: drop-shadow(0 10px 20px rgba(139, 111, 92, 0.2));
+  filter: drop-shadow(0 8px 16px rgba(139, 111, 92, 0.18));
 }
 
 /* 立绘光晕 */
@@ -377,8 +402,9 @@ const handleDownload = () => {
   width: 200px;
   height: 40px;
   background: radial-gradient(ellipse at center, rgba(139, 111, 92, 0.3) 0%, transparent 70%);
-  filter: blur(15px);
-  transition: all 0.15s ease-out;
+  filter: blur(10px);
+  will-change: transform, opacity;
+  transition: transform 0.15s ease-out, opacity 0.15s ease-out;
   pointer-events: none;
 }
 
@@ -545,6 +571,27 @@ const handleDownload = () => {
   color: #a89070;
 }
 
+/* 陀螺仪权限按钮 */
+.gyro-hint {
+  margin-top: 16px;
+}
+
+.gyro-btn {
+  background: transparent;
+  border: 1px solid #d4a574;
+  color: #a89070;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gyro-btn:hover {
+  background: rgba(212, 165, 116, 0.1);
+  color: #8b7355;
+}
+
 .footer {
   position: relative;
   z-index: 10;
@@ -554,24 +601,147 @@ const handleDownload = () => {
   font-size: 13px;
 }
 
-/* 响应式 */
-@media (max-width: 480px) {
+/* 响应式断点 */
+@media (max-width: 767px) {
+  .header {
+    padding: 28px 20px 16px;
+  }
+
   .logo {
-    font-size: 34px;
-    letter-spacing: 4px;
+    font-size: 36px;
+    letter-spacing: 6px;
+  }
+
+  .tagline {
+    font-size: 12px;
+    letter-spacing: 3px;
+  }
+
+  .main {
+    padding: 16px 20px 32px;
+  }
+
+  .card-wrapper {
+    margin-bottom: 28px;
   }
 
   .character-image {
     max-width: 260px;
   }
 
-  .app-name {
-    font-size: 30px;
+  .info-section {
+    padding: 0 8px;
+  }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 28px;
   }
 
   .download-btn {
-    padding: 18px 52px;
-    font-size: 18px;
+    padding: 16px 44px;
+    font-size: 17px;
+    border-radius: 44px;
+  }
+
+  .footer {
+    padding: 20px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 24px 16px 12px;
+  }
+
+  .logo {
+    font-size: 30px;
+    letter-spacing: 4px;
+  }
+
+  .tagline {
+    font-size: 11px;
+    margin-top: 8px;
+    letter-spacing: 2px;
+  }
+
+  .main {
+    padding: 12px 16px 24px;
+  }
+
+  .card-wrapper {
+    margin-bottom: 24px;
+  }
+
+  .character-image {
+    max-width: 220px;
+  }
+
+  .card-shadow {
+    width: 160px;
+    height: 32px;
+    bottom: -24px;
+  }
+
+  .description {
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .download-btn {
+    padding: 14px 36px;
+    font-size: 15px;
+    border-radius: 40px;
+    min-height: 52px;
+    min-width: 180px;
+  }
+
+  .info-section {
+    max-width: 100%;
+  }
+
+  .file-info {
+    font-size: 12px;
+  }
+
+  .footer {
+    padding: 16px;
+    font-size: 11px;
+  }
+
+  /* 粒子效果在小屏幕调整 */
+  .particle {
+    font-size: 22px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .download-btn:active:not(:disabled) {
+    transform: scale(0.96);
+    box-shadow:
+      0 6px 24px rgba(232, 184, 109, 0.35),
+      0 0 60px rgba(232, 184, 109, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .card {
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* 安全区域支持 - iPhone X+ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .page {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
   }
 }
 </style>

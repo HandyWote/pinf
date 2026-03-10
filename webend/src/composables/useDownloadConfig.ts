@@ -27,16 +27,16 @@ export function useDownloadConfig() {
         config.value = {
           version: version.trim(),
           downloadUrl: link,
-          fileName: link.split('/').pop() || 'zaohutong.apk'
+          fileName: link.split('/').pop() || 'pinf.apk'
         }
       } else {
         // 检查是否有 APK 文件
-        const apkResponse = await fetch('/downloads/zaohutong.apk')
+        const apkResponse = await fetch('/downloads/pinf.apk')
         if (apkResponse.ok) {
           config.value = {
             version: version.trim(),
-            downloadUrl: '/downloads/zaohutong.apk',
-            fileName: 'zaohutong.apk'
+            downloadUrl: '/downloads/pinf.apk',
+            fileName: 'pinf.apk'
           }
         } else {
           // 没有找到任何配置

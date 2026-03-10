@@ -1,52 +1,22 @@
 name: Backend Deploy
 
 on:
+  workflow_dispatch:
   push:
-    tags:
-      - 'v*.*.*'
-      - 'backend-*'
     branches:
       - main
     paths:
+      - "backend/**"
+      - "docker-compose.yml"
       - ".github/workflows/backend-deploy.yml"
 
+permissions:
+  contents: read
+
 jobs:
-  # Job 1: 检测 backend 变更
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      backend_changed: ${{ steps.check_backend.outputs.changes_detected }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check backend changes
-        id: check_backend
-        run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            echo "changes_detected=true" >> $GITHUB_OUTPUT
-            echo "没有找到上一个 tag，将进行检测"
-            git diff --name-only origin/${{ github.default_branch }} | grep -q '^backend/' && echo "backend 有变更" || echo "backend 无变更"
-          else
-            if git diff --name-only $PREV_TAG ${{ github.ref_name }} | grep -q '^backend/'; then
-              echo "changes_detected=true" >> $GITHUB_OUTPUT
-              echo "检测到 backend 目录有变更"
-            else
-              echo "changes_detected=false" >> $GITHUB_OUTPUT
-              echo "backend 目录无变更，跳过部署"
-            fi
-          fi
-
-  # Job 2: 部署到服务器
   deploy-backend:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend_changed == 'true'
     runs-on: ubuntu-latest
     steps:
-             
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -57,5 +27,3 @@ jobs:
             cd ${{ vars.BACKEND_PATH }}
             git pull origin main
             docker compose up -d --build
-      - name: Deployment status
-        run: echo "部署完成！"

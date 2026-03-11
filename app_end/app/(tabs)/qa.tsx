@@ -11,6 +11,8 @@ import {
   View,
 } from 'react-native';
 
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+
 import { OrganicBackground, OrganicCard } from '@/components/ui';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
@@ -74,6 +76,73 @@ const formatTime = (timestamp: number) => {
   const minute = String(date.getMinutes()).padStart(2, '0');
   return `${hour}:${minute}`;
 };
+
+// 消息气泡组件 - 带动画和深度阴影
+const MessageBubble = React.memo(({
+  message,
+  isUser,
+  isFailed,
+  isNew,
+}: {
+  message: UiMessage;
+  isUser: boolean;
+  isFailed: boolean;
+  isNew?: boolean;
+}) => {
+  const entryAnimation = isNew
+    ? FadeInDown.springify().damping(18). stiffness(120)
+    : FadeIn.duration(300);
+
+  return (
+    <Animated.View
+      entering={entryAnimation}
+      style={[styles.messageRow, isUser && styles.messageRowUser]}
+    >
+      <View style={[styles.avatar, isUser ? styles.avatarUser : styles.avatarAssistant]}>
+        <IconSymbol
+          name={isUser ? 'person.circle.fill' : 'sun.max.fill'}
+          size={organicTheme.iconSizes.xs}
+          color={organicTheme.colors.background.paper}
+        />
+      </View>
+      <View style={[styles.messageMain, isUser && styles.messageMainUser]}>
+        <View
+          style={[
+            styles.bubble,
+            isUser ? styles.bubbleUser : styles.bubbleAssistant,
+            isFailed && styles.bubbleFailed,
+          ]}
+        >
+          <Text
+            style={[
+              styles.bubbleText,
+              isUser && styles.bubbleTextUser,
+              !isUser && styles.bubbleTextAssistant,
+            ]}
+          >
+            {message.content}
+          </Text>
+        </View>
+        <View style={[styles.metaRow, isUser && styles.metaRowUser]}>
+          <Text style={styles.timeText}>{formatTime(message.timestamp)}</Text>
+          {message.pending ? (
+            <View style={styles.pendingContainer}>
+              <ActivityIndicator
+                size="small"
+                color={organicTheme.colors.primary.main}
+                style={styles.pendingDot}
+              />
+              <Text style={styles.pendingText}>发送中</Text>
+            </View>
+          ) : null}
+          {isFailed ? <Text style={styles.failedText}>发送失败</Text> : null}
+        </View>
+      </View>
+    </Animated.View>
+  );
+});
+
+MessageBubble.displayName = 'MessageBubble';
 
 export default function QAScreen() {
   const { currentBaby } = useBabyStore();
@@ -234,10 +303,27 @@ export default function QAScreen() {
 
           <OrganicCard shadow style={styles.chatCard} contentFill>
             {isLoadingHistory ? (
-              <View style={styles.centerState}>
-                <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />
+              <Animated.View entering={FadeIn.duration(300)} style={styles.centerState}>
+                <View style={styles.loadingIconWrap}>
+                  <ActivityIndicator size="large" color={organicTheme.colors.primary.main} />
+                </View>
                 <Text style={styles.stateText}>正在加载会话...</Text>
-              </View>
+                <Text style={styles.stateSubtext}>正在获取聊天记录</Text>
+              </Animated.View>
+            ) : messages.length <= 1 ? (
+              <Animated.View entering={FadeIn.duration(400)} style={styles.centerState}>
+                <View style={styles.emptyIconWrap}>
+                  <IconSymbol
+                    name="hand.wave.fill"
+                    size={64}
+                    color={organicTheme.colors.primary.soft}
+                  />
+                </View>
+                <Text style={styles.emptyTitle}>开始你的育儿问答</Text>
+                <Text style={styles.emptySubtext}>
+                  输入关于宝宝喂养、护理、发育等问题{'\n'}AI 助手会为你提供专业建议
+                </Text>
+              </Animated.View>
             ) : (
               <ScrollView
                 ref={scrollRef}
@@ -247,37 +333,18 @@ export default function QAScreen() {
                 keyboardShouldPersistTaps="handled"
                 onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
               >
-                {messages.map(message => {
+                {messages.map((message, index) => {
                   const isUser = message.role === 'user';
                   const isFailed = message.status === 'failed';
+                  const isNew = message.pending || index >= messages.length - 2;
                   return (
-                    <View key={`${message.messageId}-${message.id}`} style={[styles.messageRow, isUser && styles.messageRowUser]}>
-                      <View style={[styles.avatar, isUser ? styles.avatarUser : styles.avatarAssistant]}>
-                        <IconSymbol
-                          name={isUser ? 'person.circle.fill' : 'message.fill'}
-                          size={organicTheme.iconSizes.xs}
-                          color={organicTheme.colors.background.paper}
-                        />
-                      </View>
-                      <View style={[styles.messageMain, isUser && styles.messageMainUser]}>
-                        <View
-                          style={[
-                            styles.bubble,
-                            isUser ? styles.bubbleUser : styles.bubbleAssistant,
-                            isFailed && styles.bubbleFailed,
-                          ]}
-                        >
-                          <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>
-                            {message.content}
-                          </Text>
-                        </View>
-                        <View style={[styles.metaRow, isUser && styles.metaRowUser]}>
-                          <Text style={styles.timeText}>{formatTime(message.timestamp)}</Text>
-                          {message.pending ? <Text style={styles.pendingText}>发送中</Text> : null}
-                          {isFailed ? <Text style={styles.failedText}>发送失败</Text> : null}
-                        </View>
-                      </View>
-                    </View>
+                    <MessageBubble
+                      key={`${message.messageId}-${message.id}`}
+                      message={message}
+                      isUser={isUser}
+                      isFailed={isFailed}
+                      isNew={isNew}
+                    />
                   );
                 })}
               </ScrollView>
@@ -297,7 +364,6 @@ export default function QAScreen() {
                 placeholder="输入你的问题..."
                 placeholderTextColor={organicTheme.colors.text.tertiary}
                 multiline
-                maxLength={300}
                 style={styles.input}
                 textAlignVertical="top"
               />
@@ -319,9 +385,8 @@ export default function QAScreen() {
             </View>
             <View style={styles.composerFooter}>
               <Text style={[styles.helperText, formError && styles.errorText]}>
-                {formError || '请输入具体问题以获得更准确的建议'}
+                {formError}
               </Text>
-              <Text style={styles.counterText}>{draft.length}/300</Text>
             </View>
           </View>
         </View>
@@ -379,17 +444,58 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: organicTheme.spacing.md,
   },
+  // 增强的加载/空状态
   centerState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: organicTheme.spacing.sm,
-    minHeight: 220,
+    minHeight: 280,
+    paddingHorizontal: organicTheme.spacing.xl,
+  },
+  loadingIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: organicTheme.colors.primary.soft + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: organicTheme.spacing.md,
+  },
+  emptyIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: organicTheme.colors.primary.soft + '12',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: organicTheme.spacing.lg,
+    ...organicTheme.shadows.soft[0],
   },
   stateText: {
     color: organicTheme.colors.text.secondary,
     fontSize: organicTheme.typography.fontSize.sm,
+    fontWeight: organicTheme.typography.fontWeight.medium,
   },
+  stateSubtext: {
+    color: organicTheme.colors.text.tertiary,
+    fontSize: organicTheme.typography.fontSize.xs,
+    marginTop: organicTheme.spacing.xs,
+  },
+  emptyTitle: {
+    color: organicTheme.colors.text.primary,
+    fontSize: organicTheme.typography.fontSize.lg,
+    fontWeight: organicTheme.typography.fontWeight.semibold,
+    marginBottom: organicTheme.spacing.sm,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    color: organicTheme.colors.text.secondary,
+    fontSize: organicTheme.typography.fontSize.sm,
+    textAlign: 'center',
+    lineHeight: organicTheme.typography.fontSize.sm * 1.6,
+  },
+  // 聊天内容区
   chatScroll: {
     flex: 1,
   },
@@ -397,6 +503,7 @@ const styles = StyleSheet.create({
     padding: organicTheme.spacing.md,
     gap: organicTheme.spacing.md,
   },
+  // 消息行
   messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -405,12 +512,14 @@ const styles = StyleSheet.create({
   messageRowUser: {
     flexDirection: 'row-reverse',
   },
+  // 头像 - 带微阴影
   avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    ...organicTheme.shadows.soft[0],
   },
   avatarAssistant: {
     backgroundColor: organicTheme.colors.primary.main,
@@ -418,6 +527,7 @@ const styles = StyleSheet.create({
   avatarUser: {
     backgroundColor: organicTheme.colors.accent.peach,
   },
+  // 消息主体
   messageMain: {
     maxWidth: '84%',
     gap: organicTheme.spacing.xs,
@@ -425,31 +535,48 @@ const styles = StyleSheet.create({
   messageMainUser: {
     alignItems: 'flex-end',
   },
+  // 气泡 - 带深度阴影和圆角差异化
   bubble: {
     paddingHorizontal: organicTheme.spacing.md,
-    paddingVertical: organicTheme.spacing.sm,
-    borderRadius: organicTheme.shapes.borderRadius.cozy,
+    paddingVertical: organicTheme.spacing.sm + 2,
+    borderRadius: 20,
     borderWidth: 1,
+    // 柔和阴影增加深度感
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   bubbleAssistant: {
     backgroundColor: organicTheme.colors.background.paper,
     borderColor: organicTheme.colors.border.light,
+    // AI 气泡额外的微妙阴影
+    ...organicTheme.shadows.soft[0],
   },
   bubbleUser: {
     backgroundColor: organicTheme.colors.primary.main,
     borderColor: organicTheme.colors.border.accent,
   },
   bubbleFailed: {
-    borderColor: organicTheme.colors.border.danger,
+    borderColor: '#C54A4A',
+    backgroundColor: '#FEF2F2',
   },
+  // 文字排版 - AI 和用户消息差异化
   bubbleText: {
-    color: organicTheme.colors.text.primary,
     fontSize: organicTheme.typography.fontSize.sm,
-    lineHeight: organicTheme.typography.fontSize.sm * organicTheme.typography.lineHeight.normal,
+    lineHeight: organicTheme.typography.fontSize.sm * 1.65,
   },
   bubbleTextUser: {
     color: organicTheme.colors.background.paper,
+    fontWeight: organicTheme.typography.fontWeight.medium,
+    letterSpacing: 0.2,
   },
+  bubbleTextAssistant: {
+    color: organicTheme.colors.text.primary,
+    letterSpacing: 0.3,
+  },
+  // 元信息行
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -462,6 +589,15 @@ const styles = StyleSheet.create({
     color: organicTheme.colors.text.tertiary,
     fontSize: organicTheme.typography.fontSize.xs,
   },
+  pendingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pendingDot: {
+    width: 10,
+    height: 10,
+  },
   pendingText: {
     color: organicTheme.colors.text.secondary,
     fontSize: organicTheme.typography.fontSize.xs,
@@ -469,29 +605,33 @@ const styles = StyleSheet.create({
   failedText: {
     color: '#C54A4A',
     fontSize: organicTheme.typography.fontSize.xs,
+    fontWeight: organicTheme.typography.fontWeight.medium,
   },
+  // 输入区域
   composerWrap: {
     gap: organicTheme.spacing.xs,
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: organicTheme.spacing.sm,
     backgroundColor: organicTheme.colors.background.paper,
     borderWidth: 1,
     borderColor: organicTheme.colors.border.default,
     borderRadius: organicTheme.shapes.borderRadius.soft,
-    padding: organicTheme.spacing.sm,
+    paddingHorizontal: organicTheme.spacing.sm,
+    paddingVertical: organicTheme.spacing.xs,
     ...organicTheme.shadows.soft[0],
   },
   input: {
     flex: 1,
-    minHeight: 42,
+    minHeight: 36,
     maxHeight: 112,
     color: organicTheme.colors.text.primary,
     fontSize: organicTheme.typography.fontSize.sm,
+    lineHeight: 20,
     paddingHorizontal: organicTheme.spacing.sm,
-    paddingVertical: organicTheme.spacing.sm,
+    paddingVertical: organicTheme.spacing.xs,
   },
   sendButton: {
     width: 36,

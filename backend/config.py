@@ -40,6 +40,8 @@ class Config:
 
     # n8n 转发配置
     N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")
+    N8N_BASIC_AUTH_USER = os.environ.get("N8N_BASIC_AUTH_USER", "")
+    N8N_BASIC_AUTH_PASSWORD = os.environ.get("N8N_BASIC_AUTH_PASSWORD", "")
 
     # 微信公众号配置
     WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")

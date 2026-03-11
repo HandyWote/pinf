@@ -10,21 +10,10 @@ from utils.n8n_client import send_to_n8n
 chat_bp = Blueprint("chat", __name__)
 
 
-def _build_payload(current_user, baby, data, history):
+def _build_payload(user_id, content):
     return {
-        "message_id": data.get("messageId") or str(uuid.uuid4()),
-        "content": data["content"],
-        "user": {
-            "id": current_user.id,
-            "role": current_user.role,
-            "phone": current_user.phone,
-            "wx_openid": current_user.wx_openid,
-        },
-        "baby": baby.to_dict() if baby else None,
-        "context": {"locale": "zh-CN", "app": "WAend", "platform": "mobile"},
-        "history": history,
-        "metadata": data.get("metadata", {}),
-        "params": data.get("params", {}),
+        "user_id": user_id,
+        "message": content
     }
 
 
@@ -54,8 +43,7 @@ def send_message(current_user, data):
     db.session.add(user_message)
     db.session.flush()
 
-    history_payload = data.get("history") or []
-    payload = _build_payload(current_user, baby, {**data, "messageId": message_id}, history_payload)
+    payload = _build_payload(current_user.id, data["content"])
 
     n8n_response, error = send_to_n8n(payload)
     if error:

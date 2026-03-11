@@ -1,5 +1,6 @@
 import time
 import requests
+from requests.auth import HTTPBasicAuth
 from flask import current_app
 
 
@@ -15,9 +16,15 @@ def send_to_n8n(payload, timeout=15, retry=1):
         return None, "N8N_WEBHOOK_URL 未配置"
 
     last_exc = None
+    auth = None
+    user = current_app.config.get("N8N_BASIC_AUTH_USER")
+    password = current_app.config.get("N8N_BASIC_AUTH_PASSWORD")
+    if user and password:
+        auth = HTTPBasicAuth(user, password)
+
     for attempt in range(retry + 1):
         try:
-            response = requests.post(webhook_url, json=payload, timeout=timeout)
+            response = requests.post(webhook_url, json=payload, auth=auth, timeout=timeout)
             if response.status_code >= 400:
                 return None, f"AI 返回错误状态码: {response.status_code}"
             try:

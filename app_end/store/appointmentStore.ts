@@ -26,12 +26,21 @@ interface FetchOptions {
   silent?: boolean;
 }
 
+type FetchArgs = FetchOptions | unknown;
+
+const isFetchOptions = (value: FetchArgs): value is FetchOptions =>
+  typeof value === 'object' && value !== null && 'silent' in value;
+
 interface AppointmentState {
   appointments: Appointment[];
   loading: boolean;
   error: string | null;
 
-  fetch: (options?: FetchOptions) => Promise<void>;
+  fetch: {
+    (): Promise<void>;
+    (options: FetchOptions): Promise<void>;
+    (event: unknown): Promise<void>;
+  };
   add: (payload: CreateAppointmentInput) => Promise<void>;
   update: (id: number, payload: UpdateAppointmentInput) => Promise<void>;
   updateStatus: (id: number, status: AppointmentStatus) => Promise<void>;
@@ -46,8 +55,8 @@ export const useAppointmentStore = create<AppointmentState>((set) => ({
   loading: false,
   error: null,
 
-  fetch: async (options) => {
-    const silent = options?.silent ?? false;
+  fetch: async (arg?: FetchArgs) => {
+    const silent = isFetchOptions(arg) ? (arg.silent ?? false) : false;
     if (!silent) {
       set({ loading: true, error: null });
     }

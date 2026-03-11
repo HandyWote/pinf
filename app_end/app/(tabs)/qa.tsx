@@ -16,6 +16,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
 import { useFeedback } from '@/contexts/FeedbackContext';
 import { clearChatHistory, getChatHistory, sendChatMessage } from '@/services/api/chat';
+import { useAuthStore } from '@/store';
 import { useBabyStore } from '@/store/babyStore';
 import type { ChatHistoryItem, ChatMessage } from '@/types/chat';
 
@@ -76,6 +77,7 @@ const formatTime = (timestamp: number) => {
 
 export default function QAScreen() {
   const { currentBaby } = useBabyStore();
+  const { user } = useAuthStore();
   const { notify, confirm } = useFeedback();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -90,6 +92,7 @@ export default function QAScreen() {
     () => (currentBaby ? `${currentBaby.name} 的会话` : '通用会话'),
     [currentBaby]
   );
+  const userDisplayName = useMemo(() => user?.name?.trim() || '我', [user?.name]);
 
   const loadHistory = useCallback(async () => {
     setIsLoadingHistory(true);
@@ -213,7 +216,7 @@ export default function QAScreen() {
           <View style={styles.header}>
             <View>
               <Text style={styles.title}>智能育儿问答</Text>
-              <Text style={styles.subtitle}>{headerSubtitle}</Text>
+              <Text style={styles.subtitle}>{headerSubtitle} · 当前用户：{userDisplayName}</Text>
             </View>
             <Pressable
               style={[styles.clearButton, (isSending || isLoadingHistory) && styles.clearButtonDisabled]}
@@ -229,7 +232,7 @@ export default function QAScreen() {
             </Pressable>
           </View>
 
-          <OrganicCard shadow style={styles.chatCard}>
+          <OrganicCard shadow style={styles.chatCard} contentFill>
             {isLoadingHistory ? (
               <View style={styles.centerState}>
                 <ActivityIndicator size="small" color={organicTheme.colors.primary.main} />

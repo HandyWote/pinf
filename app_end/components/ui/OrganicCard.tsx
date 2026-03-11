@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { organicTheme } from '@/constants/theme';
 import { getUseNativeDriver } from './modalAnimation';
 import { buildShadowStyle } from './shadowStyle';
+import { getOrganicCardContentStyle } from './organicCardLayout';
 
 interface OrganicCardProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ interface OrganicCardProps {
   onPress?: () => void;
   style?: ViewStyle;
   shadow?: boolean;
+  contentFill?: boolean;
 }
 
 export const OrganicCard: React.FC<OrganicCardProps> = ({
@@ -32,6 +34,7 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
   onPress,
   style,
   shadow = true,
+  contentFill = false,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
@@ -102,10 +105,12 @@ export const OrganicCard: React.FC<OrganicCardProps> = ({
     overlays.push(<View key="ghost" style={styles.ghostOverlay} />);
   }
 
+  const contentStyle = getOrganicCardContentStyle(styles.content, contentFill);
+
   const cardContent = (
     <>
       {overlays}
-      <View style={styles.content}>
+      <View style={contentStyle}>
         {normalizedChildren}
       </View>
     </>

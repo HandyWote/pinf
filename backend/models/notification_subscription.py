@@ -15,6 +15,11 @@ class NotificationSubscription(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     sent_at = db.Column(db.DateTime, nullable=True)
 
+    # 新增字段
+    retry_count = db.Column(db.Integer, nullable=False, default=0)
+    max_retries = db.Column(db.Integer, nullable=False, default=4)
+    next_retry_interval = db.Column(db.Integer, nullable=True)  # 下次重试间隔（秒）
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -26,4 +31,7 @@ class NotificationSubscription(db.Model):
             "status": self.status,
             "createdAt": self.created_at.isoformat() if self.created_at else None,
             "sentAt": self.sent_at.isoformat() if self.sent_at else None,
+            "retryCount": self.retry_count,
+            "maxRetries": self.max_retries,
+            "nextRetryInterval": self.next_retry_interval,
         }

@@ -1,8 +1,11 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import db
 from models.notification_subscription import NotificationSubscription
+from models.appointment import Appointment
+
+from utils.notification_listener import RETRY_INTERVALS
 
 _SCHEDULER = None
 
@@ -53,6 +56,24 @@ def start_notification_scheduler(app):
                             app.logger.warning('订阅缺少 token，标记 missed: subscription_id=%s user_id=%s', sub.id, sub.user_id)
                             continue
 
+                        # 检查关联的预约状态，如果已完成则停止提醒
+                        if sub.appointment_id:
+                            appointment = Appointment.query.get(sub.appointment_id)
+                            if appointment and appointment.status == 'completed':
+                                sub.status = 'completed'
+                                db.session.add(sub)
+                                db.session.commit()
+                                app.logger.info('预约已就诊，停止提醒: subscription_id=%s', sub.id)
+                                continue
+
+                        # 检查是否超过最大重试次数
+                        if sub.retry_count >= sub.max_retries:
+                            sub.status = 'expired'
+                            db.session.add(sub)
+                            db.session.commit()
+                            app.logger.info('提醒次数已达上限，标记为 expired: subscription_id=%s', sub.id)
+                            continue
+
                         title = f'预约提醒（ID:{sub.appointment_id}）'
                         body = '您的预约即将到来，请按时就诊。'
                         sent_ok = send_expo_push(sub.token, title, body, {'subscriptionId': sub.id})
@@ -61,11 +82,23 @@ def start_notification_scheduler(app):
                             app.logger.warning('推送发送失败，稍后重试: subscription_id=%s', sub.id)
                             continue
 
+                        # 更新发送状态并计算下次重试间隔
                         sub.status = 'sent'
                         sub.sent_at = datetime.utcnow()
+                        sub.retry_count += 1
+
+                        if sub.retry_count < sub.max_retries:
+                            interval_seconds = RETRY_INTERVALS[sub.retry_count - 1] if sub.retry_count <= len(RETRY_INTERVALS) else RETRY_INTERVALS[-1]
+                            sub.next_retry_interval = interval_seconds
+                            sub.remind_time = datetime.utcnow() + timedelta(seconds=interval_seconds)
+                            sub.status = 'pending'  # 重置为 pending 以便下次触发
+                        else:
+                            sub.status = 'completed'
+
                         db.session.add(sub)
                         db.session.commit()
-                        app.logger.info('通知发送成功: subscription_id=%s user_id=%s', sub.id, sub.user_id)
+                        app.logger.info('通知发送成功，创建下次提醒: subscription_id=%s retry=%s next_interval=%s',
+                                      sub.id, sub.retry_count, sub.next_retry_interval)
                     except Exception:
                         db.session.rollback()
                         logging.exception('处理订阅发送失败: %s', sub.id)

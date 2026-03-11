@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from models import db
 from models.appointment import Appointment
 from models.baby import Baby
+from models.notification_subscription import NotificationSubscription
 from utils.appointment_status import mark_overdue_appointments, now_local_naive, to_local_naive
 from utils.auth import token_required, validate_request_data
 
@@ -250,6 +251,12 @@ def update_status(current_user, appointment_id, data):
         return jsonify({"status": "error", "message": "预约不存在或无权限"}), 404
     try:
         appointment.status = _validate_status(data["status"])
+        # 当预约状态更新为 completed 时，取消所有待发送的提醒
+        if appointment.status == 'completed':
+            NotificationSubscription.query.filter_by(
+                appointment_id=appointment.id,
+                status='pending'
+            ).update({'status': 'cancelled'})
         db.session.commit()
         return jsonify({"status": "success", "message": "状态已更新", "data": _serialize_appointment(appointment)})
     except ValueError as exc:

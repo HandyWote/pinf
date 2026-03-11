@@ -81,6 +81,42 @@ _MIGRATIONS = [
         "id": "2026_02_12_drop_videos_table",
         "sql": "DROP TABLE IF EXISTS videos",
     },
+    {
+        "id": "2026_03_11_add_retry_count_to_notification_subscriptions",
+        "sql": "ALTER TABLE notification_subscriptions ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0",
+    },
+    {
+        "id": "2026_03_11_add_max_retries_to_notification_subscriptions",
+        "sql": "ALTER TABLE notification_subscriptions ADD COLUMN IF NOT EXISTS max_retries INTEGER NOT NULL DEFAULT 4",
+    },
+    {
+        "id": "2026_03_11_add_next_retry_interval_to_notification_subscriptions",
+        "sql": "ALTER TABLE notification_subscriptions ADD COLUMN IF NOT EXISTS next_retry_interval INTEGER",
+    },
+    {
+        "id": "2026_03_11_add_status_remind_time_index",
+        "sql": "CREATE INDEX IF NOT EXISTS idx_notification_subscriptions_status_remind_time ON notification_subscriptions(status, remind_time)",
+    },
+    {
+        "id": "2026_03_11_add_notification_trigger",
+        "sql": (
+            "CREATE OR REPLACE FUNCTION notification_ready_trigger() "
+            "RETURNS TRIGGER AS $$ "
+            "BEGIN "
+            "  IF NEW.status = 'pending' AND NEW.remind_time <= NOW() THEN "
+            "    PERFORM pg_notify('notification_ready', NEW.id::TEXT); "
+            "  END IF; "
+            "  RETURN NEW; "
+            "END; "
+            "$$ LANGUAGE plpgsql; "
+            "DROP TRIGGER IF EXISTS notification_ready_trigger ON notification_subscriptions; "
+            "CREATE TRIGGER notification_ready_trigger "
+            "  AFTER INSERT OR UPDATE ON notification_subscriptions "
+            "  FOR EACH ROW "
+            "  WHEN (NEW.status = 'pending' AND NEW.remind_time <= NOW()) "
+            "  EXECUTE FUNCTION notification_ready_trigger();"
+        ),
+    },
 
 ]
 

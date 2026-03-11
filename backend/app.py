@@ -59,6 +59,7 @@ def create_app(config_class=Config):
     from routes.notifications import notifications_bp
     from routes.devices import devices_bp
     from utils.notification_scheduler import start_notification_scheduler
+    from utils.notification_listener import start_notification_listener
 
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(baby_bp, url_prefix="/api")
@@ -75,6 +76,7 @@ def create_app(config_class=Config):
 
     start_wechat_sync_scheduler(app)
     start_notification_scheduler(app)
+    start_notification_listener(app)
 
     @app.route("/")
     def index():

@@ -42,6 +42,7 @@ class Config:
     N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")
     N8N_BASIC_AUTH_USER = os.environ.get("N8N_BASIC_AUTH_USER", "")
     N8N_BASIC_AUTH_PASSWORD = os.environ.get("N8N_BASIC_AUTH_PASSWORD", "")
+    N8N_TIMEOUT_SECONDS = int(os.environ.get("N8N_TIMEOUT_SECONDS", "120"))
 
     # 微信公众号配置
     WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")

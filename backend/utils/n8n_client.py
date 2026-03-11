@@ -8,12 +8,14 @@ class N8nClientError(Exception):
     """n8n 调用错误。"""
 
 
-def send_to_n8n(payload, timeout=15, retry=1):
+def send_to_n8n(payload, timeout=None, retry=1):
     """调用 n8n webhook，返回 (data, error_message)。"""
 
     webhook_url = current_app.config.get("N8N_WEBHOOK_URL")
     if not webhook_url:
         return None, "N8N_WEBHOOK_URL 未配置"
+    if timeout is None:
+        timeout = current_app.config.get("N8N_TIMEOUT_SECONDS", 120)
 
     last_exc = None
     auth = None

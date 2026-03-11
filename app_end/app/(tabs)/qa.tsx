@@ -10,10 +10,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
-import { OrganicBackground, OrganicCard } from '@/components/ui';
+import { OrganicBackground } from '@/components/ui';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { organicTheme } from '@/constants/theme';
 import { useFeedback } from '@/contexts/FeedbackContext';
@@ -156,12 +157,56 @@ export default function QAScreen() {
   const [isSending, setIsSending] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // 输入框自适应高度相关状态
+  const [inputHeight, setInputHeight] = useState(36); // 初始高度
+  const [chatCardHeight, setChatCardHeight] = useState<number | null>(null); // 聊天框初始高度
+  const MIN_INPUT_HEIGHT = 36;
+  const MAX_INPUT_HEIGHT = 100; // 最大输入框高度，超过后文字滚动
+
+  // 计算聊天框高度：初始高度 - (输入框增长高度)，但最少保留 50%
+  const minChatHeight = chatCardHeight ? chatCardHeight * 0.5 : 0;
+  const currentChatHeight = chatCardHeight
+    ? Math.max(chatCardHeight - (inputHeight - MIN_INPUT_HEIGHT), minChatHeight)
+    : undefined;
+
   const babyId = currentBaby?.id;
   const headerSubtitle = useMemo(
     () => (currentBaby ? `${currentBaby.name} 的会话` : '通用会话'),
     [currentBaby]
   );
   const userDisplayName = useMemo(() => user?.name?.trim() || '我', [user?.name]);
+
+  // 输入框内容变化时更新高度
+  const handleInputContentChange = useCallback((text: string) => {
+    setDraft(text);
+    if (text.length === 0) {
+      setInputHeight(MIN_INPUT_HEIGHT);
+    }
+    if (formError) {
+      setFormError('');
+    }
+  }, [formError]);
+
+  // 输入框尺寸变化
+  const handleInputSizeChange = useCallback((event: { nativeEvent: { contentSize: { height: number } } }) => {
+    const newHeight = event.nativeEvent.contentSize.height;
+    // 限制在 min 和 max 之间
+    const clampedHeight = Math.min(Math.max(newHeight, MIN_INPUT_HEIGHT), MAX_INPUT_HEIGHT);
+    setInputHeight(clampedHeight);
+  }, []);
+
+  // 聊天框布局测量：在布局变化时刷新基准高度
+  const handleChatCardLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    // 当前渲染高度会受输入框增长影响，这里反推出“输入框最小高度时”的基准聊天高度
+    const nextBaseChatHeight = height + (inputHeight - MIN_INPUT_HEIGHT);
+    setChatCardHeight((prev) => {
+      if (prev !== null && Math.abs(prev - nextBaseChatHeight) < 1) {
+        return prev;
+      }
+      return nextBaseChatHeight;
+    });
+  }, [inputHeight]);
 
   const loadHistory = useCallback(async () => {
     setIsLoadingHistory(true);
@@ -205,6 +250,7 @@ export default function QAScreen() {
 
     setFormError('');
     setDraft('');
+    setInputHeight(MIN_INPUT_HEIGHT);
 
     const optimisticMessage = createOptimisticMessage(content);
     setMessages(prev => sortByTimestamp([...prev, optimisticMessage]));
@@ -301,7 +347,14 @@ export default function QAScreen() {
             </Pressable>
           </View>
 
-          <OrganicCard shadow style={styles.chatCard} contentFill>
+          {/* 聊天区域 - 高度自适应 */}
+          <View
+            style={[
+              styles.chatCard,
+              currentChatHeight ? { height: currentChatHeight } : undefined,
+            ]}
+            onLayout={handleChatCardLayout}
+          >
             {isLoadingHistory ? (
               <Animated.View entering={FadeIn.duration(300)} style={styles.centerState}>
                 <View style={styles.loadingIconWrap}>
@@ -349,23 +402,19 @@ export default function QAScreen() {
                 })}
               </ScrollView>
             )}
-          </OrganicCard>
+          </View>
 
           <View style={styles.composerWrap}>
-            <View style={styles.inputRow}>
+            <View style={[styles.inputRow, { minHeight: inputHeight }]}>
               <TextInput
                 value={draft}
-                onChangeText={text => {
-                  setDraft(text);
-                  if (formError) {
-                    setFormError('');
-                  }
-                }}
+                onChangeText={handleInputContentChange}
+                onContentSizeChange={handleInputSizeChange}
                 placeholder="输入你的问题..."
                 placeholderTextColor={organicTheme.colors.text.tertiary}
                 multiline
-                style={styles.input}
-                textAlignVertical="top"
+                style={[styles.input, { height: inputHeight }]}
+                textAlignVertical={Platform.OS === 'android' ? 'center' : 'top'}
               />
               <Pressable
                 onPress={handleSend}
@@ -443,6 +492,12 @@ const styles = StyleSheet.create({
   chatCard: {
     flex: 1,
     marginBottom: organicTheme.spacing.md,
+    backgroundColor: organicTheme.colors.background.paper,
+    borderRadius: organicTheme.shapes.borderRadius.soft,
+    borderWidth: 1,
+    borderColor: organicTheme.colors.border.default,
+    overflow: 'hidden',
+    ...organicTheme.shadows.soft[1],
   },
   // 增强的加载/空状态
   centerState: {
@@ -625,13 +680,14 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 36,
-    maxHeight: 112,
+    width: '100%',
     color: organicTheme.colors.text.primary,
     fontSize: organicTheme.typography.fontSize.sm,
     lineHeight: 20,
     paddingHorizontal: organicTheme.spacing.sm,
-    paddingVertical: organicTheme.spacing.xs,
+    paddingVertical: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   sendButton: {
     width: 36,

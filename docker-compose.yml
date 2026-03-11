@@ -26,7 +26,9 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=pinf
       - N8N_BASIC_AUTH_PASSWORD=pinf123
-      - N8N_HOST=https://flows.pinf.top
+      - N8N_HOST=flows.pinf.top
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://flows.pinf.top/
     volumes:
       - ./docker/n8n:/home/node/.n8n
     networks:

@@ -26,8 +26,20 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Install EAS CLI
-        run: npm install -g eas-cli@latest
+        run: |
+          npm install -g eas-cli@latest
+
+      - name: Install app dependencies
+        working-directory: ${{ env.APP_PATH }}
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
 
       - name: Verify Expo auth
         working-directory: ${{ env.APP_PATH }}
@@ -41,13 +53,19 @@ jobs:
           fi
           eas whoami
 
+      - name: Preflight Expo config
+        working-directory: ${{ env.APP_PATH }}
+        run: |
+          set -euo pipefail
+          bunx expo config --json > /tmp/expo-config.json
+          test -s /tmp/expo-config.json
+
       - name: Build APK on EAS cloud
         id: eas_build
         working-directory: ${{ env.APP_PATH }}
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          cd app_end && bun install --frozen-lockfile
           set -euo pipefail
           BUILD_JSON=$(eas build \
             --platform android \

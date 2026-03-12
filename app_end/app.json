@@ -4,27 +4,31 @@
     "slug": "pinf",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.webp",
+    "icon": "./assets/images/withbackground.png",
     "scheme": "pinf",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.handywote.pinf"
     },
     "android": {
       "package": "com.handywote.pinf",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/icon.webp",
-        "backgroundImage": "./assets/images/icon.webp",
-        "monochromeImage": "./assets/images/icon.webp"
+        "foregroundImage": "./assets/images/withbackground.png"
+      },
+      "splash": {
+        "image": "./assets/images/withbackground.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/icon.webp"
+      "favicon": "./assets/images/withbackground.png"
     },
     "plugins": [
       "expo-router",
@@ -32,12 +36,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon.webp",
+          "image": "./assets/images/withbackground.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#E6F4FE",
           "dark": {
-            "backgroundColor": "#000000"
+            "image": "./assets/images/withbackground.png",
+            "backgroundColor": "#1a1a2e"
           }
         }
       ]

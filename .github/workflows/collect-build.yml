@@ -133,7 +133,7 @@ jobs:
           DEADLINE=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
 
           while true; do
-            if ! eas --non-interactive build:view "$BUILD_ID" --json > /tmp/eas-build-view.json 2>/tmp/eas-build-view.err; then
+            if ! eas build:view "$BUILD_ID" --json > /tmp/eas-build-view.json 2>/tmp/eas-build-view.err; then
               echo "eas build:view failed for build ID: $BUILD_ID"
               echo "---- eas stderr ----"
               cat /tmp/eas-build-view.err || true

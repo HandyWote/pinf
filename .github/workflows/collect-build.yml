@@ -116,6 +116,7 @@ jobs:
 
       - name: Poll EAS build status
         id: poll
+        working-directory: app_end
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           BUILD_ID: ${{ steps.resolve.outputs.build_id }}
@@ -161,9 +162,9 @@ jobs:
             sleep "$POLL_INTERVAL_SECONDS"
           done
 
-          BUILD_URL="$(jq -r '.artifacts.buildUrl // empty' /tmp/eas-build-view.json)"
+          BUILD_URL="$(jq -r '.artifacts.applicationArchiveUrl // .artifacts.buildUrl // empty' /tmp/eas-build-view.json)"
           if [ -z "$BUILD_URL" ]; then
-            echo "Build finished but artifacts.buildUrl is empty"
+            echo "Build finished but no downloadable artifact URL found"
             cat /tmp/eas-build-view.json
             exit 1
           fi

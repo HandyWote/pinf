@@ -47,10 +47,21 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Install EAS CLI
         run: |
           set -euo pipefail
           npm install -g eas-cli@18.3.0
+
+      - name: Install app dependencies
+        working-directory: app_end
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
 
       - name: Download build metadata from trigger run
         if: ${{ github.event_name == 'workflow_run' }}

@@ -45,12 +45,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "20"
 
       - name: Install EAS CLI
         run: |
           set -euo pipefail
-          npm install -g eas-cli@latest
+          npm install -g eas-cli@18.3.0
 
       - name: Download build metadata from trigger run
         if: ${{ github.event_name == 'workflow_run' }}
@@ -124,27 +124,55 @@ jobs:
         run: |
           set -euo pipefail
 
+          mkdir -p /tmp/eas-diag
           if [ -z "${EXPO_TOKEN:-}" ]; then
             echo "EXPO_TOKEN is required"
             exit 1
           fi
           cd app_end
           echo "PWD=$(pwd)"
-          eas whoami
+
+          {
+            echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "pwd=$(pwd)"
+            echo "build_id=$BUILD_ID"
+            echo "timeout_minutes=$TIMEOUT_MINUTES"
+            echo "poll_interval_seconds=$POLL_INTERVAL_SECONDS"
+            echo "node=$(node -v)"
+            echo "npm=$(npm -v)"
+            echo "eas=$(eas --version)"
+          } | tee /tmp/eas-diag/runtime.txt
+
+          ls -la > /tmp/eas-diag/ls_app_end.txt || true
+          sed -n '1,200p' app.json > /tmp/eas-diag/app.json.head.txt || true
+          sed -n '1,200p' eas.json > /tmp/eas-diag/eas.json.head.txt || true
+
+          EXPO_DEBUG=1 eas whoami > /tmp/eas-diag/whoami.out 2> /tmp/eas-diag/whoami.err
 
           DEADLINE=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
 
           while true; do
-            if ! eas build:view "$BUILD_ID" --json > /tmp/eas-build-view.json 2>/tmp/eas-build-view.err; then
+            if ! EXPO_DEBUG=1 eas build:view "$BUILD_ID" --json > /tmp/eas-build-view.json 2>/tmp/eas-build-view.err; then
               echo "eas build:view failed for build ID: $BUILD_ID, fallback to build:list lookup"
               echo "---- eas stderr ----"
               cat /tmp/eas-build-view.err || true
               echo "--------------------"
+              cp /tmp/eas-build-view.err /tmp/eas-diag/build-view.err || true
+              cp /tmp/eas-build-view.json /tmp/eas-diag/build-view.out || true
 
-              eas build:list --platform android --limit 100 --json > /tmp/eas-build-list.json
+              if ! EXPO_DEBUG=1 eas build:list --platform android --limit 100 --json > /tmp/eas-build-list.json 2>/tmp/eas-build-list.err; then
+                echo "---- eas list stderr ----"
+                cat /tmp/eas-build-list.err || true
+                echo "-------------------------"
+                cp /tmp/eas-build-list.err /tmp/eas-diag/build-list.err || true
+                exit 1
+              fi
+
+              cp /tmp/eas-build-list.json /tmp/eas-diag/build-list.out || true
               jq --arg id "$BUILD_ID" 'map(select(.id == $id)) | first // {}' /tmp/eas-build-list.json > /tmp/eas-build-view.json
               if [ "$(jq -r 'keys | length' /tmp/eas-build-view.json)" = "0" ]; then
                 echo "Build ID not found in build:list result: $BUILD_ID"
+                cp /tmp/eas-build-view.json /tmp/eas-diag/build-view.filtered.json || true
                 exit 1
               fi
             fi
@@ -177,6 +205,25 @@ jobs:
           fi
 
           echo "build_url=$BUILD_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Print EAS diagnostics
+        if: ${{ always() }}
+        run: |
+          set +e
+          echo "===== /tmp/eas-diag/runtime.txt ====="
+          cat /tmp/eas-diag/runtime.txt || true
+          echo "===== /tmp/eas-diag/whoami.out ====="
+          cat /tmp/eas-diag/whoami.out || true
+          echo "===== /tmp/eas-diag/whoami.err ====="
+          cat /tmp/eas-diag/whoami.err || true
+          echo "===== /tmp/eas-diag/build-view.err ====="
+          cat /tmp/eas-diag/build-view.err || true
+          echo "===== /tmp/eas-diag/build-view.out ====="
+          cat /tmp/eas-diag/build-view.out || true
+          echo "===== /tmp/eas-diag/build-list.err ====="
+          cat /tmp/eas-diag/build-list.err || true
+          echo "===== /tmp/eas-diag/build-list.out ====="
+          cat /tmp/eas-diag/build-list.out || true
 
       - name: Download APK artifact
         id: download

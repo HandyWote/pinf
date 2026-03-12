@@ -116,7 +116,6 @@ jobs:
 
       - name: Poll EAS build status
         id: poll
-        working-directory: app_end
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           BUILD_ID: ${{ steps.resolve.outputs.build_id }}
@@ -129,17 +128,25 @@ jobs:
             echo "EXPO_TOKEN is required"
             exit 1
           fi
+          cd app_end
+          echo "PWD=$(pwd)"
           eas whoami
 
           DEADLINE=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
 
           while true; do
             if ! eas build:view "$BUILD_ID" --json > /tmp/eas-build-view.json 2>/tmp/eas-build-view.err; then
-              echo "eas build:view failed for build ID: $BUILD_ID"
+              echo "eas build:view failed for build ID: $BUILD_ID, fallback to build:list lookup"
               echo "---- eas stderr ----"
               cat /tmp/eas-build-view.err || true
               echo "--------------------"
-              exit 1
+
+              eas build:list --platform android --limit 100 --json > /tmp/eas-build-list.json
+              jq --arg id "$BUILD_ID" 'map(select(.id == $id)) | first // {}' /tmp/eas-build-list.json > /tmp/eas-build-view.json
+              if [ "$(jq -r 'keys | length' /tmp/eas-build-view.json)" = "0" ]; then
+                echo "Build ID not found in build:list result: $BUILD_ID"
+                exit 1
+              fi
             fi
             STATUS="$(jq -r '.status // empty' /tmp/eas-build-view.json | tr '[:lower:]' '[:upper:]')"
             echo "Current status: ${STATUS:-UNKNOWN}"

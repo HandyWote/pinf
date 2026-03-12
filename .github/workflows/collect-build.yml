@@ -88,6 +88,7 @@ jobs:
             echo "build_id is required. For manual run, please provide workflow input build_id."
             exit 1
           fi
+          BUILD_ID="$(echo "$BUILD_ID" | tr -d '\r\n\t ')"
 
           if [ -z "$TAG" ]; then
             TAG="v-manual-${GITHUB_RUN_ID}"
@@ -127,11 +128,18 @@ jobs:
             echo "EXPO_TOKEN is required"
             exit 1
           fi
+          eas whoami
 
           DEADLINE=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
 
           while true; do
-            eas build:view "$BUILD_ID" --json > /tmp/eas-build-view.json
+            if ! eas --non-interactive build:view "$BUILD_ID" --json > /tmp/eas-build-view.json 2>/tmp/eas-build-view.err; then
+              echo "eas build:view failed for build ID: $BUILD_ID"
+              echo "---- eas stderr ----"
+              cat /tmp/eas-build-view.err || true
+              echo "--------------------"
+              exit 1
+            fi
             STATUS="$(jq -r '.status // empty' /tmp/eas-build-view.json | tr '[:lower:]' '[:upper:]')"
             echo "Current status: ${STATUS:-UNKNOWN}"
 

@@ -1,0 +1,55 @@
+name: Web Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "app_end/**"
+      - ".github/workflows/web-deploy.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      APP_PATH: app_end
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build
+        working-directory: ${{ env.APP_PATH }}
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bunx expo export --platform web
+
+      - name: Clean remote web folder only
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: 22
+          script: |
+            set -euo pipefail
+            BASE="/opt/1panel/apps/openresty/openresty/www/sites/pinf.top/index"
+            rm -rf "${BASE}/web"
+            mkdir -p "${BASE}"
+
+      - name: Upload dist to server (keep app_end/dist structure)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: 22
+          source: "app_end/dist/**"
+          target: "/opt/1panel/apps/openresty/openresty/www/sites/pinf.top/index/"

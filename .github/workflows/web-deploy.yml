@@ -53,3 +53,15 @@ jobs:
           port: 22
           source: "app_end/dist/**"
           target: "/opt/1panel/apps/openresty/openresty/www/sites/pinf.top/index/"
+
+      - name: Set ownership for uploaded files
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: 22
+          script: |
+            set -euo pipefail
+            BASE="/opt/1panel/apps/openresty/openresty/www/sites/pinf.top/index"
+            chown -R 1000:1000 "${BASE}/app_end"

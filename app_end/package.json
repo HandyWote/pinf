@@ -18,7 +18,8 @@
     "test:watch:unit": "vitest --config vitest.config.unit.ts --watch",
     "test:coverage": "vitest --coverage",
     "test:coverage:unit": "vitest --config vitest.config.unit.ts --coverage",
-    "test:package-manager": "node --test ./scripts/ensure-bun.test.js"
+    "test:package-manager": "node --test ./scripts/ensure-bun.test.js",
+    "build:web": "expo export -p web && node scripts/generate-pwa.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

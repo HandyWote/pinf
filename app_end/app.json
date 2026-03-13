@@ -28,7 +28,18 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/withbackground.png"
+      "favicon": "./assets/images/withbackground.png",
+      "name": "早护通",
+      "short_name": "早护通",
+      "theme_color": "#E6F4FE",
+      "background_color": "#E6F4FE",
+      "orientation": "portrait",
+      "display": "standalone",
+      "start_url": "/",
+      "icons": {
+        "icon_192": "./assets/images/withbackground.png",
+        "icon_512": "./assets/images/withbackground.png"
+      }
     },
     "plugins": [
       "expo-router",

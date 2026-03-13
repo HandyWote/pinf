@@ -41,7 +41,7 @@ jobs:
           script: |
             set -euo pipefail
             BASE="/opt/1panel/apps/openresty/openresty/www/sites/pinf.top/index"
-            rm -rf "${BASE}/web"
+            rm -rf "${BASE}/app_end"
             mkdir -p "${BASE}"
 
       - name: Upload dist to server (keep app_end/dist structure)

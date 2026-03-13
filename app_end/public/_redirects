@@ -1,0 +1,13 @@
+# Direct .html support for static export
+/qa    /qa.html   200
+/class    /class.html   200
+/login    /login.html   200
+/profile    /profile.html   200
+/set-password    /set-password.html   200
+/growth    /growth.html   200
+/appointments    /appointments.html   200
+/webview    /webview.html   200
+
+# SPA fallback for Netlify-style deployment
+# All routes fallback to index.html for client-side routing
+/*    /index.html   200

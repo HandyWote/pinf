@@ -221,6 +221,11 @@ const handleDownload = () => {
 
     <footer class="footer">
       <p>© 2026 早护通 · 守护每一个小生命</p>
+      <p class="icp">
+        <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">
+          粤ICP备2025419922号
+        </a>
+      </p>
     </footer>
   </div>
 </template>
@@ -599,6 +604,20 @@ const handleDownload = () => {
   text-align: center;
   color: #a89070;
   font-size: 13px;
+}
+
+.icp {
+  margin-top: 8px;
+}
+
+.icp a {
+  color: #a89070;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.icp a:hover {
+  text-decoration: underline;
 }
 
 /* 响应式断点 */

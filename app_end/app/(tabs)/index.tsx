@@ -46,7 +46,7 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showGrowthModal, setShowGrowthModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
-  const [greeting, setGreeting] = useState({ text: '', icon: '', subtext: '' });
+  const [greeting, setGreeting] = useState({ text: '欢迎', icon: 'sun.max', subtext: '加载中...' });
 
   const {
     records,

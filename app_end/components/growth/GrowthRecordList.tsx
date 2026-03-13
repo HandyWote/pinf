@@ -3,7 +3,7 @@
  * 显示按月排序的成长记录，支持编辑和删除
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -48,10 +48,16 @@ export const GrowthRecordList: React.FC<GrowthRecordListProps> = ({
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [editNote, setEditNote] = useState('');
-  const [editDate, setEditDate] = useState(new Date());
+  // 使用固定日期初始值避免 hydration 不匹配
+  const [editDate, setEditDate] = useState<Date>(new Date(2026, 0, 1));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { confirm, notify } = useFeedback();
+
+  // 客户端挂载后更新为当前日期
+  useEffect(() => {
+    setEditDate(new Date());
+  }, []);
 
   const toLocalNoonIso = (date: Date) => {
     const normalized = new Date(date);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
@@ -21,8 +21,14 @@ export const GrowthRecordModal: React.FC<Props> = ({ visible, onClose, onSubmit 
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [recordedAt, setRecordedAt] = useState(new Date());
+  // 使用固定日期初始值避免 hydration 不匹配，之后用 useEffect 更新
+  const [recordedAt, setRecordedAt] = useState<Date>(new Date(2026, 0, 1));
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // 客户端挂载后更新为当前日期
+  useEffect(() => {
+    setRecordedAt(new Date());
+  }, []);
 
   const formatDateTime = (date: Date) => {
     const yyyy = date.getFullYear();

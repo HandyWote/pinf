@@ -37,11 +37,11 @@ export const BabyForm: React.FC<BabyFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 日期选择器状态
+  // 日期选择器状态 - 始终保持有效 Date，避免传入 DateTimePicker 空值
   const [showBirthdayPicker, setShowBirthdayPicker] = useState(false);
   const [showDueDatePicker, setShowDueDatePicker] = useState(false);
-  const [tempBirthday, setTempBirthday] = useState(new Date());
-  const [tempDueDate, setTempDueDate] = useState(new Date());
+  const [tempBirthday, setTempBirthday] = useState<Date>(() => new Date());
+  const [tempDueDate, setTempDueDate] = useState<Date>(() => new Date());
 
   // 初始化表单数据
   useEffect(() => {

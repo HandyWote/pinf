@@ -254,7 +254,11 @@ export default function ClassScreen() {
             {articles.map((article) => (
               <OrganicCard key={article.id} shadow={false} style={styles.articleCard}>
                 <TouchableOpacity activeOpacity={0.8} onPress={() => handleArticlePress(article)} style={styles.articlePressable}>
-                  {article.coverUrl}
+                  {article.coverUrl ? (
+                    <Image source={{ uri: article.coverUrl }} style={styles.articleThumb} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.articleThumb} />
+                  )}
                   <View style={styles.articleBody}>
                     <Text style={styles.articleTitle} numberOfLines={2}>
                       {article.title}

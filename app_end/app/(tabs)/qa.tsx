@@ -36,7 +36,8 @@ const createGreetingMessage = (): UiMessage => ({
   messageId: 'local-greeting',
   role: 'ai',
   content: '你好，我是育儿问答助手。你可以直接输入问题，我会尽快回复。',
-  timestamp: Date.now(),
+  // 固定首屏时间戳，避免静态渲染与客户端首帧时间不一致
+  timestamp: 0,
   status: 'sent',
   localOnly: true,
 });

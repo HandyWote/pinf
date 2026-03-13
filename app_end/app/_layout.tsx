@@ -2,8 +2,8 @@
 
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { LogBox } from 'react-native';
+import { useEffect, useState } from 'react';
+import { LogBox, Platform } from 'react-native';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -64,12 +64,19 @@ function useProtectedRoute() {
 export default function RootLayout() {
   const router = useRouter();
   const { initialize, logout, isAuthenticated, isLoading } = useAuthStore();
+  const [webHydrated, setWebHydrated] = useState(Platform.OS !== 'web');
   const clearAppointments = useAppointmentStore((state) => state.clear);
   const { initialize: initializeBabies } = useBabyStore();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      setWebHydrated(true);
+    }
+  }, []);
 
   useEffect(() => {
     setUnauthorizedHandler(async () => {
@@ -92,6 +99,10 @@ export default function RootLayout() {
   }, [clearAppointments, isAuthenticated, isLoading]);
 
   useProtectedRoute();
+
+  if (!webHydrated) {
+    return <GestureHandlerRootView style={{ flex: 1 }} />;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
